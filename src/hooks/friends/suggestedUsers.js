@@ -33,10 +33,6 @@ export const useCancelFriendRequest = () => {
 
   return useMutation({
     mutationFn: cancelFriendRequestApi,
-    onMutate: () => {
-      dispatch(showAlert({ message: "Canceling friend request...", type: "info", loading: true }));
-      dispatch(setLoading(true));
-    },
     onSuccess: (data, recipientId) => {
       const { friendRequest } = data;
       const requester = friendRequest.requester;
@@ -45,7 +41,6 @@ export const useCancelFriendRequest = () => {
         targetUserId: recipientId,
         requesterProfile: requester,
       });
-      dispatch(showAlert({ message: "Friend request canceled!", type: "success", loading: false }));
 
       // Update "suggestedUsers": mark recipient as available (status "none")
       queryClient.setQueryData(["suggestedUsers"], (oldData) => {

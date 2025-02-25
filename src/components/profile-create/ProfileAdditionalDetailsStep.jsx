@@ -1,16 +1,15 @@
-/* eslint-disable react/prop-types */
-import { Button, MenuItem, Select, Stack, TextField, Typography } from "@mui/material";
+import { useCallback, useRef, useState } from "react";
 import { KeyboardArrowLeft } from "@mui/icons-material";
-import { useState, useRef, useCallback } from "react";
+import { Button, DialogTitle, DialogContent, DialogActions, MenuItem, Select, Stack, TextField, Typography, Divider } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import { updateCurrentStep } from "../../reduxSlices/profileSlice";
 import { useProfileCreation } from "../../hooks/userProfile/userProfileCreation";
 
+// eslint-disable-next-line react/prop-types
 const ProfileAdditionalDetailsStep = ({ coverImage, profileImage }) => {
   const dispatch = useDispatch();
   const profile = useSelector((state) => state.profile.details);
   const isGoogleAccount = useSelector((state) => state.profile.isGoogleAccount);
-
   const { mutate: createProfile, isPending: isCreatingProfile } = useProfileCreation();
 
   const [formValues, setFormValues] = useState({
@@ -82,59 +81,61 @@ const ProfileAdditionalDetailsStep = ({ coverImage, profileImage }) => {
   };
 
   return (
-    <Stack gap={2} component="form" onSubmit={handleSubmit}>
-      {/* Gender Selection */}
-      <Stack>
-        <Typography variant="body1" className="profileHeader">
-          Gender
-        </Typography>
-        <Select value={formValues.gender} onChange={(e) => setFormValues((prev) => ({ ...prev, gender: e.target.value }))} variant="standard" displayEmpty sx={{ marginTop: ".6rem" }} inputProps={{ "aria-label": "Gender selection" }}>
-          <MenuItem value="male">Male</MenuItem>
-          <MenuItem value="female">Female</MenuItem>
-          <MenuItem value="other">Prefer not to say</MenuItem>
-        </Select>
-      </Stack>
+    <form onSubmit={handleSubmit}>
+      <DialogContent>
+        <Stack gap={2}>
+          {/* Gender Selection */}
+          <Stack>
+            <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+              Gender
+            </Typography>
+            <Select value={formValues.gender} onChange={(e) => setFormValues((prev) => ({ ...prev, gender: e.target.value }))} variant="standard" displayEmpty sx={{ mt: 1 }} inputProps={{ "aria-label": "Gender selection" }}>
+              <MenuItem value="male">Male</MenuItem>
+              <MenuItem value="female">Female</MenuItem>
+              <MenuItem value="other">Prefer not to say</MenuItem>
+            </Select>
+          </Stack>
 
-      {/* Date of Birth Input */}
-      <Stack>
-        <Typography variant="body1" className="profileHeader">
-          Date of Birth
-        </Typography>
-        <TextField variant="standard" fullWidth type="date" sx={{ marginTop: ".6rem" }} name="dob" value={formValues.dob} onChange={handleInputChange} onBlur={handleInputBlur} error={Boolean(formErrors.dob)} helperText={formErrors.dob} inputRef={dateOfBirthRef} />
-      </Stack>
+          {/* Date of Birth Input */}
+          <Stack>
+            <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+              Date of Birth
+            </Typography>
+            <TextField variant="standard" fullWidth type="date" sx={{ mt: 1 }} name="dob" value={formValues.dob} onChange={handleInputChange} onBlur={handleInputBlur} error={Boolean(formErrors.dob)} helperText={formErrors.dob} inputRef={dateOfBirthRef} />
+          </Stack>
 
-      {/* About Me Input */}
-      <Stack>
-        <Typography variant="body1" className="profileHeader">
-          About Me
-        </Typography>
-        <TextField
-          variant="standard"
-          fullWidth
-          multiline
-          rows={4}
-          placeholder="Describe yourself (max 200 characters)"
-          sx={{ marginTop: ".6rem" }}
-          name="aboutMe"
-          value={formValues.aboutMe}
-          onChange={handleInputChange}
-          onBlur={handleInputBlur}
-          error={Boolean(formErrors.aboutMe)}
-          helperText={formErrors.aboutMe}
-          inputRef={aboutMeRef}
-        />
-      </Stack>
-
-      {/* Navigation Buttons */}
-      <Stack flexDirection="row" gap={2} paddingY={2}>
-        <Button variant="outlined" fullWidth startIcon={<KeyboardArrowLeft />} sx={{ fontWeight: 600 }} onClick={() => dispatch(updateCurrentStep(1))}>
+          {/* About Me Input */}
+          <Stack>
+            <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+              About Me
+            </Typography>
+            <TextField
+              variant="standard"
+              fullWidth
+              multiline
+              rows={4}
+              placeholder="Describe yourself (max 200 characters)"
+              sx={{ mt: 1 }}
+              name="aboutMe"
+              value={formValues.aboutMe}
+              onChange={handleInputChange}
+              onBlur={handleInputBlur}
+              error={Boolean(formErrors.aboutMe)}
+              helperText={formErrors.aboutMe}
+              inputRef={aboutMeRef}
+            />
+          </Stack>
+        </Stack>
+      </DialogContent>
+      <DialogActions sx={{ justifyContent: "space-between", p: "1rem" }}>
+        <Button variant="outlined" startIcon={<KeyboardArrowLeft />} onClick={() => dispatch(updateCurrentStep(1))} sx={{ fontWeight: 600 }} disabled={isCreatingProfile}>
           Back
         </Button>
-        <Button variant="contained" fullWidth color="secondary" sx={{ fontWeight: 600 }} type="submit" loading={isCreatingProfile} loadingPosition="center">
+        <Button variant="contained" color="secondary" type="submit" sx={{ fontWeight: 600 }} disabled={isCreatingProfile}>
           {isCreatingProfile ? "Creating Profile..." : "Create Profile"}
         </Button>
-      </Stack>
-    </Stack>
+      </DialogActions>
+    </form>
   );
 };
 

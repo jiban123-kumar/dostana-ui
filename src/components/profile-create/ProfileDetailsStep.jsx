@@ -1,7 +1,7 @@
-import { Button, Stack, TextField, Typography } from "@mui/material";
+import { useCallback, useRef, useState } from "react";
 import { ArrowRightAlt, KeyboardArrowLeft } from "@mui/icons-material";
+import { Button, DialogTitle, DialogContent, DialogActions, Stack, TextField, Typography, Divider } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
-import { useState, useRef, useCallback } from "react";
 import { updateCurrentStep, updateProfileDetails } from "../../reduxSlices/profileSlice";
 
 const ProfileDetailsStep = () => {
@@ -24,7 +24,7 @@ const ProfileDetailsStep = () => {
 
   // Validation functions
   const validateName = useCallback((value, fieldName) => {
-    if (!value) return ""; // Don't validate if empty
+    if (!value) return "";
     if (value.length < 3) return `${fieldName} must be at least 3 characters long`;
     if (value.length > 15) return `${fieldName} must be at most 15 characters long`;
     if (!/^[a-zA-Z\s]+$/.test(value)) return `${fieldName} must contain only alphabets`;
@@ -32,7 +32,7 @@ const ProfileDetailsStep = () => {
   }, []);
 
   const validateMobileNumber = useCallback((value) => {
-    if (!value.trim()) return ""; // Optional field
+    if (!value.trim()) return "";
     if (value.length !== 10) return "Mobile number must be 10 digits long";
     return "";
   }, []);
@@ -48,7 +48,6 @@ const ProfileDetailsStep = () => {
     (e) => {
       const { name, value } = e.target;
       let error = "";
-
       if (value.trim()) {
         if (name === "firstName" || name === "lastName") {
           error = validateName(value, name === "firstName" ? "First Name" : "Last Name");
@@ -56,7 +55,6 @@ const ProfileDetailsStep = () => {
           error = validateMobileNumber(value);
         }
       }
-
       setFormErrors((prev) => ({ ...prev, [name]: error }));
     },
     [validateName, validateMobileNumber]
@@ -66,8 +64,6 @@ const ProfileDetailsStep = () => {
   const handleSubmit = useCallback(
     (e) => {
       e.preventDefault();
-
-      // Perform final validation
       const errors = {
         firstName: validateName(formValues.firstName, "First Name"),
         lastName: validateName(formValues.lastName, "Last Name"),
@@ -92,63 +88,54 @@ const ProfileDetailsStep = () => {
   );
 
   return (
-    <Stack gap={2} component="form" onSubmit={handleSubmit}>
-      {/* Profile Name Section */}
-      <Stack>
-        <Typography variant="body1" className="profileHeader">
-          Profile Name
-        </Typography>
-        <Stack spacing={1}>
-          <TextField label="First Name" variant="standard" fullWidth name="firstName" value={formValues.firstName} onChange={handleInputChange} onBlur={handleInputBlur} error={Boolean(formErrors.firstName)} helperText={formErrors.firstName} inputRef={firstNameRef} />
-          <TextField label="Last Name" variant="standard" fullWidth name="lastName" value={formValues.lastName} onChange={handleInputChange} onBlur={handleInputBlur} error={Boolean(formErrors.lastName)} helperText={formErrors.lastName} inputRef={lastNameRef} />
-        </Stack>
-      </Stack>
+    <form onSubmit={handleSubmit}>
+      <DialogContent>
+        <Stack gap={2}>
+          {/* Profile Name Section */}
+          <Stack>
+            <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+              Profile Name
+            </Typography>
+            <Stack spacing={1}>
+              <TextField label="First Name" variant="standard" fullWidth name="firstName" value={formValues.firstName} onChange={handleInputChange} onBlur={handleInputBlur} error={Boolean(formErrors.firstName)} helperText={formErrors.firstName} inputRef={firstNameRef} />
+              <TextField label="Last Name" variant="standard" fullWidth name="lastName" value={formValues.lastName} onChange={handleInputChange} onBlur={handleInputBlur} error={Boolean(formErrors.lastName)} helperText={formErrors.lastName} inputRef={lastNameRef} />
+            </Stack>
+          </Stack>
 
-      {/* Mobile Number Section */}
-      <Stack>
-        <Typography variant="body1" className="profileHeader">
-          Mobile Number
-        </Typography>
-        <Stack flexDirection="row" gap="1rem" marginTop="0.6rem">
-          <TextField
-            variant="standard"
-            value="+91"
-            sx={{ width: "5rem" }}
-            slotProps={{ input: { readOnly: true } }} // Used `slotProps` instead of `inputProps`
-          />
-          <TextField
-            variant="standard"
-            fullWidth
-            placeholder="Enter your mobile number (optional)"
-            type="number"
-            name="mobileNumber"
-            value={formValues.mobileNumber}
-            onChange={handleInputChange}
-            onBlur={handleInputBlur}
-            error={Boolean(formErrors.mobileNumber)}
-            helperText={formErrors.mobileNumber}
-            inputRef={mobileNumberRef}
-          />
+          {/* Mobile Number Section */}
+          <Stack>
+            <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+              Mobile Number
+            </Typography>
+            <Stack direction="row" spacing={2} mt={1}>
+              <TextField variant="standard" value="+91" sx={{ width: "5rem" }} InputProps={{ readOnly: true }} />
+              <TextField
+                variant="standard"
+                fullWidth
+                placeholder="Enter your mobile number (optional)"
+                type="number"
+                name="mobileNumber"
+                value={formValues.mobileNumber}
+                onChange={handleInputChange}
+                onBlur={handleInputBlur}
+                error={Boolean(formErrors.mobileNumber)}
+                helperText={formErrors.mobileNumber}
+                inputRef={mobileNumberRef}
+              />
+            </Stack>
+          </Stack>
         </Stack>
-      </Stack>
-
-      {/* Navigation Buttons */}
-      <Stack flexDirection="row" gap={2} paddingY={1} marginTop={2}>
-        <Button
-          variant="outlined"
-          fullWidth
-          startIcon={<KeyboardArrowLeft />}
-          sx={{ fontWeight: 600 }}
-          size="large"
-          onClick={() => dispatch(updateCurrentStep(0))} // Go back to the previous step
-        >
+      </DialogContent>
+      <Divider />
+      <DialogActions sx={{ justifyContent: "space-between", p: "1rem" }}>
+        <Button variant="outlined" startIcon={<KeyboardArrowLeft />} onClick={() => dispatch(updateCurrentStep(0))} sx={{ fontWeight: 600 }}>
           Back
         </Button>
-        <Button variant="contained" fullWidth endIcon={<ArrowRightAlt />} size="large" sx={{ fontWeight: 600 }} type="submit">
+        <Button variant="contained" endIcon={<ArrowRightAlt />} type="submit" sx={{ fontWeight: 600 }}>
           Next
         </Button>
-      </Stack>
-    </Stack>
+      </DialogActions>
+    </form>
   );
 };
 
