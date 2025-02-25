@@ -14,8 +14,6 @@ export default function SnackbarAlert() {
   const dispatch = useDispatch();
   const { isVisible, message, type, loading } = useSelector((state) => state.alert);
 
-  // Fetch notification setting (true means notifications are enabled)
-
   // Close the alert automatically only if notifications are enabled
   useEffect(() => {
     if (type === "success" || type === "error") {
@@ -26,7 +24,11 @@ export default function SnackbarAlert() {
     }
   }, [type, dispatch, message]);
 
-  const handleCloseSnackbar = () => {
+  // Updated handleCloseSnackbar to ignore "clickaway" events
+  const handleCloseSnackbar = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
     dispatch(hideAlert());
   };
 
@@ -44,13 +46,7 @@ export default function SnackbarAlert() {
   };
 
   return (
-    <Snackbar
-      open={isVisible} // Only show the Snackbar if notifications are enabled
-      onClose={handleCloseSnackbar}
-      TransitionComponent={SlideTransition}
-      autoHideDuration={loading ? null : 6200}
-      anchorOrigin={{ vertical: "top", horizontal: "right" }}
-    >
+    <Snackbar open={isVisible} onClose={handleCloseSnackbar} TransitionComponent={SlideTransition} autoHideDuration={loading ? null : 6200} anchorOrigin={{ vertical: "top", horizontal: "right" }}>
       <Alert
         severity={type}
         sx={{
