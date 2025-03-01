@@ -26,7 +26,7 @@ class ErrorBoundary extends React.Component {
     if (this.state.hasError) {
       return (
         <Stack height={"100vh"} width={"100vw"} justifyContent={"center"} alignItems={"center"} component={Backdrop} open={true} bgcolor={"#fff"}>
-          <Box sx={{ position: "relative", width: "50%", height: "50%" }}>
+          <Box sx={{ position: "relative", width: { xs: "80%" }, height: { xs: "80%" } }}>
             <Lottie animationData={errorBoundaryAnimation} style={{ width: "100%", height: "100%" }} autoplay loop={false} />
 
             {/* Clickable area for reset */}

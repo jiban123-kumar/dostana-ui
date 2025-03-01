@@ -30,6 +30,8 @@ export const useToggleSaveContent = ({ type = "post" }) => {
       // data returns { message, content, isSaved }
       // Update the "contents" cache.
       console.log(data);
+      console.log(contentId);
+      const userId = data?.content?.user?._id;
       queryClient.setQueryData(["content", contentId], (oldData) => {
         if (!oldData) return oldData;
         return {
@@ -47,7 +49,7 @@ export const useToggleSaveContent = ({ type = "post" }) => {
           })),
         };
       });
-      queryClient.setQueryData(["contents", data.userId], (oldData) => {
+      queryClient.setQueryData(["contents", userId], (oldData) => {
         if (!oldData) return oldData;
         console.log(oldData);
         return {

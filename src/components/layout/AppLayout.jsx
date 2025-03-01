@@ -1,5 +1,5 @@
 import React, { useContext, memo, useEffect, useState } from "react";
-import { Stack } from "@mui/material";
+import { Stack, useMediaQuery } from "@mui/material";
 import { Outlet, useNavigate } from "react-router-dom";
 import TopNav from "./top-nav-bar/TopNav";
 import SideNav from "./SideNav";
@@ -8,7 +8,7 @@ import { useSocketFriendListener } from "../../socketHooks/useSocketFriendListen
 import { useSocketContentListener } from "../../socketHooks/useSocketContentListener";
 import { useSocketFriendStatusListener } from "../../socketHooks/useSocketFriendStatusListener";
 import { useSocketMessageListener } from "../../socketHooks/useSocketMessageListener";
-import { Loading } from "../common/Loading";
+import Loading from "../common/Loading";
 import { useSocketNotificationListener } from "../../socketHooks/useSocketNotificationListener";
 import { useDispatch } from "react-redux";
 import { showAlert } from "../../reduxSlices/alertSlice";
@@ -17,6 +17,7 @@ import { useUserProfile } from "../../hooks/userProfile/userProfile";
 const AppLayout = () => {
   const { isLoading: isProfileFetching, data: userProfile, isError: isProfileError, isFetched: isProfileFetched } = useUserProfile();
   const [isReady, setIsReady] = useState(false);
+  const bellow1300px = useMediaQuery("(max-width: 1300px)");
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -31,7 +32,8 @@ const AppLayout = () => {
   useSocketNotificationListener(socket);
 
   useEffect(() => {
-    if (isProfileError) {
+    if (isProfileFetching) return;
+    if (isProfileError || !userProfile) {
       dispatch(
         showAlert({
           message: "Something went wrong. Please login again.",
@@ -44,9 +46,12 @@ const AppLayout = () => {
       if (!userProfile?.isProfileComplete) {
         navigate("/welcome");
       }
+      if (userProfile?.isProfileComplete) {
+        localStorage.setItem("isLoggedIn", true);
+      }
       setIsReady(true);
     }
-  }, [isProfileError, isProfileFetched, userProfile, navigate, dispatch]);
+  }, [isProfileError, isProfileFetched, userProfile, navigate, dispatch, isProfileFetching]);
 
   if (isProfileFetching || !isReady) {
     return <Loading />;
@@ -63,7 +68,7 @@ const AppLayout = () => {
           flexDirection: "row",
         }}
       >
-        <SideNav />
+        {!bellow1300px && <SideNav />}
         <Stack
           alignItems="center"
           sx={{

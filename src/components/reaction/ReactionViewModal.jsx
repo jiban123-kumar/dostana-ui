@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 import React, { useState } from "react";
-import { Avatar, Dialog, DialogContent, List, ListItemButton, Typography, Stack, Box, Button, Tooltip } from "@mui/material";
+import { Avatar, Dialog, DialogContent, List, ListItemButton, Typography, Stack, Box, Button, Tooltip, useMediaQuery } from "@mui/material";
 import { ThumbUpAlt } from "@mui/icons-material";
 import Lottie from "lottie-react";
 import ReactionViewModalSkeleton from "../skeletons/ReactionViewModalSkeleton";
@@ -15,6 +15,7 @@ const ReactionViewModal = ({ onClose, open, content }) => {
   const { _id: contentId } = content || {};
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
+  const isSmallScreen = useMediaQuery("(max-width:900px)");
 
   // Fetch reactions (paginated, max 10 per page)
   const { data: reactionsData, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = useGetReactionsForContent({ contentId });
@@ -25,16 +26,15 @@ const ReactionViewModal = ({ onClose, open, content }) => {
   // Flatten the paginated data
   const reactionsList = reactionsData?.pages?.flatMap((page) => page.reactionDetails.reactions) || [];
   const reactionDetails = reactionsData?.pages?.flatMap((page) => page.reactionDetails) || [];
-  console.log(reactionsList);
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+    <Dialog open={open} onClose={onClose} maxWidth={isSmallScreen ? "xs" : "sm"} fullWidth>
       <DialogContent
         onScroll={(e) => setScrolled(e.target.scrollTop > 0)}
         sx={{
           display: "flex",
           flexDirection: "column",
-          height: "90vh",
+          maxHeight: "70vh",
           p: 2,
           overflowY: "auto",
         }}
@@ -124,14 +124,16 @@ const ReactionViewModal = ({ onClose, open, content }) => {
                           />
                         </Tooltip>
                         <Box flex="1">
-                          <Typography variant="body1" sx={{ fontWeight: "bold", fontFamily: "poppins" }}>
+                          <Typography variant="body1" sx={{ fontWeight: "bold", fontSize: { xs: ".8rem", md: ".9rem" } }}>
                             {reaction?.user?.firstName} {reaction?.user?.lastName}
                           </Typography>
                           <Typography variant="caption" color="text.secondary" sx={{ fontFamily: "poppins" }}>
                             {reaction?.type || "Like"}
                           </Typography>
                         </Box>
-                        {animation ? <Lottie animationData={animation} loop autoPlay style={{ height: "3rem", width: "3rem" }} /> : <ThumbUpAlt sx={{ color: "gray", fontSize: "2rem" }} />}
+                        <Stack sx={{ width: { md: "3rem", xs: "2rem" }, height: { md: "3rem", xs: "2rem" } }}>
+                          {animation ? <Lottie animationData={animation} loop autoPlay style={{ height: "100%", width: "100%" }} /> : <ThumbUpAlt sx={{ color: "gray", fontSize: "2rem" }} />}
+                        </Stack>
                       </ListItemButton>
                     );
                   })}

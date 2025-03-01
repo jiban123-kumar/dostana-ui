@@ -4,7 +4,7 @@ import { Stack } from "@mui/material";
 
 const FriendsView = () => {
   return (
-    <Stack gap={4} mt="1rem">
+    <Stack gap={4} my="1rem" width={"100%"}>
       <FriendAndRequestCard mode="friends" />
       <FriendAndRequestCard mode="suggestedUsers" />
     </Stack>

@@ -59,65 +59,67 @@ const CommentItem = ({ comment, contentOwner, isFetchingComment }) => {
   const showDeleteBtn = isSelfContent || selfComment;
 
   return (
-    <motion.div initial={{ x: "-100%" }} animate={{ x: 0 }} exit={{ opacity: 0, x: "-100%" }} transition={{ duration: 0.3 }} style={{ maxWidth: "70%", minWidth: "40%" }}>
-      <Box display="flex" alignItems="flex-start" mb={2} width="100%">
-        <Tooltip title="Visit Profile">
-          <Avatar src={profileImage} sx={{ boxShadow: 3, cursor: "pointer" }} />
-        </Tooltip>
-        <Box ml={2} flex={1}>
-          <Paper
-            elevation={3}
-            sx={{
-              borderRadius: "15px",
-              position: "relative",
-              p: ".4rem",
-            }}
-          >
-            <Stack flexDirection="row" justifyContent="space-between" alignItems="center" pl={1.5} width="100%">
-              <Typography variant="subtitle2" color="text.secondary" sx={{ fontWeight: "bold" }}>
-                {firstName} {lastName}
-              </Typography>
-              {showDeleteBtn && (
-                <>
-                  <Tooltip title={"Options"}>
-                    <IconButton onMouseEnter={handleMenuOpen} onClick={handleMenuOpen} sx={{ position: "absolute", right: ".2rem", top: ".2rem" }}>
-                      <MoreVertIcon sx={{ color: "#0000008d", width: "1.4rem", height: "1.4rem" }} />
-                    </IconButton>
-                  </Tooltip>
-                  <Menu anchorEl={anchorEl} open={open} onClose={handleMenuClose}>
-                    {isDeletingComment ? (
-                      <MenuItem disabled>
-                        <CircularProgress size={20} color="error" sx={{ mr: 1 }} />
-                        Deleting...
-                      </MenuItem>
-                    ) : deleteError ? (
-                      <MenuItem>
-                        <Typography variant="inherit" color="error" sx={{ mr: 1 }}>
-                          Failed to delete
-                        </Typography>
-                        <IconButton onClick={handleDelete} size="small">
-                          <RefreshIcon fontSize="small" />
-                        </IconButton>
-                      </MenuItem>
-                    ) : (
-                      <MenuItem onClick={handleDelete}>Delete</MenuItem>
-                    )}
-                  </Menu>
-                </>
-              )}
-            </Stack>
-            <Stack p={1.5} pt={1}>
-              <Typography variant="body1" sx={{ wordBreak: "break-word" }}>
-                {commentText}
-              </Typography>
-              <Typography variant="caption" color="text.secondary" alignSelf="flex-end">
-                {formatDate(createdAt)}
-              </Typography>
-            </Stack>
-          </Paper>
+    <Stack sx={{ minWidth: { md: "18rem", sm: "15rem", xs: "60%" }, maxWidth: { md: "70%", sm: "80%", xs: "90%" } }}>
+      <motion.div initial={{ x: "-100%" }} animate={{ x: 0 }} exit={{ opacity: 0, x: "-100%" }} transition={{ duration: 0.3 }} style={{ height: "100%" }}>
+        <Box display="flex" alignItems="flex-start" mb={2} width="100%">
+          <Tooltip title="Visit Profile">
+            <Avatar src={profileImage} sx={{ boxShadow: 3, cursor: "pointer" }} />
+          </Tooltip>
+          <Box ml={2} flex={1}>
+            <Paper
+              elevation={3}
+              sx={{
+                borderRadius: "15px",
+                position: "relative",
+                p: ".4rem",
+              }}
+            >
+              <Stack flexDirection="row" justifyContent="space-between" alignItems="center" pl={1.5} width="100%">
+                <Typography variant="subtitle2" color="text.secondary" sx={{ fontWeight: "bold", mr: 5 }}>
+                  {firstName} {lastName}
+                </Typography>
+                {showDeleteBtn && (
+                  <>
+                    <Tooltip title={"Options"}>
+                      <IconButton onMouseEnter={handleMenuOpen} onClick={handleMenuOpen} sx={{ position: "absolute", right: ".2rem", top: ".2rem" }}>
+                        <MoreVertIcon sx={{ color: "#0000008d", width: "1.4rem", height: "1.4rem" }} />
+                      </IconButton>
+                    </Tooltip>
+                    <Menu anchorEl={anchorEl} open={open} onClose={handleMenuClose}>
+                      {isDeletingComment ? (
+                        <MenuItem disabled>
+                          <CircularProgress size={20} color="error" sx={{ mr: 1 }} />
+                          Deleting...
+                        </MenuItem>
+                      ) : deleteError ? (
+                        <MenuItem>
+                          <Typography variant="inherit" color="error" sx={{ mr: 1 }}>
+                            Failed to delete
+                          </Typography>
+                          <IconButton onClick={handleDelete} size="small">
+                            <RefreshIcon fontSize="small" />
+                          </IconButton>
+                        </MenuItem>
+                      ) : (
+                        <MenuItem onClick={handleDelete}>Delete</MenuItem>
+                      )}
+                    </Menu>
+                  </>
+                )}
+              </Stack>
+              <Stack p={1.5} pt={1}>
+                <Typography variant="body1" sx={{ wordBreak: "break-word" }}>
+                  {commentText}
+                </Typography>
+                <Typography variant="caption" color="text.secondary" alignSelf="flex-end">
+                  {formatDate(createdAt)}
+                </Typography>
+              </Stack>
+            </Paper>
+          </Box>
         </Box>
-      </Box>
-    </motion.div>
+      </motion.div>
+    </Stack>
   );
 };
 

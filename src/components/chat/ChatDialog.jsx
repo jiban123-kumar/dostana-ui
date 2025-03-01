@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
-import { Avatar, Box, Dialog, DialogContent, Stack, Typography, CircularProgress, SpeedDial, SpeedDialAction, styled, Badge, Button } from "@mui/material";
+import { Avatar, Box, Dialog, DialogContent, Stack, Typography, CircularProgress, SpeedDial, SpeedDialAction, styled, Badge, Button, useMediaQuery, IconButton } from "@mui/material";
 import { Archive as ArchiveIcon, Unarchive as UnarchiveIcon, Delete as DeleteIcon, MoreVert as MoreVertIcon } from "@mui/icons-material";
 import { AnimatePresence } from "framer-motion";
 import { formatDate } from "../../utilsFunction/dateFn";
@@ -12,10 +12,11 @@ import groupedMessagesByDate from "../../utilsFunction/groupedMessagesByDate";
 import { useUserProfile } from "../../hooks/userProfile/userProfile";
 import { useDeleteChat, useGetChatByUserId } from "../../hooks/chat/chat";
 import { useGetFriendOnlineStatus } from "../../hooks/friends/friends";
-import { useMarkMessageAsReadByIds, useMarkMessagesAsRead, useSendMessage } from "../../hooks/chat/message";
+import { useMarkMessageAsReadByIds, useSendMessage } from "../../hooks/chat/message";
 import { useToggleArchive } from "../../hooks/chat/chatSetting";
 import { chatSecondaryAnimation, chatPrimaryAnimation } from "../../animation";
 import MessageInput from "./MessageInput"; // New input component
+import ArrowCircleLeftIcon from "@mui/icons-material/ArrowCircleLeft";
 
 const StyledBadge = styled(Badge)(({ theme }) => ({
   "& .MuiBadge-badge": {
@@ -46,6 +47,7 @@ const ChatDialog = ({ open, handleClose }) => {
   const navigate = useNavigate();
   const { data: userProfile } = useUserProfile();
 
+  const inputRef = useRef(null);
   const [searchParams] = useSearchParams();
 
   const name = searchParams.get("name");
@@ -54,6 +56,8 @@ const ChatDialog = ({ open, handleClose }) => {
   // ─── FETCH DATA (CONVERSATION & USER STATUS) ───────────────────────────
   const { data: chatData, isLoading: isLoadingConversation, fetchNextPage, hasNextPage, isFetchingNextPage } = useGetChatByUserId(userId);
   const { mutate: markMessagesAsReadByIds } = useMarkMessageAsReadByIds();
+
+  const isBelow600 = useMediaQuery("(max-width:600px)");
 
   const isArchived = useMemo(() => {
     return chatData?.pages[0]?.archived;
@@ -162,7 +166,7 @@ const ChatDialog = ({ open, handleClose }) => {
       sentAt: new Date(),
     };
 
-    setPendingMessages((prev) => [...prev, newPendingMessage].slice(-4));
+    setPendingMessages((prev) => [...prev, newPendingMessage]);
 
     const formData = new FormData();
     formData.append("text", messageText);
@@ -185,23 +189,13 @@ const ChatDialog = ({ open, handleClose }) => {
     formData.append("recipientId", userId);
     message.mediaFiles.forEach((file) => formData.append("media", file));
 
-    const newClientId = Date.now().toString();
-    const newPendingMessage = {
-      clientId: newClientId,
-      ...message,
-      status: "sending",
-    };
+    // Update the existing pending message to "sending"
+    setPendingMessages((prev) => prev.map((msg) => (msg.clientId === message.clientId ? { ...msg, status: "sending" } : msg)));
 
-    setPendingMessages((prev) => [...prev.filter((msg) => msg.clientId !== message.clientId), newPendingMessage].slice(-4));
-
-    performSendMessage(
-      formData,
-      newClientId,
-      (newStatus) => {
-        setPendingMessages((prev) => prev.map((msg) => (msg.clientId === newClientId ? { ...msg, status: newStatus } : msg)));
-      },
-      message.mediaPreviews
-    );
+    // Use the same clientId for retrying
+    performSendMessage(formData, message.clientId, (newStatus) => {
+      setPendingMessages((prev) => prev.map((msg) => (msg.clientId === message.clientId ? { ...msg, status: newStatus } : msg)));
+    });
   };
 
   const handleRemovePending = (message) => {
@@ -232,10 +226,15 @@ const ChatDialog = ({ open, handleClose }) => {
     return "";
   };
 
+  const handleInputFocus = () => {
+    console.log("Input focused");
+    if (inputRef?.current) inputRef.current.focus();
+  };
+
   return (
-    <Dialog open={Boolean(userId)} maxWidth="md" fullWidth onClose={() => navigate(-1)}>
+    <Dialog open={Boolean(userId)} maxWidth="sm" fullWidth onClose={() => navigate(-1)} fullScreen={isBelow600}>
       {/* Pending messages with animation */}
-      <Box sx={{ position: "absolute", top: "1rem", left: "1rem", zIndex: 1400 }}>
+      <Box sx={{ position: "absolute", top: "1rem", left: "1rem", zIndex: 1400, maxHeight: "70vh", overflowY: "auto", overflowX: "hidden", width: "80%" }}>
         <AnimatePresence>
           {pendingMessages.map((message) => (
             <SendingMessages key={message.clientId} message={message} onRetry={handleRetry} onRemove={handleRemovePending} />
@@ -243,33 +242,67 @@ const ChatDialog = ({ open, handleClose }) => {
         </AnimatePresence>
       </Box>
 
-      <DialogContent sx={{ display: "flex", flexDirection: "column", height: "80vh" }}>
+      <DialogContent sx={{ display: "flex", flexDirection: "column", height: { md: "70vh", xs: "80vh" }, p: { xs: ".4rem", sm: "1rem" } }}>
         {/* Header with user info and actions */}
-        <Stack direction="row" alignItems="center" spacing={2} p={2} sx={{ borderRadius: "1rem", boxShadow: 3, mb: 2 }} justifyContent="space-between">
-          <Stack direction="row" spacing={1} alignItems="center">
-            {statusData?.isOnline ? (
-              <StyledBadge overlap="circular" anchorOrigin={{ vertical: "bottom", horizontal: "right" }} variant="dot">
-                <Avatar src={profileImage || recipient?.profileImage} sx={{ height: "3rem", width: "3rem", boxShadow: 3 }} />
-              </StyledBadge>
-            ) : (
-              <Avatar src={recipient?.profileImage} sx={{ height: "3rem", width: "3rem", boxShadow: 3 }} />
+        <Stack direction="row" alignItems="center" spacing={2} p={isBelow600 ? 0.6 : 2} sx={{ position: "relative", borderRadius: "1rem", boxShadow: 3, mb: 2 }} justifyContent="space-between">
+          <Stack direction="row" spacing={isBelow600 ? 0 : 2} alignItems="center">
+            {isBelow600 && (
+              <IconButton onClick={() => navigate(-1)}>
+                <ArrowCircleLeftIcon sx={{ height: "2rem", width: "2rem" }} />
+              </IconButton>
             )}
-            <Stack>
-              {name ||
-                recipient?.firstName ||
-                (recipient?.lastName && (
-                  <Typography variant="subtitle1" fontWeight="bold">
+            <Stack flexDirection={"row"} alignItems={"center"} ml="-.8rem">
+              <IconButton onClick={() => navigate(`/user-profile/${userId}`)}>
+                {statusData?.isOnline ? (
+                  <StyledBadge overlap="circular" anchorOrigin={{ vertical: "bottom", horizontal: "right" }} variant="dot">
+                    <Avatar src={profileImage || recipient?.profileImage} sx={{ height: "3rem", width: "3rem", boxShadow: 3 }} />
+                  </StyledBadge>
+                ) : (
+                  <Avatar src={recipient?.profileImage} sx={{ height: { xs: "2.5rem", sm: "3rem" }, width: { xs: "2.5rem", sm: "3rem" }, boxShadow: 3 }} />
+                )}
+              </IconButton>
+              <Stack>
+                {(name || recipient?.firstName || recipient?.lastName) && (
+                  <Typography variant="subtitle1" fontWeight="bold" sx={{ fontSize: { xs: "0.9rem", sm: "1rem", md: "1.1rem" } }}>
                     {name || `${recipient?.firstName} ${recipient?.lastName}`}
                   </Typography>
-                ))}
-              <Typography variant="caption" color="textSecondary">
-                {getStatusText()}
-              </Typography>
+                )}
+                <Typography variant="caption" color="textSecondary" sx={{ fontSize: { xs: "0.7rem", sm: "0.8rem", md: "0.9rem" } }}>
+                  {getStatusText()}
+                </Typography>
+              </Stack>
             </Stack>
           </Stack>
-          <SpeedDial ariaLabel="Chat actions" icon={<MoreVertIcon />} direction="left" FabProps={{ size: "small" }}>
-            <SpeedDialAction icon={isTogglingArchive ? <CircularProgress size={24} color="inherit" /> : isArchived ? <UnarchiveIcon fontSize="small" /> : <ArchiveIcon fontSize="small" />} tooltipTitle={isArchived ? "Unarchive" : "Archive"} onClick={handleArchiveToggle} />
-            <SpeedDialAction icon={isDeleting ? <CircularProgress size={24} color="inherit" /> : <DeleteIcon fontSize="small" />} tooltipTitle="Delete Conversation" onClick={handleConversationDelete} />
+          <SpeedDial
+            ariaLabel="Chat actions"
+            icon={<MoreVertIcon />}
+            direction="left"
+            FabProps={{ size: "small" }}
+            sx={{
+              position: "absolute",
+              right: "1rem",
+              top: "50%",
+              transform: "translateY(-50%)",
+            }}
+          >
+            <SpeedDialAction
+              icon={isTogglingArchive ? <CircularProgress size={24} color="inherit" /> : isArchived ? <UnarchiveIcon fontSize="small" /> : <ArchiveIcon fontSize="small" />}
+              tooltipTitle={isArchived ? "Unarchive" : "Archive"}
+              onClick={handleArchiveToggle}
+              FabProps={{
+                sx: {
+                  bgcolor: isArchived ? "green" : "inherit", // Green if archived
+                  "&:hover": {
+                    bgcolor: isArchived ? "darkgreen" : "gray", // Dark green on hover if archived
+                  },
+                },
+              }}
+            />
+            <SpeedDialAction
+              icon={isDeleting ? <CircularProgress size={24} color="inherit" /> : <DeleteIcon fontSize="small" />}
+              tooltipTitle="Delete Conversation"
+              onClick={handleConversationDelete}
+            />
           </SpeedDial>
         </Stack>
 
@@ -285,18 +318,24 @@ const ChatDialog = ({ open, handleClose }) => {
                 height: "100%",
               }}
             >
-              <Lottie animationData={chatPrimaryAnimation} style={{ height: "70%", width: "70%" }} />
+              <Lottie animationData={chatPrimaryAnimation} style={{ height: "60%", width: "60%" }} />
               <Typography variant="caption">getting messages</Typography>
             </Box>
           ) : Object.keys(groupedMessagesByDate(messages) || {}).length === 0 ? (
             <Stack alignItems="center" justifyContent="center" height="100%" spacing={2} sx={{ textAlign: "center" }}>
-              <Lottie animationData={chatSecondaryAnimation} style={{ height: 200 }} />
-              <Typography variant="h6">No conversation yet</Typography>
+              <Stack sx={{ width: { md: "15rem", xs: "10rem" }, height: { md: "15rem", xs: "10rem" } }}>
+                <Lottie animationData={chatSecondaryAnimation} style={{ height: "100%", width: "100%" }} />
+              </Stack>
+              <Typography variant="h6" sx={{ fontWeight: "bold", fontSize: { md: ".9rem", xs: ".8rem" }, transform: "translateY(-2rem)" }}>
+                No conversation yet
+              </Typography>
               <Button
                 variant="contained"
-                onClick={() => {
-                  // Optionally, you could trigger a focus inside MessageInput here.
+                onClick={handleInputFocus}
+                sx={{
+                  fontSize: { transform: "translateY(-2rem)", fontWeight: "bold" },
                 }}
+                size={"small"}
               >
                 Start Messaging
               </Button>
@@ -347,7 +386,7 @@ const ChatDialog = ({ open, handleClose }) => {
         </Box>
 
         {/* Message input area using the new MessageInput component */}
-        <MessageInput onSend={handleSendMessage} />
+        <MessageInput onSend={handleSendMessage} inputRef={inputRef} />
       </DialogContent>
     </Dialog>
   );

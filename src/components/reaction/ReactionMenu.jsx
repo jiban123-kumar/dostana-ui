@@ -18,7 +18,9 @@ const ReactionMenu = ({ onSelect }) => {
         {reactionAnimations.map((icon) => (
           <Tooltip key={icon.name} title={icon.name.charAt(0).toUpperCase() + icon.name.slice(1)}>
             <IconButton onClick={() => onSelect(icon.name)}>
-              <Lottie animationData={icon.animationData} style={{ height: "2.6rem", width: "2.6rem" }} />
+              <Stack sx={{ height: { sm: "2.6rem", xs: "2rem" }, width: { sm: "2.6rem", xs: "2rem" } }}>
+                <Lottie animationData={icon.animationData} style={{ height: "100%", width: "100%" }} />
+              </Stack>
             </IconButton>
           </Tooltip>
         ))}

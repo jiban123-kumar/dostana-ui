@@ -10,7 +10,7 @@ const deleteCommentApi = async ({ commentId }) => (await axiosInstance.delete(`/
 const fetchCommentsForContent = async ({ pageParam = 1, contentId, limit = 10 }) => (await axiosInstance.get(`/comment/${contentId}?page=${pageParam}&limit=${limit}`)).data;
 
 // Hook: Create a Comment (updates query data only when the API call is successful)
-export const useCreateComment = () => {
+export const useCreateComment = ({ type }) => {
   const queryClient = useQueryClient();
   const { mutate: createNotification } = useCreateNotification();
   const socket = useContext(SocketContext);
@@ -23,7 +23,7 @@ export const useCreateComment = () => {
       createNotification({
         type: "content-comment",
         referenceId: contentId,
-        action: "Commented on your post!",
+        action: `Commented on your ${type}!`,
         user: targetUserId,
       });
       socket.emit("contentNewComment", { targetUserId, contentId, newComment });

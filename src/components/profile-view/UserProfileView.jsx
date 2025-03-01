@@ -25,7 +25,7 @@ const UserProfileView = () => {
 
   return (
     <Stack flex={1} width="100%" alignItems="center" overflow="auto" pb={2}>
-      <Stack sx={{ width: "60rem" }}>
+      <Stack sx={{ width: { xs: "99%", md: "55rem" } }}>
         {isProfileFetching ? <UserProfileFrontViewSkeleton isSelf={isSelf} /> : <UserProfileFrontView userProfile={profile} />}
         <UserProfilePageNavTab />
         <Stack mt={1} justifyContent="center" alignItems="center" width="100%">

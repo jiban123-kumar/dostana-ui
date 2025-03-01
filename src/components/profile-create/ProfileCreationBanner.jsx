@@ -29,34 +29,40 @@ const ProfileCreationBanner = () => {
       <Stack
         sx={{
           position: "relative",
-          width: "40rem",
-          height: "40rem",
           textAlign: "center",
+          height: "100%",
+          width: "100%",
         }}
         alignItems="center"
         justifyContent="center"
       >
-        {isLoaded && <Lottie {...animationOptions} style={{ height: "50%", width: "50%" }} />}
+        {isLoaded && <Lottie {...animationOptions} style={{ height: "60%", width: "60%" }} />}
+        <Stack sx={{ transform: "translateY(-5rem)" }}>
+          <Stack flexDirection="row" alignItems="center" justifyContent="center" gap={2}>
+            <Typography variant="h4" sx={{ fontSize: { md: "2rem", xs: "1.2rem", sm: "1.5rem" } }}>
+              Welcome To
+            </Typography>
+            <Box component="img" src={secondaryCompanyLogo} sx={{ width: { md: "10rem", xs: "6rem", sm: "8rem", transform: "translateX(-.7rem)" } }} />
+          </Stack>
 
-        <Stack flexDirection="row" alignItems="center" justifyContent="center" gap={2} mt={2}>
-          <Typography variant="h4">Welcome To</Typography>
-          <Box component="img" src={secondaryCompanyLogo} width="10rem" />
+          <Button
+            sx={{
+              fontSize: ".8rem",
+              marginTop: "2rem",
+              fontWeight: "bold",
+              borderRadius: ".4rem",
+              alignSelf: "center",
+              wordBreak: "keep-all",
+              whiteSpace: "nowrap",
+              minWidth: { md: "15rem", xs: "12rem" },
+            }}
+            variant="contained"
+            color="secondary"
+            onClick={() => navigate("/profile-setup")}
+          >
+            Create Your Profile
+          </Button>
         </Stack>
-
-        <Button
-          sx={{
-            paddingX: "2.4rem",
-            fontSize: ".8rem",
-            marginTop: "2rem",
-            fontWeight: "bold",
-            borderRadius: ".4rem",
-          }}
-          variant="contained"
-          color="secondary"
-          onClick={() => navigate("/profile-setup")}
-        >
-          Create Your Profile
-        </Button>
       </Stack>
     </Stack>
   );

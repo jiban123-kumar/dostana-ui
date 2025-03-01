@@ -2,7 +2,6 @@ import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tansta
 import axiosInstance from "../../configs/axiosInstance";
 
 const deleteChatApi = async (conversationId) => {
-  console.log(conversationId);
   const response = await axiosInstance.delete(`/chat/${conversationId}`);
   return response.data;
 };
@@ -13,8 +12,17 @@ export const useDeleteChat = () => {
   return useMutation({
     mutationFn: deleteChatApi,
     onSuccess: (data) => {
-      console.log(data);
-      queryClient.invalidateQueries(["chats"]);
+      // Instead of invalidating queries, update the cache to remove the deleted chat
+      queryClient.setQueryData(["chats"], (oldData) => {
+        if (!oldData) return oldData;
+        return {
+          ...oldData,
+          pages: oldData.pages.map((page) => ({
+            ...page,
+            chats: page.chats.filter((chat) => chat._id !== data.chatId),
+          })),
+        };
+      });
     },
     onError: (err) => {
       console.log(err);
@@ -52,5 +60,21 @@ export const useGetAllChats = () => {
     getNextPageParam: (lastPage) => {
       return lastPage.hasNextPage ? lastPage.page + 1 : undefined;
     },
+  });
+};
+export const useGetArchivedChats = (archived) => {
+  console.log(archived);
+  return useInfiniteQuery({
+    queryKey: ["archived-chats"],
+    queryFn: async ({ pageParam = 1 }) => {
+      const response = await axiosInstance.get("/chat?archive=true", {
+        params: { page: pageParam, limit: 10 },
+      });
+      return response.data;
+    },
+    getNextPageParam: (lastPage) => {
+      return lastPage.hasNextPage ? lastPage.page + 1 : undefined;
+    },
+    enabled: archived,
   });
 };

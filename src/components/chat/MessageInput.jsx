@@ -1,19 +1,23 @@
 import React, { useState, useRef } from "react";
-import { Box, Stack, TextField, IconButton, InputAdornment, Tooltip } from "@mui/material";
+import { Box, Stack, TextField, IconButton, InputAdornment, Tooltip, useMediaQuery } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
 import AddReactionIcon from "@mui/icons-material/AddReaction";
 import EmojiPickerComponent from "../common/EmojiPickerComponent";
+import { sendIcon } from "../../assets";
 
 const MAX_IMAGES = 6;
 
-const MessageInput = ({ onSend }) => {
+const MessageInput = ({ onSend, inputRef }) => {
   // Local state and ref for the message input area
   const [messageText, setMessageText] = useState("");
   const [attachedImages, setAttachedImages] = useState([]);
   const [error, setError] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const messageInputRef = useRef(null);
+
+  const isBelow600 = useMediaQuery("(max-width:600px)");
+
+  const isBelow480 = useMediaQuery("(max-width:480px)");
 
   const handleFileChange = (event) => {
     const files = Array.from(event.target.files).slice(0, MAX_IMAGES);
@@ -77,21 +81,19 @@ const MessageInput = ({ onSend }) => {
         </Stack>
       )}
 
-      <Box sx={{ border: 1, borderColor: "divider", borderRadius: "1.5rem", p: 1, mb: 1 }}>
+      <Box sx={{ border: 1, borderColor: "divider", borderRadius: "1.5rem", mb: 1 }}>
         <TextField
           variant="outlined"
-          placeholder="Write a message..."
+          placeholder={isBelow480 ? "" : "Write a message..."}
           fullWidth
           multiline
           value={messageText}
           onChange={(e) => setMessageText(e.target.value)}
-          error={!!error}
-          helperText={error}
-          inputRef={messageInputRef}
+          inputRef={inputRef}
           InputProps={{
             sx: { border: "none", "& .MuiOutlinedInput-notchedOutline": { border: "none" } },
             endAdornment: (
-              <InputAdornment position="end">
+              <InputAdornment position="end" sx={{ display: "flex", alignSelf: "flex-end" }}>
                 <input type="file" id="image-upload" hidden accept="image/*,video/*" multiple onChange={handleFileChange} />
                 <Tooltip title="Attach images/videos">
                   <label htmlFor="image-upload">
@@ -104,12 +106,12 @@ const MessageInput = ({ onSend }) => {
                   <AddReactionIcon />
                 </IconButton>
                 <IconButton onClick={handleSend}>
-                  <Box component="img" src="/send.png" sx={{ width: 32, height: 32 }} />
+                  <Box component="img" src={sendIcon} sx={{ width: 32, height: 32 }} />
                 </IconButton>
               </InputAdornment>
             ),
           }}
-          sx={{ px: 1.5, py: 1, maxHeight: 160, overflowY: "auto" }}
+          sx={{ px: 1.5, py: { sm: 1, xs: 0 }, maxHeight: 160, overflowY: "auto", pr: isBelow600 ? 0 : 1.5 }}
         />
       </Box>
 

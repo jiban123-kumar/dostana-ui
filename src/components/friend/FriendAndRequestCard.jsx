@@ -12,11 +12,32 @@ import { useGetSuggestedUsers } from "../../hooks/friends/suggestedUsers";
 
 const FriendAndRequestCard = ({ mode = "pendingRequests" }) => {
   // Retrieve data for each mode using infinite queries.
-  const { data: pendingRequestsData, isLoading: loadingPending, isFetched: fetchedPending, fetchNextPage: fetchNextFriendRequests, hasNextPage: hasNextFriendRequests, isFetchingNextPage: fetchingNextFriendRequests } = useGetFriendRequests();
+  const {
+    data: pendingRequestsData,
+    isLoading: loadingPending,
+    isFetched: fetchedPending,
+    fetchNextPage: fetchNextFriendRequests,
+    hasNextPage: hasNextFriendRequests,
+    isFetchingNextPage: fetchingNextFriendRequests,
+  } = useGetFriendRequests();
 
-  const { data: friendsData, isLoading: loadingFriends, isFetched: fetchedFriends, fetchNextPage: fetchNextFriends, hasNextPage: hasNextFriends, isFetchingNextPage: fetchingNextFriends } = useGetFriends();
+  const {
+    data: friendsData,
+    isLoading: loadingFriends,
+    isFetched: fetchedFriends,
+    fetchNextPage: fetchNextFriends,
+    hasNextPage: hasNextFriends,
+    isFetchingNextPage: fetchingNextFriends,
+  } = useGetFriends();
 
-  const { data: suggestedUsersData, isLoading: loadingSuggested, isFetched: fetchedSuggested, fetchNextPage: fetchNextSuggested, hasNextPage: hasNextSuggested, isFetchingNextPage: fetchingNextSuggested } = useGetSuggestedUsers();
+  const {
+    data: suggestedUsersData,
+    isLoading: loadingSuggested,
+    isFetched: fetchedSuggested,
+    fetchNextPage: fetchNextSuggested,
+    hasNextPage: hasNextSuggested,
+    isFetchingNextPage: fetchingNextSuggested,
+  } = useGetSuggestedUsers();
 
   // Flatten the infinite query pages into one list per mode.
   const pendingRequests = pendingRequestsData ? pendingRequestsData.pages.flatMap((page) => page.friendRequests) : [];
@@ -87,8 +108,8 @@ const FriendAndRequestCard = ({ mode = "pendingRequests" }) => {
   };
 
   return (
-    <Stack alignItems="center" spacing={2}>
-      <Stack width="40rem" mt="1rem">
+    <Stack alignItems="center" spacing={2} width={"100%"}>
+      <Stack mt="1rem" sx={{ width: { md: "40rem", sm: "35rem", xs: "90%" } }}>
         <FriendCardHeader mode={mode}>
           {loading ? (
             <FriendAndRequestCardSkeleton />

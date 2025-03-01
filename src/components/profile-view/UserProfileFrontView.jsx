@@ -1,13 +1,14 @@
 /* eslint-disable react/prop-types */
 import { useContext, useState } from "react";
-import { Avatar, Box, Button, Skeleton, Stack, Tooltip, Typography } from "@mui/material";
+import { Avatar, Box, Button, Skeleton, Stack, Tooltip, Typography, useMediaQuery } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import ImageNotSupportedIcon from "@mui/icons-material/ImageNotSupported"; // New icon for placeholder
 import { useDispatch } from "react-redux";
 import { openMediaDialog } from "../../reduxSlices/mediaPreviewSlice";
 import { useParams, useNavigate } from "react-router-dom";
 
-// Import friend-related hooks and relationship hook
+// Import friend-related icons and hooks
 import { CheckCircle as CheckCircleIcon, PersonRemove as PersonRemoveIcon, PersonAdd as PersonAddIcon, CancelOutlined, Message as MessageIcon } from "@mui/icons-material";
 
 import { SocketContext } from "../../contextProvider/SocketProvider";
@@ -30,8 +31,15 @@ const UserProfileFrontView = ({ userProfile }) => {
   const [coverImageFile, setCoverImageFile] = useState(null);
   const [coverImagePreview, setCoverImagePreview] = useState("");
 
+  const theme = useTheme();
+  const isBelowSm = useMediaQuery(theme.breakpoints.down("sm"));
+  const isBelow380 = useMediaQuery("(max-width:380px)");
+  const buttonSize = isBelowSm ? "small" : "medium";
+  const skeletonWidth = isBelowSm ? 100 : 120;
+  const skeletonHeight = isBelowSm ? 32 : 36;
+
   // Relationship hooks for friend actions
-  const { mutate: sendFriendRequest, isPending: isSendingFriend } = useSendFriendRequest(socket);
+  const { mutate: sendFriendRequest, isPending: isSendingFriendRequest } = useSendFriendRequest(socket);
   const { mutate: cancelFriendRequest, isPending: isCancelingFriend } = useCancelFriendRequest(socket);
   const { mutate: acceptFriendRequest, isPending: isAcceptingFriend } = useAcceptFriendRequest(socket);
   const { mutate: declineFriendRequest, isPending: isDecliningFriend } = useDeclineFriendRequest(socket);
@@ -40,7 +48,7 @@ const UserProfileFrontView = ({ userProfile }) => {
   const { mutate: updateProfile, isPending: isUpdating } = useUpdateProfile();
 
   // Relationship status
-  const { data: relationshipData, isLoading: isRelationshipLoading, isFetching: isFetchingRelationship } = useGetRelationshipById(routeUserId);
+  const { data: relationshipData, isLoading: isRelationshipLoading } = useGetRelationshipById(routeUserId);
 
   // Handlers for friend actions
   const handleSendRequest = () => sendFriendRequest(routeUserId);
@@ -77,9 +85,16 @@ const UserProfileFrontView = ({ userProfile }) => {
     }
   };
 
-  // Render friend action buttons if not self and if relationship query has finished loading
+  // Render friend action buttons if viewing another user’s profile
   const renderFriendActions = () => {
-    if (isRelationshipLoading) return <Skeleton variant="rectangular" width={200} height={40} />;
+    if (isRelationshipLoading) {
+      return (
+        <Stack direction={isBelow380 ? "column" : "row"} spacing={1}>
+          <Skeleton variant="rectangular" width={skeletonWidth} height={skeletonHeight} />
+          <Skeleton variant="rectangular" width={skeletonWidth} height={skeletonHeight} />
+        </Stack>
+      );
+    }
 
     switch (relationshipData?.relationship) {
       case "friends":
@@ -87,10 +102,11 @@ const UserProfileFrontView = ({ userProfile }) => {
           <Stack direction="row" spacing={1}>
             <Button
               variant="outlined"
-              size="large"
+              size={buttonSize}
               startIcon={<PersonRemoveIcon />}
               onClick={handleRemove}
-              disabled={isRemovingFriend}
+              loading={isRemovingFriend}
+              loadingPosition="start"
               sx={{
                 fontWeight: "bold",
                 minWidth: "10rem",
@@ -100,19 +116,18 @@ const UserProfileFrontView = ({ userProfile }) => {
               Remove Friend
             </Button>
             <Button
+              variant="outlined"
+              size={buttonSize}
+              startIcon={<MessageIcon />}
+              onClick={() => navigate(`/chats/${routeUserId}`)}
               sx={{
-                paddingX: "2.4rem",
-                fontSize: ".8rem",
                 fontWeight: "bold",
-                borderRadius: ".4rem",
                 minWidth: "10rem",
+                textTransform: "none",
+                paddingX: "2.4rem",
+                fontSize: buttonSize === "small" ? ".7rem" : ".8rem",
                 mt: "1rem",
               }}
-              variant="outlined"
-              color="secondary"
-              onClick={() => navigate(`/chats/${routeUserId}`)}
-              size="large"
-              startIcon={<MessageIcon />}
             >
               Message
             </Button>
@@ -124,10 +139,9 @@ const UserProfileFrontView = ({ userProfile }) => {
           <Tooltip title="Cancel Request">
             <Button
               variant="outlined"
-              size="large"
+              size={buttonSize}
               startIcon={<CancelOutlined />}
               onClick={handleCancelRequest}
-              disabled={isCancelingFriend}
               loading={isCancelingFriend}
               loadingPosition="start"
               sx={{
@@ -146,10 +160,9 @@ const UserProfileFrontView = ({ userProfile }) => {
           <Stack direction="row" spacing={1}>
             <Button
               variant="contained"
-              size="large"
+              size={buttonSize}
               startIcon={<CheckCircleIcon />}
               onClick={handleAcceptRequest}
-              disabled={isAcceptingFriend}
               loading={isAcceptingFriend}
               loadingPosition="start"
               sx={{
@@ -162,10 +175,9 @@ const UserProfileFrontView = ({ userProfile }) => {
             </Button>
             <Button
               variant="outlined"
-              size="large"
+              size={buttonSize}
               startIcon={<CancelOutlined />}
               onClick={handleDeclineRequest}
-              disabled={isDecliningFriend}
               loading={isDecliningFriend}
               loadingPosition="start"
               sx={{
@@ -183,11 +195,10 @@ const UserProfileFrontView = ({ userProfile }) => {
         return (
           <Button
             variant="contained"
-            size="large"
+            size={buttonSize}
             startIcon={<PersonAddIcon />}
             onClick={handleSendRequest}
-            disabled={isSendingFriend}
-            loading={isSendingFriend}
+            loading={isSendingFriendRequest}
             loadingPosition="start"
             sx={{
               fontWeight: "bold",
@@ -206,7 +217,7 @@ const UserProfileFrontView = ({ userProfile }) => {
       <Stack
         sx={{
           width: "100%",
-          height: "30rem",
+          height: { md: "30rem", sm: "22rem", xs: "18rem" },
           mt: "1rem",
           position: "relative",
           borderRadius: "1rem",
@@ -240,8 +251,8 @@ const UserProfileFrontView = ({ userProfile }) => {
               variant="h5"
               sx={{
                 color: "white",
-                fontStyle: "italic",
                 fontWeight: "bold",
+                fontSize: { md: "1.5rem", sm: "1.2rem", xs: "1rem" },
               }}
             >
               No Cover Image
@@ -260,7 +271,16 @@ const UserProfileFrontView = ({ userProfile }) => {
           >
             <input type="file" accept="image/*" id="cover-image-input" style={{ display: "none" }} onChange={handleImageChange} />
             <label htmlFor="cover-image-input">
-              <Button variant="contained" color={coverImage || coverImagePreview ? "primary" : "secondary"} component="span" sx={{ fontWeight: "bold", px: "1rem" }}>
+              <Button
+                variant="contained"
+                color={coverImage || coverImagePreview ? "primary" : "secondary"}
+                component="span"
+                sx={{
+                  fontWeight: "bold",
+                  px: { sm: "1rem", xs: "0.6rem" },
+                  fontSize: { sm: ".8rem", xs: ".7rem", md: ".9rem" },
+                }}
+              >
                 {coverImage || coverImagePreview ? "Update Cover Image" : "Add Cover Image"}
               </Button>
             </label>
@@ -272,8 +292,8 @@ const UserProfileFrontView = ({ userProfile }) => {
                 onClick={handleCoverImageUpdate}
                 sx={{
                   fontWeight: "bold",
-                  px: "1rem",
-                  // Custom disabled styling for better visibility on black
+                  px: { sm: "1rem", xs: "0.4rem" },
+                  fontSize: { sm: ".8rem", xs: ".7rem", md: ".9rem" },
                   "&.Mui-disabled": {
                     backgroundColor: "#555 !important",
                     color: "#fff !important",
@@ -296,7 +316,7 @@ const UserProfileFrontView = ({ userProfile }) => {
             position: "absolute",
             bgcolor: "#ffffffe1",
             top: "1rem",
-            left: "2rem",
+            left: { xs: ".4rem", sm: "1rem", md: "2rem" },
             p: "1rem",
             borderRadius: ".8rem",
             boxShadow: 1,
@@ -309,34 +329,32 @@ const UserProfileFrontView = ({ userProfile }) => {
             <Avatar
               src={profileImage}
               sx={{
-                width: "4rem",
-                height: "4rem",
+                width: { xs: "3rem", sm: "4rem", md: "5rem" },
+                height: { xs: "3rem", sm: "4rem", md: "5rem" },
                 cursor: "pointer",
                 boxShadow: 3,
               }}
               onClick={() => handleImageView(profileImage)}
             />
           </Tooltip>
-          <Typography variant="body1" sx={{ fontWeight: "bold" }}>
+          <Typography variant="body1" sx={{ fontWeight: "bold", wordBreak: "break-word", overflowWrap: "break-word" }}>
             {`${firstName} ${lastName}`}
           </Typography>
         </Stack>
       </Stack>
       <Stack alignItems={"center"} justifyContent={"center"} m="2rem">
         <Tooltip title="About Me">
-          <Typography variant="body2" fontWeight={"bold"} sx={{ textAlign: "start" }}>
+          <Typography variant="body2" fontWeight={"bold"} sx={{ textAlign: "start", wordBreak: "break-word", overflowWrap: "break-word" }}>
             {about || "Hey there, I am Dostana a social media app!"}
           </Typography>
         </Tooltip>
       </Stack>
       {/* Friend action buttons: Only display if viewing another user’s profile */}
       {!isSelf && (
-        <Stack direction="row" justifyContent="flex-end" spacing={2} mb={2}>
+        <Stack direction={isBelow380 ? "column" : "row"} justifyContent="flex-end" spacing={2} mb={2}>
           {renderFriendActions()}
         </Stack>
       )}
-      {/* Additional buttons or content can be placed here */}
-      <Stack>{/* Other buttons can go here */}</Stack>
     </Stack>
   );
 };

@@ -1,4 +1,4 @@
-import { Box, Button, Stack, TextField, Typography, IconButton, InputAdornment } from "@mui/material";
+import { Box, Button, Stack, TextField, Typography, IconButton, InputAdornment, useMediaQuery } from "@mui/material";
 import { grey } from "@mui/material/colors";
 import { useRef, useState, useCallback } from "react";
 import KeyboardBackspaceIcon from "@mui/icons-material/KeyboardBackspace";
@@ -18,6 +18,9 @@ const animationVariants = {
 const BTN_STYLE = { fontWeight: 600, minWidth: "8rem" };
 
 const Signup = () => {
+  const isSmallScreen = useMediaQuery("(max-width:400px)");
+  const isMediumScreen = useMediaQuery("(max-width:600px)");
+
   const [step, setStep] = useState(0);
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
@@ -94,7 +97,7 @@ const Signup = () => {
 
   return (
     <Stack paddingX="2rem" paddingY="1.2rem" minHeight="35vh">
-      <Typography variant="h6" sx={{ fontWeight: "bold" }}>
+      <Typography variant="h6" sx={{ fontWeight: "bold", fontSize: { xs: "1rem", sm: "1.2rem" } }}>
         Create your account
       </Typography>
       <Stack spacing={1} marginTop="0.6rem">
@@ -116,7 +119,18 @@ const Signup = () => {
           {step === 1 && (
             <motion.div variants={animationVariants} initial="initial" animate="animate" exit="exit" key="otp">
               <Stack gap="0.2rem">
-                <TextField label="OTP" placeholder="Enter 6-digit OTP" type="number" variant="standard" value={otp} onChange={(e) => setOtp(e.target.value)} onBlur={() => handleBlur("otp", otp)} error={Boolean(errors.otp)} helperText={errors.otp} inputRef={otpRef} />
+                <TextField
+                  label="OTP"
+                  placeholder="Enter 6-digit OTP"
+                  type="number"
+                  variant="standard"
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value)}
+                  onBlur={() => handleBlur("otp", otp)}
+                  error={Boolean(errors.otp)}
+                  helperText={errors.otp}
+                  inputRef={otpRef}
+                />
                 <Box justifyContent="flex-end" display="flex">
                   <ResentOtp onClick={() => requestSignupOtp({ email })} isLoading={isGettingSignupOtp} />
                 </Box>
@@ -153,32 +167,32 @@ const Signup = () => {
       </Stack>
       <Stack marginTop={4} alignItems="center" flexDirection="row" gap="0.4rem" alignSelf={"flex-end"}>
         {step === 1 && (
-          <Button variant="outlined" sx={BTN_STYLE} startIcon={<KeyboardBackspaceIcon />} onClick={() => setStep(0)}>
+          <Button variant="outlined" sx={BTN_STYLE} startIcon={<KeyboardBackspaceIcon />} onClick={() => setStep(0)} size={isMediumScreen ? "small" : "medium"}>
             Back
           </Button>
         )}
         {step === 0 && (
-          <Button variant="contained" sx={BTN_STYLE} onClick={handleGetOtp} disabled={isGettingSignupOtp}>
+          <Button variant="contained" sx={BTN_STYLE} onClick={handleGetOtp} disabled={isGettingSignupOtp} size={isMediumScreen ? "small" : "medium"}>
             Get OTP
           </Button>
         )}
         {step === 1 && (
-          <Button variant="contained" sx={BTN_STYLE} onClick={handleVerifyOtp} disabled={isVerifyingOtp}>
+          <Button variant="contained" sx={BTN_STYLE} onClick={handleVerifyOtp} disabled={isVerifyingOtp} size={isMediumScreen ? "small" : "medium"}>
             Verify OTP
           </Button>
         )}
         {step === 2 && (
-          <Button variant="contained" fullWidth sx={BTN_STYLE} color="secondary" onClick={handleSignUp} disabled={isSigningUp}>
+          <Button variant="contained" fullWidth sx={BTN_STYLE} color="secondary" onClick={handleSignUp} disabled={isSigningUp} size={isMediumScreen ? "small" : "medium"} fullWidth={isMediumScreen}>
             Sign up
           </Button>
         )}
       </Stack>
       <Stack marginTop="1rem" flexDirection="row" justifyContent="center" paddingY="1rem">
-        <Stack flexDirection="row" alignItems="center">
+        <Stack flexDirection={isSmallScreen ? "column" : "row"} alignItems="center">
           <Typography variant="body2" color={grey[700]} sx={{ fontWeight: 700 }}>
             Already an existing user?
           </Typography>
-          <Button variant="text" sx={{ fontWeight: 600 }} disableRipple>
+          <Button variant="text" sx={{ fontWeight: 600 }} disableRipple size={isSmallScreen ? "small" : "medium"}>
             <Link to="/login" style={{ textDecoration: "none" }}>
               LOG IN
             </Link>

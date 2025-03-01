@@ -1,15 +1,16 @@
 import React, { useState, useRef } from "react";
-import { Dialog, DialogContent, DialogTitle, Stack, TextField, Button, Box, IconButton, InputAdornment } from "@mui/material";
+import { Dialog, DialogContent, DialogTitle, Stack, TextField, Button, Box, IconButton, InputAdornment, useMediaQuery } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
-import { LoadingButton } from "@mui/lab";
 import { useDispatch } from "react-redux";
 import { showAlert } from "../../reduxSlices/alertSlice";
-import DeleteConfirmationModal from "./DeleteConfirmationModal";
 import { useDeleteAccount } from "../../hooks/auth/accountDeletion";
 
-const DeleteAccountModal = ({ open, handleClose }) => {
+const DeleteAccountModal = ({ open, handleClose, onVerified }) => {
   const dispatch = useDispatch();
   const passwordRef = useRef(null);
+
+  const isSmallScreen = useMediaQuery("(max-width:420px)");
+  const isMobile = useMediaQuery("(max-width:600px)");
 
   const [formData, setFormData] = useState({
     password: "",
@@ -18,7 +19,6 @@ const DeleteAccountModal = ({ open, handleClose }) => {
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [openDeleteConfirmation, setOpenDeleteConfirmation] = useState(false);
 
   const { mutate: checkingAccountOwnership, isPending: confirmingAccountOwnership } = useDeleteAccount();
 
@@ -30,14 +30,11 @@ const DeleteAccountModal = ({ open, handleClose }) => {
     }));
     setErrors((prev) => ({
       ...prev,
-      [name]: "", // Clear error for the field on change
+      [name]: "",
     }));
   };
 
-  const handleBlur = (e) => {
-    validateField(e.target.name);
-  };
-
+  // This function updates the error state for a given field.
   const validateField = (field) => {
     let fieldError = "";
     if (field === "password" && !formData.password) {
@@ -50,33 +47,42 @@ const DeleteAccountModal = ({ open, handleClose }) => {
         fieldError = "Passwords do not match.";
       }
     }
-
     setErrors((prev) => ({
       ...prev,
       [field]: fieldError,
     }));
   };
 
-  const validate = () => {
+  // Call this function on blur or on submit to update errors.
+  const validateFields = () => {
     validateField("password");
     validateField("confirmPassword");
-    return Object.values(errors).every((error) => !error);
+    return formData.password && formData.confirmPassword && formData.password === formData.confirmPassword;
+  };
+
+  // This function only checks if the form data is valid without updating state.
+  const isFormValid = () => {
+    return formData.password && formData.confirmPassword && formData.password === formData.confirmPassword;
+  };
+
+  const handleBlur = (e) => {
+    validateField(e.target.name);
   };
 
   const onSubmit = (e) => {
     e.preventDefault();
-    if (!validate()) return;
-    console.log("formData", formData);
+    if (!validateFields()) return;
     checkingAccountOwnership(formData, {
       onSuccess: () => {
-        setOpenDeleteConfirmation(true);
-        handleClose();
+        dispatch(showAlert({ message: "Password verified.", type: "success" }));
+        onVerified(formData);
+        setFormData({ password: "", confirmPassword: "" });
       },
       onMutate: () => {
         dispatch(showAlert({ message: "Verifying password...", type: "info", loading: true }));
       },
       onError: (err) => {
-        console.log(err);
+        console.error(err);
         let msg = "Something went wrong. Please try again.";
         if (err.response?.status === 401) {
           setErrors((prev) => ({
@@ -92,84 +98,78 @@ const DeleteAccountModal = ({ open, handleClose }) => {
   };
 
   return (
-    <>
-      <Dialog open={open} onClose={handleClose}>
-        <Box sx={{ width: "30rem" }}>
-          <DialogTitle textAlign="center" sx={{ fontWeight: "bold", fontFamily: "Poppins" }}>
-            Delete Account
-          </DialogTitle>
-          <DialogContent>
-            <form onSubmit={onSubmit}>
-              <Stack spacing={2}>
-                <TextField
-                  label="Password"
-                  variant="standard"
-                  fullWidth
-                  type={showPassword ? "text" : "password"}
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  error={!!errors.password}
-                  helperText={errors.password}
-                  slotProps={{
-                    input: {
-                      ref: passwordRef,
-                      endAdornment: (
-                        <InputAdornment position="end">
-                          <IconButton onClick={() => setShowPassword((prev) => !prev)} onMouseDown={(e) => e.preventDefault()}>
-                            {showPassword ? <VisibilityOff /> : <Visibility />}
-                          </IconButton>
-                        </InputAdornment>
-                      ),
-                    },
-                  }}
-                />
-                <TextField
-                  label="Confirm Password"
-                  variant="standard"
-                  fullWidth
-                  type={showConfirmPassword ? "text" : "password"}
-                  name="confirmPassword"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  error={!!errors.confirmPassword}
-                  helperText={errors.confirmPassword}
-                  slotProps={{
-                    input: {
-                      endAdornment: (
-                        <InputAdornment position="end">
-                          <IconButton onClick={() => setShowConfirmPassword((prev) => !prev)} onMouseDown={(e) => e.preventDefault()}>
-                            {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
-                          </IconButton>
-                        </InputAdornment>
-                      ),
-                    },
-                  }}
-                />
-              </Stack>
-              <Stack flexDirection="row" marginTop={3} gap={2}>
-                <Button
-                  variant="outlined"
-                  onClick={() => {
-                    handleClose();
-                    setFormData({ password: "", confirmPassword: "" });
-                  }}
-                  fullWidth
-                >
-                  Cancel
-                </Button>
-                <LoadingButton type="submit" variant="contained" loading={confirmingAccountOwnership} fullWidth sx={{ fontWeight: 600 }}>
-                  Verify Password
-                </LoadingButton>
-              </Stack>
-            </form>
-          </DialogContent>
-        </Box>
-      </Dialog>
-      <DeleteConfirmationModal open={openDeleteConfirmation} handleClose={() => setOpenDeleteConfirmation(false)} formData={formData} />
-    </>
+    <Dialog open={open} onClose={handleClose} fullWidth maxWidth="xs">
+      <Box>
+        <DialogTitle textAlign="center" sx={{ fontWeight: "bold", fontFamily: "Poppins", fontSize: { sm: "1.3rem", xs: "1.1rem" } }}>
+          Delete Account
+        </DialogTitle>
+        <DialogContent>
+          <form onSubmit={onSubmit}>
+            <Stack spacing={2}>
+              <TextField
+                label="Password"
+                variant="standard"
+                fullWidth
+                type={showPassword ? "text" : "password"}
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                error={!!errors.password}
+                helperText={errors.password}
+                inputRef={passwordRef}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton onClick={() => setShowPassword((prev) => !prev)} onMouseDown={(e) => e.preventDefault()}>
+                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+              />
+              <TextField
+                label="Confirm Password"
+                variant="standard"
+                fullWidth
+                type={showConfirmPassword ? "text" : "password"}
+                name="confirmPassword"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                error={!!errors.confirmPassword}
+                helperText={errors.confirmPassword}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton onClick={() => setShowConfirmPassword((prev) => !prev)} onMouseDown={(e) => e.preventDefault()}>
+                        {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+              />
+            </Stack>
+            <Stack flexDirection={isSmallScreen ? "column" : "row"} marginTop={isSmallScreen ? 4 : 3} gap={2}>
+              <Button
+                variant="outlined"
+                onClick={() => {
+                  handleClose();
+                  setFormData({ password: "", confirmPassword: "" });
+                }}
+                fullWidth
+                size={isMobile ? "small" : "medium"}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" variant="contained" fullWidth sx={{ fontWeight: 600 }} disabled={!isFormValid() || confirmingAccountOwnership} size={isMobile ? "small" : "medium"}>
+                verify password
+              </Button>
+            </Stack>
+          </form>
+        </DialogContent>
+      </Box>
+    </Dialog>
   );
 };
 

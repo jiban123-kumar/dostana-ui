@@ -1,17 +1,19 @@
 /* eslint-disable react/prop-types */
 import React, { useCallback, useContext, useEffect, useRef, useState, memo } from "react";
 import Lottie from "lottie-react";
-import { Card, Chip } from "@mui/material";
+import { Card, Chip, useMediaQuery } from "@mui/material";
 import ThumbUpRoundedIcon from "@mui/icons-material/ThumbUpRounded";
 import ReactionMenu from "./ReactionMenu";
 import reactionAnimations from "../../constants/reactionAnimationList";
-import { SocketContext } from "../../contextProvider/SocketProvider";
 import { useToggleReaction } from "../../hooks/content/contentReaction";
 import { AnimatePresence } from "motion/react";
+import { isSameDay } from "date-fns";
 
-const ReactionChip = ({ content, userProfile, userReaction }) => {
+const ReactionChip = ({ content, userReaction }) => {
   // Get the content ID and the owner (target) user id.
-  const { _id: contentId } = content || {};
+  const { _id: contentId, type: contentType } = content || {};
+
+  const isBelow480 = useMediaQuery("(max-width:480px)");
 
   const targetUserId = content?.user?._id;
 
@@ -19,7 +21,7 @@ const ReactionChip = ({ content, userProfile, userReaction }) => {
   const currentAnimation = userReaction ? reactionAnimations.find((anim) => anim.name === userReaction.type) : null;
 
   // Hooks for toggling the userReaction and creating a notification.
-  const { mutate: toggleReaction, isPending: isTogglingReaction } = useToggleReaction();
+  const { mutate: toggleReaction, isPending: isTogglingReaction } = useToggleReaction({ type: content.type });
 
   // Use the passed-in userProfile instead of calling useUserProfile here.
 
@@ -79,22 +81,23 @@ const ReactionChip = ({ content, userProfile, userReaction }) => {
   // Called when a userReaction icon is selected from the ReactionMenu.
   const handleReactIconClick = useCallback(
     (emojiName) => {
-      if (!emojiName) return;
-      toggleReaction({ contentId, type: emojiName, targetUserId });
+      if (!emojiName || isTogglingReaction) return;
+      toggleReaction({ contentId, type: emojiName, targetUserId, contentType });
     },
-    [contentId, toggleReaction, targetUserId]
+    [isTogglingReaction, toggleReaction, contentId, targetUserId, contentType]
   );
 
   // When the chip itself is clicked, toggle the default "like" userReaction (or remove it).
   const handleToggleReactionClick = useCallback(() => {
+    if (isTogglingReaction) return;
     if (userReaction) {
       // Remove the userReaction.
-      toggleReaction({ contentId, targetUserId });
+      toggleReaction({ contentId, targetUserId, contentType });
     } else {
       // Add a default "like" userReaction.
-      toggleReaction({ contentId, type: "like", targetUserId });
+      toggleReaction({ contentId, type: "like", targetUserId, contentType });
     }
-  }, [userReaction, toggleReaction, contentId, targetUserId]);
+  }, [isTogglingReaction, userReaction, toggleReaction, contentId, targetUserId, contentType]);
 
   return (
     <div ref={containerRef} style={{ position: "relative", display: "inline-block", width: "100%" }} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
@@ -119,8 +122,8 @@ const ReactionChip = ({ content, userProfile, userReaction }) => {
           <Card
             sx={{
               position: "absolute",
-              top: "-4rem",
-              left: "50%",
+              top: "-4.4rem",
+              left: isBelow480 ? "100%" : { sm: "50%", xs: "50%" },
               transform: "translateX(-50%)",
               borderRadius: "3rem",
               p: ".2rem",

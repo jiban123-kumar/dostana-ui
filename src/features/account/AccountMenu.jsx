@@ -1,12 +1,13 @@
 /* eslint-disable react/prop-types */
 import React, { useState } from "react";
-import { Avatar, Divider, Menu, MenuItem, Typography, Box, CircularProgress } from "@mui/material";
+import { Avatar, Divider, Menu, MenuItem, Typography, Box, CircularProgress, useMediaQuery } from "@mui/material";
 import { Logout, Settings, Security } from "@mui/icons-material";
 import { motion, AnimatePresence } from "framer-motion";
 import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight";
 import KeyIcon from "@mui/icons-material/Key";
 import ProfileUpdationModal from "../../components/profile-update/ProfileUpdationModal";
 import ChangePasswordModal from "../../components/account-settings-modal/ChangePasswordModal";
+// Use the refactored DeleteAccountModal that now accepts an onVerified prop.
 import DeleteAccountModal from "../../components/account-settings-modal/DeleteAccountModal";
 import DeleteConfirmationModal from "../../components/account-settings-modal/DeleteConfirmationModal";
 import { useLogout } from "../../hooks/auth/logout";
@@ -21,11 +22,14 @@ const AccountMenu = ({ anchorEl, open, handleCloseMenu }) => {
   const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
   const [isDeleteAccountOpen, setIsDeleteAccountOpen] = useState(false);
   const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState(false);
+  // Optionally store verified form data if needed by the confirmation modal.
+  const [verifiedFormData, setVerifiedFormData] = useState(null);
+
+  const isMobileScreen = useMediaQuery("(max-width:600px)");
 
   const { mutate: logoutUser, isPending: isLoggingOut } = useLogout();
   const { data: userProfile } = useUserProfile();
 
-  // Handle closing individual forms and menus
   const closeProfileForm = () => setIsProfileFormOpen(false);
   const closeChangePassword = () => setIsChangePasswordOpen(false);
   const closeDeleteAccount = () => setIsDeleteAccountOpen(false);
@@ -37,11 +41,15 @@ const AccountMenu = ({ anchorEl, open, handleCloseMenu }) => {
 
   const handleLogout = () => logoutUser();
 
-  // Determine Avatar source
+  // When password verification is successful, this callback is triggered.
+  const handleDeleteAccountVerified = (formData) => {
+    setVerifiedFormData(formData);
+    setIsDeleteAccountOpen(false);
+    setIsConfirmationModalOpen(true);
+  };
 
   return (
     <>
-      {/* Main Account Menu */}
       <Menu
         anchorEl={anchorEl}
         id="account-menu"
@@ -81,7 +89,7 @@ const AccountMenu = ({ anchorEl, open, handleCloseMenu }) => {
       >
         {/* Update Profile */}
         <MenuItem sx={MENU_ITEM_PADDING} onClick={() => setIsProfileFormOpen(true)}>
-          <Avatar sx={{ mr: 1 }} src={userProfile?.profileImage || ""} />
+          <Avatar sx={{ mr: 1, boxShadow: 3 }} src={userProfile?.profileImage || ""} />
           <Typography variant="body2" fontWeight="bold">
             Update Profile
           </Typography>
@@ -93,20 +101,12 @@ const AccountMenu = ({ anchorEl, open, handleCloseMenu }) => {
           <Settings fontSize="small" sx={{ mr: 1 }} />
           Privacy Settings
           <Box sx={{ marginLeft: "auto", display: "flex", alignItems: "center" }}>
-            <motion.div
-              animate={{ rotate: isSubmenuOpen ? 90 : 0 }}
-              transition={{
-                duration: 0.1,
-                ease: "easeInOut",
-              }}
-              style={{ display: "flex", alignItems: "center" }}
-            >
+            <motion.div animate={{ rotate: isSubmenuOpen ? 90 : 0 }} transition={{ duration: 0.1, ease: "easeInOut" }} style={{ display: "flex", alignItems: "center" }}>
               <KeyboardArrowRightIcon fontSize="small" />
             </motion.div>
           </Box>
         </MenuItem>
 
-        {/* Submenu options (Delete Account, Change Password) */}
         <AnimatePresence>
           {isSubmenuOpen && (
             <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.1 }}>
@@ -132,11 +132,11 @@ const AccountMenu = ({ anchorEl, open, handleCloseMenu }) => {
         </MenuItem>
       </Menu>
 
-      {/* Conditional Components for Profile Form, Change Password, and Delete Account */}
+      {/* Modals */}
       {isProfileFormOpen && <ProfileUpdationModal open={isProfileFormOpen} handleClose={closeProfileForm} />}
       {isChangePasswordOpen && <ChangePasswordModal open={isChangePasswordOpen} handleClose={closeChangePassword} />}
-      {isDeleteAccountOpen && <DeleteAccountModal open={isDeleteAccountOpen} handleClose={closeDeleteAccount} />}
-      {isConfirmationModalOpen && <DeleteConfirmationModal open={isConfirmationModalOpen} handleClose={closeConfirmationModal} />}
+      {isDeleteAccountOpen && <DeleteAccountModal open={isDeleteAccountOpen} handleClose={closeDeleteAccount} onVerified={handleDeleteAccountVerified} />}
+      {isConfirmationModalOpen && <DeleteConfirmationModal open={isConfirmationModalOpen} handleClose={closeConfirmationModal} formData={verifiedFormData} />}
     </>
   );
 };

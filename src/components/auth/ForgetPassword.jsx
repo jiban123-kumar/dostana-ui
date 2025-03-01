@@ -1,4 +1,4 @@
-import { Button, IconButton, InputAdornment, Stack, TextField, Typography } from "@mui/material";
+import { Button, IconButton, InputAdornment, Stack, TextField, Typography, useMediaQuery } from "@mui/material";
 import { useRef, useState, useCallback } from "react";
 import { KeyboardBackspace, Visibility, VisibilityOff } from "@mui/icons-material";
 import { AnimatePresence, motion } from "motion/react";
@@ -20,6 +20,8 @@ const ForgetPassword = () => {
   const emailRef = useRef(null);
   const otpRef = useRef(null);
   const passwordRef = useRef(null);
+
+  const isMobileScreen = useMediaQuery("(max-width:600px)");
 
   const { mutate: requestResetPasswordOtp, isPending: isGettingResetPasswordOtp } = useGetResetPasswordOtp({ updateStep: setStep, emailRef });
   const { mutate: verifyOtp, isPending: isVerifyingOtp } = useVerifyOtp({ updateStep: setStep, otpRef });
@@ -78,7 +80,7 @@ const ForgetPassword = () => {
 
   return (
     <Stack minHeight="35vh" padding="2rem" paddingY="1.2rem" component="form" onSubmit={handleSubmit}>
-      <Typography variant="h6" sx={{ fontWeight: "bold" }}>
+      <Typography variant="h6" sx={{ fontWeight: "bold", fontSize: { xs: "1rem", sm: "1.2rem" } }}>
         Forget your Password
       </Typography>
       <Stack spacing={3} marginTop=".6rem">
@@ -120,17 +122,17 @@ const ForgetPassword = () => {
       </Stack>
       <Stack marginTop={4} flexDirection="row" justifyContent="flex-end" gap={1}>
         {step > 0 && (
-          <Button variant="outlined" color="primary" onClick={() => setStep(0)}>
+          <Button variant="outlined" color="primary" onClick={() => setStep(0)} size={isMobileScreen ? "small" : "medium"}>
             <KeyboardBackspace /> Back
           </Button>
         )}
-        <Button variant="contained" color="primary" type="submit" disabled={isGettingResetPasswordOtp || isVerifyingOtp || isResettingPassword}>
+        <Button variant="contained" color="primary" type="submit" disabled={isGettingResetPasswordOtp || isVerifyingOtp || isResettingPassword} size={isMobileScreen ? "small" : "medium"}>
           {step === 0 ? "Get OTP" : step === 1 ? "Verify OTP" : "Reset Password"}
         </Button>
       </Stack>
       <Stack alignItems="center" marginTop={3} flexDirection={"row"} justifyContent={"center"}>
         <Typography variant="body2">Go back to</Typography>
-        <Button variant="text" sx={{ fontWeight: "bold" }}>
+        <Button variant="text" sx={{ fontWeight: "bold" }} size={isMobileScreen ? "small" : "medium"}>
           <Link to="/login" style={{ textDecoration: "none" }}>
             LOG IN
           </Link>

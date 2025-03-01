@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
-import { Dialog, DialogContent, DialogTitle, List, SpeedDial, SpeedDialAction, Stack, Typography, Skeleton, CircularProgress } from "@mui/material";
+import { Dialog, DialogContent, DialogTitle, List, SpeedDial, SpeedDialAction, Stack, Typography, Skeleton, CircularProgress, useMediaQuery, Box } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { DeleteRounded, SettingsRounded, NotificationsActiveRounded } from "@mui/icons-material";
 import NotificationsOffIcon from "@mui/icons-material/NotificationsOff";
@@ -11,17 +11,24 @@ import { useDeleteAllNotifications, useGetNotifications } from "../../hooks/noti
 import NotificationList from "./NotificationList";
 import { AnimatePresence } from "motion/react";
 
+// Custom styled SpeedDial component
 const CustomSpeedDial = styled(SpeedDial)(({ theme }) => ({
+  position: "relative",
   "& .MuiFab-root": {
     backgroundColor: "transparent",
     boxShadow: "none",
     "&:hover": {
+      backgroundColor: "transparent",
+      boxShadow: "none",
+    },
+    "&:active": {
       backgroundColor: "transparent",
     },
   },
 }));
 
 const NotificationModal = ({ open, handleClose }) => {
+  const isSmallScreen = useMediaQuery("(max-width:600px)");
   const [openSetting, setOpenSetting] = useState(false);
   const dialogContentRef = useRef(null);
   const bottomRef = useRef(null);
@@ -29,6 +36,7 @@ const NotificationModal = ({ open, handleClose }) => {
 
   const { mutate: markNotificationsAsReadByIds } = useMarkNotificationsAsReadByIds();
 
+  // Mark notifications as read when the modal is closed
   useEffect(() => {
     return () => {
       const ids = Array.from(viewedNotificationIdsRef.current);
@@ -38,24 +46,23 @@ const NotificationModal = ({ open, handleClose }) => {
     };
   }, [markNotificationsAsReadByIds]);
 
+  const handleOpenSettings = () => setOpenSetting(true);
   const handleCloseSetting = () => setOpenSetting(false);
-  const handleOpenSetting = () => setOpenSetting(true);
 
-  // Toggle notification setting
+  // Fetch notification settings
   const { data: notificationData } = useGetNotificationSetting();
-  // Now use bulletNotificationEnabled instead of notificationEnabled
   const bulletNotificationEnabled = notificationData?.bulletNotificationEnabled;
   const { mutate: toggleNotificationSetting, isPending: isTogglingSetting } = useToggleNotificationSetting();
   const handleToggleNotifications = () => {
     toggleNotificationSetting();
   };
 
+  // Fetch notifications
   const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useGetNotifications();
-
   const notifications = useMemo(() => (data ? data.pages.flatMap((page) => page.notifications) : []), [data]);
 
+  // Delete all notifications
   const { mutate: deleteAllNotifications, isPending: isDeletingNotifications } = useDeleteAllNotifications();
-
   const handleDeleteAll = () => {
     deleteAllNotifications(null, {
       onSuccess: () => {
@@ -64,6 +71,7 @@ const NotificationModal = ({ open, handleClose }) => {
     });
   };
 
+  // Infinite scroll for notifications
   useEffect(() => {
     const currentRef = bottomRef.current;
     const observer = new IntersectionObserver(
@@ -85,44 +93,85 @@ const NotificationModal = ({ open, handleClose }) => {
     };
   }, [bottomRef, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
+  // Track viewed notifications
   const handleNotificationViewed = useCallback((notificationId) => {
     viewedNotificationIdsRef.current.add(notificationId);
   }, []);
 
+  // Close the notification modal
   const hideNotificationModal = useCallback(() => {
     handleClose();
-  }, []);
+  }, [handleClose]);
 
   return (
-    <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
-      <Stack sx={{ width: "100%", overflow: "hidden", paddingX: "1rem" }} flexDirection="row" justifyContent="space-between" alignItems="center">
-        <DialogTitle sx={{ fontWeight: "bold" }}>Notifications</DialogTitle>
-        <Stack>
-          <CustomSpeedDial open={openSetting} onClose={handleCloseSetting} ariaLabel="SpeedDial openIcon example" icon={<SettingsRounded color="action" />} direction="left" onOpen={handleOpenSetting}>
-            <SpeedDialAction icon={isDeletingNotifications ? <CircularProgress size={24} /> : <DeleteRounded />} key="delete" tooltipTitle={isDeletingNotifications ? "Deleting..." : "Delete All"} onClick={handleDeleteAll} tooltipPlacement="bottom" />
+    <Dialog open={open} onClose={handleClose} fullWidth maxWidth={isSmallScreen ? "xs" : "sm"}>
+      {/* Header with title and SpeedDial */}
+      <Stack
+        sx={{
+          width: "100%",
+          paddingX: isSmallScreen ? "0.5rem" : "1rem",
+          position: "relative",
+        }}
+        flexDirection="row"
+        justifyContent="space-between"
+        alignItems="center"
+      >
+        <DialogTitle
+          sx={{
+            fontWeight: "bold",
+            fontSize: isSmallScreen ? "1rem" : "1.3rem",
+          }}
+        >
+          Notifications
+        </DialogTitle>
+        <Stack sx={{ position: "absolute", zIndex: 1300, right: "1rem" }}>
+          <CustomSpeedDial
+            ariaLabel="Notification settings"
+            icon={<SettingsRounded color="action" />}
+            onOpen={handleOpenSettings}
+            onClose={handleCloseSetting}
+            open={openSetting}
+            direction="left"
+            FabProps={{
+              size: "medium",
+              sx: {
+                "&:hover": {
+                  transform: "rotate(45deg)",
+                  transition: "transform 0.3s",
+                },
+              },
+            }}
+          >
+            <SpeedDialAction
+              icon={isDeletingNotifications ? <CircularProgress size={24} /> : <DeleteRounded />}
+              tooltipTitle={isDeletingNotifications ? "Deleting..." : "Delete All"}
+              onClick={handleDeleteAll}
+              tooltipPlacement={isSmallScreen ? "top" : "right"}
+            />
             <SpeedDialAction
               icon={isTogglingSetting ? <CircularProgress size={24} /> : bulletNotificationEnabled ? <NotificationsActiveRounded /> : <NotificationsOffIcon />}
-              key="toggle"
               tooltipTitle={bulletNotificationEnabled ? "Turn Off Notifications" : "Turn On Notifications"}
               onClick={handleToggleNotifications}
-              tooltipPlacement="bottom"
+              tooltipPlacement={isSmallScreen ? "top" : "right"}
             />
           </CustomSpeedDial>
         </Stack>
       </Stack>
+
+      {/* Notification content */}
       <DialogContent
         ref={dialogContentRef}
         sx={{
           maxHeight: "60vh",
           overflowY: "auto",
-          margin: 0,
-          padding: 0,
-          paddingX: "1rem",
+          padding: isSmallScreen ? "0.5rem" : "1rem",
         }}
       >
         {isLoading ? (
+          // Loading skeleton
           Array.from(new Array(5)).map((_, idx) => <Skeleton key={idx} variant="rectangular" height={60} sx={{ borderRadius: ".6rem", marginBottom: "0.5rem" }} />)
         ) : notifications && notifications.length > 0 ? (
+          // Notification list
           <List sx={{ width: "100%", px: ".4rem" }}>
             <AnimatePresence>
               {notifications.map((notification) => (
@@ -137,8 +186,16 @@ const NotificationModal = ({ open, handleClose }) => {
             )}
           </List>
         ) : (
+          // Empty state
           <Stack justifyContent="center" alignItems="center" sx={{ width: "100%", padding: "1rem" }}>
-            <Lottie animationData={notificationAnimation} style={{ height: "40%", width: "40%", objectFit: "cover" }} />
+            <Lottie
+              animationData={notificationAnimation}
+              style={{
+                height: "40%",
+                width: "40%",
+                objectFit: "cover",
+              }}
+            />
             <Typography variant="body1" sx={{ marginTop: "1rem", transform: "translateY(-3rem)" }}>
               No notifications yet.
             </Typography>

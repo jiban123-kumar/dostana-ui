@@ -3,7 +3,7 @@ import { useDispatch } from "react-redux";
 import axiosInstance from "../../configs/axiosInstance";
 import { useUserProfile } from "../userProfile/userProfile";
 import { useCreateNotification } from "../notification/notification";
-import { setLoading, showAlert } from "../../reduxSlices/alertSlice";
+import { showAlert } from "../../reduxSlices/alertSlice";
 import { useContext } from "react";
 import { SocketContext } from "../../contextProvider/SocketProvider.jsx";
 
@@ -33,7 +33,6 @@ const manageFriendRequestsApi = async (action) => {
 
 const useAcceptFriendRequest = () => {
   const socket = useContext(SocketContext);
-  const dispatch = useDispatch();
   const queryClient = useQueryClient();
 
   const { mutate: createNotification } = useCreateNotification();
@@ -88,15 +87,12 @@ const useAcceptFriendRequest = () => {
       queryClient.setQueryData(["friendRequestCount"], (oldCount) => (typeof oldCount === "number" ? oldCount - 1 : oldCount));
     },
     onError: (err) => {},
-    onSettled: () => {
-      dispatch(setLoading(false));
-    },
+    onSettled: () => {},
   });
 };
 
 const useDeclineFriendRequest = () => {
   const socket = useContext(SocketContext);
-  const dispatch = useDispatch();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -157,9 +153,7 @@ const useDeclineFriendRequest = () => {
     onError: (err) => {
       console.log(err);
     },
-    onSettled: () => {
-      dispatch(setLoading(false));
-    },
+    onSettled: () => {},
   });
 };
 
@@ -305,11 +299,8 @@ const useManageFriendRequests = (action) => {
     },
     onError: (err) => {
       console.log(err);
-      dispatch(showAlert({ message: "Operation failed", type: "error", loading: false }));
     },
-    onSettled: () => {
-      dispatch(setLoading(false));
-    },
+    onSettled: () => {},
   });
 };
 

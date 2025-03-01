@@ -20,7 +20,7 @@ const SharedFeedView = () => {
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
+        if (entries[0]?.isIntersecting && hasNextPage && !isFetchingNextPage) {
           fetchNextPage();
         }
       },
@@ -34,11 +34,11 @@ const SharedFeedView = () => {
     };
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
-  const sharedContents = useMemo(() => data?.pages?.flatMap((page) => page.contents || []) || [], [data]);
+  const sharedContents = useMemo(() => data?.pages?.flatMap((page) => page?.contents || []) || [], [data]);
 
   if (isLoading) {
     return (
-      <Stack flex={1} py={2} spacing={3}>
+      <Stack flex={1} py={2} spacing={3} sx={{ width: { xs: "90%", sm: "28rem", md: "38rem" } }}>
         {[...Array(3)].map((_, index) => (
           <Stack key={index} spacing={1}>
             <Stack direction="row" justifyContent="flex-end" spacing={1} alignItems="center">
@@ -59,29 +59,31 @@ const SharedFeedView = () => {
   if (!sharedContents.length) return <NoFeedMsg textMsg="No shared content found" />;
 
   return (
-    <Stack flex={1} py={2} gap={3} width="38rem">
+    <Stack flex={1} py={2} gap={3} sx={{ width: { xs: "90%", sm: "28rem", md: "38rem" } }}>
       {sharedContents.map((content) => {
-        const { _id, shareType, sharedWith, sharedBy } = content;
+        const { _id, shareType, sharedWith, sharedBy } = content || {};
         let sharedWithText = "";
         let avatarGroup = null;
 
         if (shareType === "sharedByMe" && sharedWith?.length) {
-          sharedWithText = `Shared with ${sharedWith[0].firstName}${sharedWith.length > 1 ? ` and ${sharedWith.length - 1} other(s)` : ""}`;
+          sharedWithText = `Shared with ${sharedWith[0]?.firstName || "Unknown"}${sharedWith.length > 1 ? ` and ${sharedWith.length - 1} other(s)` : ""}`;
           avatarGroup = (
             <AvatarGroup max={4} sx={{ display: "flex", flexWrap: "wrap" }}>
-              {sharedWith.map((user) => (
-                <Tooltip key={user._id} title={`Shared with ${user.firstName}`}>
-                  <Avatar alt={user.firstName} src={user.profileImage} sx={{ width: 24, height: 24, boxShadow: 3 }} />
-                </Tooltip>
-              ))}
+              {sharedWith
+                ?.filter((user) => user) // Remove null values
+                ?.map((user) => (
+                  <Tooltip key={user?._id} title={`Shared with ${user?.firstName || "Unknown"}`}>
+                    <Avatar src={user?.profileImage} sx={{ width: 24, height: 24, boxShadow: 3 }} />
+                  </Tooltip>
+                ))}
             </AvatarGroup>
           );
         } else if (shareType === "sharedWithMe" && sharedBy) {
           avatarGroup = (
             <AvatarGroup max={4} sx={{ display: "flex", flexWrap: "wrap" }}>
-              <Tooltip title={`Shared by ${sharedBy.firstName}`}>
-                <IconButton onClick={() => navigate(`/user-profile/${sharedBy._id}`)}>
-                  <Avatar alt={sharedBy.firstName} src={sharedBy.profileImage} sx={{ width: 24, height: 24, boxShadow: 3 }} />
+              <Tooltip title={`Shared by ${sharedBy?.firstName}`}>
+                <IconButton onClick={() => navigate(`/user-profile/${sharedBy?._id}`)}>
+                  <Avatar alt={sharedBy?.firstName} src={sharedBy?.profileImage} sx={{ width: 24, height: 24, boxShadow: 3 }} />
                 </IconButton>
               </Tooltip>
             </AvatarGroup>

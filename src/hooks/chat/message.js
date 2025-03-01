@@ -6,7 +6,7 @@ import { useUserProfile } from "../userProfile/userProfile";
 
 const sendMessageApi = async (data) => {
   console.log(data);
-  const response = await axiosInstance.post(`/chat/send/`, data, { headers: { "Content-Type": "multipart/form-data" } });
+  const response = await axiosInstance.post(`/chat/send`, data, { headers: { "Content-Type": "multipart/form-data" } });
   return response.data;
 };
 const deleteMessageApi = async (body) => {
@@ -182,7 +182,7 @@ export const useMarkMessageAsReadByIds = () => {
     mutationFn: markMessageAsReadByIdsApi,
     onSuccess: (data, { chatId }) => {
       const count = data.count;
-      console.log(count);
+      console.log(chatId);
       queryClient.setQueryData(["unreadCount", chatId], (oldCount) => {
         if (!oldCount) return oldCount;
         return Math.max(oldCount - count, 0);

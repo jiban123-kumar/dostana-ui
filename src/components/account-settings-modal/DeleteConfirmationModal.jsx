@@ -1,7 +1,6 @@
 /* eslint-disable react/prop-types */
 import React, { useState, useRef } from "react";
-import { Dialog, DialogContent, DialogTitle, Stack, Button, Box, Typography } from "@mui/material";
-import { LoadingButton } from "@mui/lab";
+import { Dialog, DialogContent, DialogTitle, Stack, Button, Box, Typography, useMediaQuery } from "@mui/material";
 import ReCAPTCHA from "react-google-recaptcha";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
@@ -15,6 +14,9 @@ const DeleteConfirmationModal = ({ open, handleClose, formData }) => {
   const recaptchaRef = useRef(null); // Ref for the ReCAPTCHA
   const dispatch = useDispatch();
   const navigate = useNavigate();
+
+  const isSmallScreen = useMediaQuery("(max-width:420px)");
+  const isMobile = useMediaQuery("(max-width:600px)");
 
   const { mutate: deleteAccount, isPending: isDeletingAccount } = useDeleteAccount();
 
@@ -55,9 +57,9 @@ const DeleteConfirmationModal = ({ open, handleClose, formData }) => {
   };
 
   return (
-    <Dialog open={open} onClose={handleClose}>
-      <Box sx={{ width: "30rem" }}>
-        <DialogTitle textAlign="center" sx={{ fontWeight: "bold" }}>
+    <Dialog open={open} onClose={handleClose} fullWidth maxWidth="xs">
+      <Box>
+        <DialogTitle textAlign="center" sx={{ fontWeight: "bold", fontSize: { sm: "1.3rem", xs: "1.1rem" } }}>
           Delete Account
         </DialogTitle>
         <DialogContent>
@@ -73,13 +75,22 @@ const DeleteConfirmationModal = ({ open, handleClose, formData }) => {
           />
 
           {/* Buttons */}
-          <Stack flexDirection="row" marginTop={3} gap={2}>
-            <Button variant="outlined" onClick={handleClose} fullWidth>
+          <Stack flexDirection={isSmallScreen ? "column" : "row"} marginTop={isSmallScreen ? 4 : 3} gap={2}>
+            <Button variant="outlined" onClick={handleClose} fullWidth size={isMobile ? "small" : "medium"}>
               Cancel
             </Button>
-            <LoadingButton variant="contained" loading={isDeletingAccount} fullWidth color="warning" disabled={!isCaptchaVerified || isDeletingAccount} onClick={onDeleteAccount} sx={{ fontWeight: 600 }}>
+            <Button
+              variant="contained"
+              loading={isDeletingAccount}
+              fullWidth
+              color="warning"
+              disabled={!isCaptchaVerified || isDeletingAccount}
+              onClick={onDeleteAccount}
+              sx={{ fontWeight: 600 }}
+              size={isMobile ? "small" : "medium"}
+            >
               Delete Account
-            </LoadingButton>
+            </Button>
           </Stack>
         </DialogContent>
       </Box>

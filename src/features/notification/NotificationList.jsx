@@ -35,23 +35,25 @@ const NotificationList = ({ notification, onView, hideNotificationModal }) => {
     });
   };
 
-  const handleNavigate = () => {
-    console.log(notification.type);
+  const handleNavigate = (event) => {
+    // Prevent navigation if the menu is open
+    if (anchorEl) {
+      handleMenuClose();
+      return;
+    }
     if (notification.type === "friend_request_sent" || notification.type === "friend_request_accepted") {
-      hideNotificationModal();
       navigate(`/user-profile/${notification.referenceId}`);
+      hideNotificationModal();
     } else if (notification.type === "content-comment" || notification.type === "content-reaction" || notification.type === "content-share") {
-      setSelectedContentId(notification.referenceId); // Open modal with content
+      setSelectedContentId(notification.referenceId);
     }
   };
 
-  // Use IntersectionObserver to detect when this item is in view
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries, observerInstance) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            // When at least 50% of the element is visible, call onView
             if (onView) {
               onView(notification._id);
             }
@@ -86,16 +88,19 @@ const NotificationList = ({ notification, onView, hideNotificationModal }) => {
             mb: 2,
             width: "100%",
             cursor: "pointer",
+            position: "relative",
+            py: "1rem",
           }}
           component={ListItemButton}
+          disableRipple
           onClick={handleNavigate}
         >
-          <Avatar src={notification.sender.profileImage} sx={{ width: 48, height: 48 }} />
-          <Box sx={{ display: "flex", flexDirection: "column", ml: 2 }}>
-            <Typography variant="body1" fontWeight={600}>
+          <Avatar src={notification.sender.profileImage} sx={{ width: { xs: 40, sm: 48 }, height: { xs: 40, sm: 48 } }} />
+          <Box sx={{ display: "flex", flexDirection: "column" }}>
+            <Typography variant="body1" fontWeight={600} sx={{ fontSize: { xs: ".9rem", sm: "1rem" } }}>
               {notification.sender.firstName} {notification.sender.lastName}
             </Typography>
-            <Typography variant="body2" color="text.secondary">
+            <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: ".8rem", sm: ".9rem" } }}>
               {notification.action}
             </Typography>
           </Box>
@@ -108,12 +113,8 @@ const NotificationList = ({ notification, onView, hideNotificationModal }) => {
               alignItems: "flex-end",
             }}
           >
-            <Typography variant="caption" color="text.secondary">
-              {formatDate(notification.createdAt)}
-            </Typography>
             <IconButton
               size="small"
-              onMouseEnter={handleMenuOpen}
               onClick={(e) => {
                 e.stopPropagation();
                 handleMenuOpen(e);
@@ -125,9 +126,6 @@ const NotificationList = ({ notification, onView, hideNotificationModal }) => {
               anchorEl={anchorEl}
               open={menuOpen}
               onClose={handleMenuClose}
-              MenuListProps={{
-                onMouseLeave: handleMenuClose,
-              }}
               anchorOrigin={{
                 vertical: "bottom",
                 horizontal: "right",
@@ -140,6 +138,9 @@ const NotificationList = ({ notification, onView, hideNotificationModal }) => {
               <MenuItem onClick={handleDelete}>{isDeletingNotification ? <CircularProgress size={20} /> : "Delete"}</MenuItem>
             </Menu>
           </Box>
+          <Typography variant="caption" color="text.secondary" sx={{ position: "absolute", bottom: -2, right: 12 }}>
+            {formatDate(notification.createdAt)}
+          </Typography>
         </Paper>
 
         {selectedContentId && <SingleContentModal contentId={selectedContentId} open={Boolean(selectedContentId)} handleClose={() => setSelectedContentId(null)} />}

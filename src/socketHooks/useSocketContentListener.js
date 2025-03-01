@@ -7,71 +7,75 @@ export const useSocketContentListener = (socket, userProfile) => {
   const dispatch = useDispatch();
   const queryClient = useQueryClient();
 
+  // Helper: Update paginated data by applying a transformation to every page.
+  const updatePages = (oldData, transformPage) => {
+    if (!oldData || !oldData.pages) return oldData;
+    return {
+      ...oldData,
+      pages: oldData.pages.map(transformPage),
+    };
+  };
+
+  // Helper: Prepend an item to a given list key on the first page.
+  const prependToFirstPage = (oldData, newItem, listKey) => {
+    if (!oldData || !oldData.pages || !oldData.pages.length) return oldData;
+    const firstPage = oldData.pages[0];
+    const updatedFirstPage = {
+      ...firstPage,
+      [listKey]: [newItem, ...firstPage[listKey]],
+    };
+    return {
+      ...oldData,
+      pages: [updatedFirstPage, ...oldData.pages.slice(1)],
+    };
+  };
+
+  // Helper: Update reaction details for a list of contents.
+  const updateContentReactions = (contents, contentId, userId, isReacted, reaction) => {
+    if (!contents) return contents;
+    return contents.map((content) => {
+      if (content._id !== contentId) return content;
+
+      const newReactions = new Map(content.reactionDetails.reactions.map((r) => [r.user._id, r]));
+
+      if (isReacted) {
+        newReactions.set(userId, reaction);
+      } else {
+        newReactions.delete(userId);
+      }
+
+      return {
+        ...content,
+        reactionDetails: {
+          totalReactions: newReactions.size,
+          reactions: Array.from(newReactions.values()),
+        },
+      };
+    });
+  };
+
   const handleReaction = useCallback(
     async (socketData) => {
-      // If the reaction comes from the current user, skip updating.
+      // Skip if the reaction came from the current user.
       if (socketData.userId === userProfile?._id) return;
 
-      // Destructure the expected fields from the socket event.
-      // We assume the emitted object contains: contentId, targetUserId, and data (the reaction data).
       const { contentId, targetUserId, data: reactionData } = socketData;
       const {
-        reactionDetails: { isReacted, reaction, reactionDetails, userId },
+        reactionDetails: { isReacted, reaction, userId },
       } = reactionData;
 
-      // Define a helper that updates the reactions in an array of content objects.
-      const updateContentReactions = (contents) => {
-        if (!contents) return contents;
-        return contents.map((content) => {
-          // Only update if this is the matching content.
-          if (content._id !== contentId) return content;
-
-          // Create a Map of existing reactions, keyed by the reacting user's id.
-          const newReactions = new Map(content.reactionDetails.reactions.map((r) => [r.user._id, r]));
-
-          if (isReacted) {
-            // Add or update the reaction detail.
-            newReactions.set(userId, reaction);
-          } else {
-            // Remove the reaction detail.
-            newReactions.delete(userId);
-          }
-
-          return {
-            ...content,
-            reactionDetails: {
-              totalReactions: newReactions.size,
-              reactions: Array.from(newReactions.values()),
-            },
-          };
-        });
-      };
-
-      // Update various queries that may contain this content.
-      const updateData = (queryKey) => {
+      const updateDataForKey = (queryKey) => {
         queryClient.setQueryData(queryKey, (oldData) => {
           if (!oldData || !oldData.pages) return oldData;
-          return {
-            ...oldData,
-            pages: oldData.pages.map((page) => ({
-              ...page,
-              contents: updateContentReactions(page.contents),
-            })),
-          };
+          return updatePages(oldData, (page) => ({
+            ...page,
+            contents: updateContentReactions(page.contents, contentId, userId, isReacted, reaction),
+          }));
         });
       };
 
-      updateData(["contents"]);
-      updateData(["contents", targetUserId]);
-      updateData(["shared-contents"]);
-      updateData(["saved-contents"]);
-
-      // Also update the individual content query (if it exists).
-
-      // Optionally, if you maintain a separate "reactions" query:
-      // queryClient.setQueryData(["reactions", contentId], (oldData) => { ... });
-
-      // If this reaction is not an un-reaction, trigger notifications.
+      // Update all queries that might contain the content.
+      [["contents"], ["contents", targetUserId], ["shared-contents"], ["saved-contents"]].forEach((queryKey) => updateDataForKey(queryKey));
     },
     [queryClient, userProfile]
   );
@@ -79,18 +83,7 @@ export const useSocketContentListener = (socket, userProfile) => {
   const handleContentShare = useCallback(
     async (data) => {
       const { requesterProfile, sharedContent } = data;
-      queryClient.setQueryData(["shared-contents"], (oldData) => {
-        if (!oldData) return oldData;
-        return {
-          ...oldData,
-          pages: oldData.pages.map((page, index) => {
-            if (index === 0) {
-              return { ...page, contents: [sharedContent, ...page.contents] };
-            }
-            return page;
-          }),
-        };
-      });
+      queryClient.setQueryData(["shared-contents"], (oldData) => prependToFirstPage(oldData, sharedContent, "contents"));
 
       dispatch(
         showNotistackAlert({
@@ -107,37 +100,27 @@ export const useSocketContentListener = (socket, userProfile) => {
   const handleContentCreation = useCallback(
     (data) => {
       const { newContent } = data;
-      queryClient.setQueryData(["contents"], (oldData) => {
-        if (!oldData) return oldData;
-        // Prevent duplicates by prepending to the first page.
-        const firstPage = oldData.pages[0];
-        const updatedFirstPage = {
-          ...firstPage,
-          contents: [newContent, ...firstPage.contents],
-        };
-        return {
-          ...oldData,
-          pages: [updatedFirstPage, ...oldData.pages.slice(1)],
-        };
-      });
+      const userId = newContent?.user?._id;
+
+      // Prepend to general contents list.
+      queryClient.setQueryData(["contents"], (oldData) => prependToFirstPage(oldData, newContent, "contents"));
+
+      // Prepend to the user-specific contents list.
+      queryClient.setQueryData(["contents", userId], (oldData) => prependToFirstPage(oldData, newContent, "contents"));
     },
     [queryClient]
   );
 
   const handleContentDeletion = useCallback(
     (data) => {
-      queryClient.setQueryData(["contents"], (oldData) => {
-        if (!oldData) return oldData;
-        const firstPage = oldData.pages[0];
-        const updatedFirstPage = {
-          ...firstPage,
-          contents: firstPage.contents.filter((item) => item._id !== data.contentId),
-        };
-        return {
-          ...oldData,
-          pages: [updatedFirstPage, ...oldData.pages.slice(1)],
-        };
+      const { contentId, contentOwnerId } = data;
+      const removeContentFromPage = (page) => ({
+        ...page,
+        contents: page.contents.filter((c) => c._id !== contentId),
       });
+
+      queryClient.setQueryData(["contents"], (oldData) => updatePages(oldData, removeContentFromPage));
+      queryClient.setQueryData(["contents", contentOwnerId], (oldData) => updatePages(oldData, removeContentFromPage));
     },
     [queryClient]
   );
@@ -145,33 +128,20 @@ export const useSocketContentListener = (socket, userProfile) => {
   const handleNewComment = useCallback(
     (data) => {
       const { contentId, newComment } = data;
-      queryClient.setQueryData(["content-comments", contentId], (oldData) => {
-        if (!oldData) return oldData;
-        return {
-          ...oldData,
-          pages: oldData.pages.map((page, index) => {
-            if (index === 0) {
-              return { ...page, comments: [newComment, ...page.comments] };
-            }
-            return page;
-          }),
-        };
-      });
+      queryClient.setQueryData(["content-comments", contentId], (oldData) => prependToFirstPage(oldData, newComment, "comments"));
     },
     [queryClient]
   );
+
   const handleContentCommentDeletion = useCallback(
     (data) => {
       const { commentId } = data;
       queryClient.setQueryData(["content-comments", commentId], (oldData) => {
         if (!oldData) return oldData;
-        return {
-          ...oldData,
-          pages: oldData.pages.map((page) => ({
-            ...page,
-            comments: page.comments.filter((c) => c._id !== commentId),
-          })),
-        };
+        return updatePages(oldData, (page) => ({
+          ...page,
+          comments: page.comments.filter((c) => c._id !== commentId),
+        }));
       });
     },
     [queryClient]

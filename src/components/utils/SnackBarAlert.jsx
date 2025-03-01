@@ -10,7 +10,7 @@ function SlideTransition(props) {
   return <Slide {...props} direction="left" />;
 }
 
-export default function SnackbarAlert() {
+export default function SnackBarAlert() {
   const dispatch = useDispatch();
   const { isVisible, message, type, loading } = useSelector((state) => state.alert);
 
@@ -52,8 +52,11 @@ export default function SnackbarAlert() {
         sx={{
           display: "flex",
           alignItems: "center",
-          minWidth: "20rem",
+          minWidth: { xs: "15rem", sm: "20rem" },
           bgcolor: loading && "#e0e0e096",
+          maxWidth: "100%",
+          fontSize: { xs: "0.9rem", sm: "1rem" },
+          mt: { xs: "2rem", sm: ".6rem" },
         }}
         icon={renderIcon()}
         action={
@@ -64,7 +67,7 @@ export default function SnackbarAlert() {
           )
         }
       >
-        <span style={{ display: "flex", alignItems: "center", fontWeight: 600 }}>{message}</span>
+        <span style={{ display: "flex", alignItems: "center", fontWeight: 600 }}>{message || "Something went wrong"}</span>
       </Alert>
     </Snackbar>
   );

@@ -4,7 +4,7 @@ import alertSlice from "../reduxSlices/alertSlice.js";
 import mediaPreviewSlice from "../reduxSlices/mediaPreviewSlice.js";
 import downloadingSlice from "../reduxSlices/downloadingSlice.js";
 import notistackAlertSlice from "../reduxSlices/notistackAlertSlice.js";
-import { notificationModalReducer } from "../reduxSlices/componentTracker.js";
+import contentSlice from "../reduxSlices/contentSlice.js";
 export const store = configureStore({
   reducer: {
     profile: profileSlice,
@@ -12,6 +12,6 @@ export const store = configureStore({
     media: mediaPreviewSlice,
     downloading: downloadingSlice,
     notistackAlert: notistackAlertSlice,
-    componentTracker: notificationModalReducer,
+    content: contentSlice,
   },
 });

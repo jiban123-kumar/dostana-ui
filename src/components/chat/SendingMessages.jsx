@@ -18,18 +18,28 @@ const SendingMessages = ({ message, onRetry, onRemove }) => {
           display: "flex",
           alignItems: "center",
           gap: 1.5,
-          maxWidth: 300,
+          width: "fit-content", // Allow dynamic width based on content
+          maxWidth: "100%", // Prevent exceeding 70% of the container
+          minWidth: "30%", // Ensure it doesn't shrink too much
           mb: 1,
         }}
       >
-        {message.mediaPreviews.length > 0 && <img src={message.mediaPreviews[0]} alt="Media preview" style={{ width: 40, height: 40, objectFit: "cover", borderRadius: 4 }} />}
-        <Typography variant="body2" sx={{ flex: 1, wordBreak: "break-word" }}>
-          {message.text || (message.mediaPreviews.length ? "Sending files..." : "Sending...")}
+        {message?.mediaPreviews?.length > 0 && <img src={message.mediaPreviews[0]} alt="Media preview" style={{ width: 40, height: 40, objectFit: "cover", borderRadius: 4 }} />}
+        <Typography
+          variant="body2"
+          sx={{
+            flex: 1,
+            wordBreak: "break-word",
+            overflowWrap: "break-word",
+            whiteSpace: "pre-wrap", // Ensures long text breaks properly
+          }}
+        >
+          {message?.text || (message?.mediaPreviews?.length ? "Sending files..." : "Sending...")}
         </Typography>
 
-        {message.status === "sending" && <CircularProgress size={20} />}
-        {message.status === "sent" && <Check fontSize="small" color="success" />}
-        {message.status === "failed" && (
+        {message?.status === "sending" && <CircularProgress size={20} />}
+        {message?.status === "sent" && <Check fontSize="small" color="success" />}
+        {message?.status === "failed" && (
           <Stack direction="row" alignItems="center" gap={0.5}>
             <ErrorOutline fontSize="small" color="error" />
             <Tooltip title="Retry">

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Button, Card, Divider, Stack, TextField, Typography, Box, Chip, Tooltip } from "@mui/material";
+import { Button, Card, Divider, Stack, TextField, Typography, Box, Chip, Tooltip, useMediaQuery } from "@mui/material";
 import Lottie from "lottie-react";
 import { avatar1, avatar2, avatar3, avatar4, avatar5, avatar6, avatar7, avatar8, hobbiesAnimation } from "../../animation";
 import {
@@ -54,6 +54,7 @@ const UserProfileDetailsView = () => {
   const [isAvatarDialogOpen, setIsAvatarDialogOpen] = useState(false);
   const [formValues, setFormValues] = useState({});
   const [errors, setErrors] = useState({});
+  const isBelow480 = useMediaQuery("(max-width:480px)");
 
   const { data: userProfile, isLoading: isProfileFetching } = useGetUserProfileById(userId);
   const { data: selfProfile, isLoading: isSelfProfileFetching } = useUserProfile();
@@ -156,27 +157,38 @@ const UserProfileDetailsView = () => {
               justifyContent: "center",
               alignItems: "center",
               width: "100%",
-              maxWidth: "20rem",
+              maxWidth: { md: "20rem" },
               flexDirection: "column",
             }}
           >
-            <Lottie animationData={selectedAvatar} style={{ height: "80%", width: "80%" }} />
+            <Stack sx={{ width: { md: "80%", xs: "50%" }, height: { md: "80%", xs: "50%" } }}>
+              <Lottie animationData={selectedAvatar} style={{ height: "100%", width: "100%" }} />
+            </Stack>
             {isSelf && isEditMode && (
               <Tooltip title="Change Avatar">
-                <Button variant="contained" color="secondary" sx={{ fontWeight: "bold" }} onClick={() => setIsAvatarDialogOpen(true)}>
+                <Button variant="contained" color="secondary" sx={{ fontWeight: "bold" }} onClick={() => setIsAvatarDialogOpen(true)} size="small">
                   Choose Avatar
                 </Button>
               </Tooltip>
             )}
           </Box>
-          <Stack flex={1} spacing={3}>
-            <Typography variant="h6" fontWeight="bold">
+          <Stack flex={1} spacing={isBelow480 ? 1 : 3}>
+            <Typography variant="h6" fontWeight="bold" sx={{ fontSize: { md: "1.5rem", xs: "1.2rem" } }}>
               Personal Details
             </Typography>
             <Divider />
 
             <Stack spacing={2}>
-              <TextField label="Profile Name" variant="standard" fullWidth name="profileName" value={formValues.profileName || ""} InputProps={{ readOnly: true }} InputLabelProps={{ shrink: true }} placeholder="Not available" />
+              <TextField
+                label="Profile Name"
+                variant="standard"
+                fullWidth
+                name="profileName"
+                value={formValues.profileName || ""}
+                InputProps={{ readOnly: true }}
+                InputLabelProps={{ shrink: true }}
+                placeholder="Not available"
+              />
               <TextField
                 label="Mobile Number"
                 variant="standard"
@@ -191,7 +203,17 @@ const UserProfileDetailsView = () => {
                 placeholder="Not available"
                 InputProps={{ readOnly: !isEditMode }}
               />
-              <TextField label="Location" variant="standard" fullWidth name="location" value={formValues.location || ""} onChange={handleInputChange} InputLabelProps={{ shrink: true }} placeholder="Not available" InputProps={{ readOnly: !isEditMode }} />
+              <TextField
+                label="Location"
+                variant="standard"
+                fullWidth
+                name="location"
+                value={formValues.location || ""}
+                onChange={handleInputChange}
+                InputLabelProps={{ shrink: true }}
+                placeholder="Not available"
+                InputProps={{ readOnly: !isEditMode }}
+              />
               <TextField
                 label="Date of Birth"
                 variant="standard"

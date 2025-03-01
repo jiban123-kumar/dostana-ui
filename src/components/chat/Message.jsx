@@ -2,7 +2,7 @@
 import React, { useState, useRef, useContext, useEffect } from "react";
 import { Avatar, Box, IconButton, Menu, MenuItem, Stack, Typography, Tooltip, CircularProgress } from "@mui/material";
 import { BlockRounded, Delete as DeleteIcon, MoreVertRounded, PlayArrowRounded } from "@mui/icons-material";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useDispatch } from "react-redux";
 import { openMediaDialog } from "../../reduxSlices/mediaPreviewSlice";
@@ -85,6 +85,8 @@ const Message = ({ message, chatId, recipient, userProfile, onView }) => {
   const [deletingForMe, setDeletingForMe] = useState(false);
   const [deletingForEveryone, setDeletingForEveryone] = useState(false);
   const containerRef = useRef(null);
+
+  const navigate = useNavigate();
 
   const isMyMessage = message.sender.toString() !== recipient._id?.toString();
   const hasOnlyOneImage = message?.media && message?.media.length === 1 && !message.text;
@@ -174,22 +176,23 @@ const Message = ({ message, chatId, recipient, userProfile, onView }) => {
       }}
       ref={containerRef}
     >
-      <Stack direction={isMyMessage ? "row-reverse" : "row"} spacing={1.5} alignItems="flex-start" mb={2.5}>
-        <Avatar
-          sx={{
-            width: 40,
-            height: 40,
-            margin: isMyMessage ? "0 0 0 12px" : "0 12px 0 0",
-            boxShadow: 2,
-            border: "2px solid white",
-          }}
-          src={isMyMessage ? userProfile?.profileImage : recipient?.profileImage}
-        />
+      <Stack direction={isMyMessage ? "row-reverse" : "row"} spacing={0} alignItems="flex-start" mb={2.5}>
+        <IconButton onClick={() => navigate(`/user-profile/${isMyMessage ? userProfile._id : recipient._id}`)}>
+          <Avatar
+            sx={{
+              width: 40,
+              height: 40,
+              boxShadow: 2,
+              border: "2px solid white",
+              transform: "translateY(-0.5rem)",
+            }}
+            src={isMyMessage ? userProfile?.profileImage : recipient?.profileImage}
+          />
+        </IconButton>
 
         <Box
           sx={{
             position: "relative",
-            maxWidth: "70%",
             borderRadius: hasOnlyOneImage ? "0" : "12px",
             boxShadow: hasOnlyOneImage ? "none" : 3,
             background: hasOnlyOneImage ? "none" : isMyMessage ? "linear-gradient(135deg, #6366f1, #8b5cf6)" : "#f3f4f6",
@@ -197,11 +200,12 @@ const Message = ({ message, chatId, recipient, userProfile, onView }) => {
             p: hasOnlyOneImage ? 0 : 2,
             pb: hasOnlyOneImage ? 0 : 1.5,
             border: !isMyMessage && !hasOnlyOneImage ? "1px solid #e5e7eb" : "none",
-            minWidth: "15rem",
             display: "flex",
             flexDirection: "column",
             alignItems: "flex-start",
             pr: "2rem",
+            minWidth: "10rem",
+            maxWidth: { md: "70%", sm: "80%", xs: "90%" },
           }}
         >
           {hasOnlyOneImage ? (

@@ -2,8 +2,6 @@ import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tansta
 import { useDispatch } from "react-redux";
 import { useContext } from "react";
 import { SocketContext } from "../../contextProvider/SocketProvider";
-import { useUserProfile } from "../userProfile/userProfile";
-import { setLoading, showAlert } from "../../reduxSlices/alertSlice";
 import axiosInstance from "../../configs/axiosInstance";
 import { useCreateNotification } from "../notification/notification";
 
@@ -21,7 +19,6 @@ const cancelFriendRequestApi = async (recipientId) => {
 
 const getSuggestedUsersApi = async ({ pageParam = 1 }) => {
   const response = await axiosInstance.get(`/friend/suggested-users?page=${pageParam}&limit=10`);
-  console.log(response.data);
   return response.data;
 };
 
@@ -62,18 +59,14 @@ export const useCancelFriendRequest = () => {
     },
     onError: (err) => {
       console.log(err);
-      dispatch(showAlert({ message: "Failed to cancel friend request.", type: "error", loading: false }));
     },
-    onSettled: () => {
-      dispatch(setLoading(false));
-    },
+    onSettled: () => {},
   });
 };
 
 // ✅ Send Friend Request Hook
 export const useSendFriendRequest = () => {
   const socket = useContext(SocketContext);
-  const dispatch = useDispatch();
   const queryClient = useQueryClient();
   const { mutate: createNotification } = useCreateNotification();
 
@@ -118,9 +111,7 @@ export const useSendFriendRequest = () => {
       });
     },
     onError: (err) => {},
-    onSettled: () => {
-      dispatch(setLoading(false));
-    },
+    onSettled: () => {},
   });
 };
 

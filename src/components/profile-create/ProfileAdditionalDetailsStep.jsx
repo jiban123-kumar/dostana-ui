@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from "react";
 import { KeyboardArrowLeft } from "@mui/icons-material";
-import { Button, DialogTitle, DialogContent, DialogActions, MenuItem, Select, Stack, TextField, Typography, Divider } from "@mui/material";
+import { Button, DialogContent, DialogActions, MenuItem, Select, Stack, TextField, Typography, useMediaQuery } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import { updateCurrentStep } from "../../reduxSlices/profileSlice";
 import { useProfileCreation } from "../../hooks/userProfile/userProfileCreation";
@@ -11,6 +11,7 @@ const ProfileAdditionalDetailsStep = ({ coverImage, profileImage }) => {
   const profile = useSelector((state) => state.profile.details);
   const isGoogleAccount = useSelector((state) => state.profile.isGoogleAccount);
   const { mutate: createProfile, isPending: isCreatingProfile } = useProfileCreation();
+  const isBelow420 = useMediaQuery("(max-width: 420px)");
 
   const [formValues, setFormValues] = useState({
     gender: profile.gender || "male",
@@ -82,14 +83,21 @@ const ProfileAdditionalDetailsStep = ({ coverImage, profileImage }) => {
 
   return (
     <form onSubmit={handleSubmit}>
-      <DialogContent>
+      <DialogContent sx={{ px: { md: "1rem", sm: ".6rem", xs: ".2rem" } }}>
         <Stack gap={2}>
           {/* Gender Selection */}
           <Stack>
             <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
               Gender
             </Typography>
-            <Select value={formValues.gender} onChange={(e) => setFormValues((prev) => ({ ...prev, gender: e.target.value }))} variant="standard" displayEmpty sx={{ mt: 1 }} inputProps={{ "aria-label": "Gender selection" }}>
+            <Select
+              value={formValues.gender}
+              onChange={(e) => setFormValues((prev) => ({ ...prev, gender: e.target.value }))}
+              variant="standard"
+              displayEmpty
+              sx={{ mt: 1 }}
+              inputProps={{ "aria-label": "Gender selection" }}
+            >
               <MenuItem value="male">Male</MenuItem>
               <MenuItem value="female">Female</MenuItem>
               <MenuItem value="other">Prefer not to say</MenuItem>
@@ -101,7 +109,19 @@ const ProfileAdditionalDetailsStep = ({ coverImage, profileImage }) => {
             <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
               Date of Birth
             </Typography>
-            <TextField variant="standard" fullWidth type="date" sx={{ mt: 1 }} name="dob" value={formValues.dob} onChange={handleInputChange} onBlur={handleInputBlur} error={Boolean(formErrors.dob)} helperText={formErrors.dob} inputRef={dateOfBirthRef} />
+            <TextField
+              variant="standard"
+              fullWidth
+              type="date"
+              sx={{ mt: 1 }}
+              name="dob"
+              value={formValues.dob}
+              onChange={handleInputChange}
+              onBlur={handleInputBlur}
+              error={Boolean(formErrors.dob)}
+              helperText={formErrors.dob}
+              inputRef={dateOfBirthRef}
+            />
           </Stack>
 
           {/* About Me Input */}
@@ -127,11 +147,18 @@ const ProfileAdditionalDetailsStep = ({ coverImage, profileImage }) => {
           </Stack>
         </Stack>
       </DialogContent>
-      <DialogActions sx={{ justifyContent: "space-between", p: "1rem" }}>
-        <Button variant="outlined" startIcon={<KeyboardArrowLeft />} onClick={() => dispatch(updateCurrentStep(1))} sx={{ fontWeight: 600 }} disabled={isCreatingProfile}>
+      <DialogActions sx={{ justifyContent: "space-between", pY: isBelow420 ? ".4rem" : ".8rem", flexDirection: isBelow420 ? "column" : "row", gap: 1 }}>
+        <Button variant="outlined" startIcon={<KeyboardArrowLeft />} onClick={() => dispatch(updateCurrentStep(1))} sx={{ fontWeight: 600 }} disabled={isCreatingProfile} fullWidth={isBelow420}>
           Back
         </Button>
-        <Button variant="contained" color="secondary" type="submit" sx={{ fontWeight: 600 }} disabled={isCreatingProfile}>
+        <Button
+          variant="contained"
+          color="secondary"
+          type="submit"
+          sx={{ fontWeight: 600, transform: `translateX(${isBelow420 ? "-.2rem" : "0rem"})` }}
+          disabled={isCreatingProfile}
+          fullWidth={isBelow420}
+        >
           {isCreatingProfile ? "Creating Profile..." : "Create Profile"}
         </Button>
       </DialogActions>

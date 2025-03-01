@@ -1,5 +1,5 @@
 import { useState /* useEffect */ } from "react";
-import { Dialog, DialogContent } from "@mui/material";
+import { Box, Dialog, DialogContent, Stack } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import ProfileImageStep from "./ProfileImageStep";
 import ProfileDetailsStep from "./ProfileDetailsStep";
@@ -74,9 +74,9 @@ const ProfileSetupForm = () => {
     >
       <DialogContent dividers>
         {/* Logo */}
-        <div style={{ textAlign: "center", paddingBottom: ".6rem" }}>
-          <img src={secondaryCompanyLogo} alt="Logo" style={{ width: "160px" }} />
-        </div>
+        <Stack alignItems="center">
+          <Box component="img" src={secondaryCompanyLogo} alt="Logo" sx={{ width: { md: "12rem", sm: "10rem", xs: "8rem" } }} />
+        </Stack>
         {renderStepContent(currentStep)}
       </DialogContent>
     </Dialog>

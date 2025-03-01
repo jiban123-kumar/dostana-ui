@@ -1,11 +1,11 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { Avatar, Badge, Button, List, ListItemAvatar, ListItemButton, Stack, Typography, Skeleton, CircularProgress } from "@mui/material";
 import { motion } from "framer-motion";
-import { ArrowRight } from "@mui/icons-material";
+import { ArrowRight, PersonAddRounded } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { useGetFriendRequests, useFriendRequestCount } from "../../hooks/friends/friendRequests";
 
-const SideNavFriendRequestsView = () => {
+const SideNavFriendRequestsView = ({ setOpenDrawer }) => {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef(null);
   const navigate = useNavigate();
@@ -50,13 +50,14 @@ const SideNavFriendRequestsView = () => {
       {/* Toggle Button with Badge */}
       <Badge badgeContent={friendRequestCount} color="error" invisible={!friendRequestCount || friendRequestCount < 1} max={99}>
         <Button
+          startIcon={<PersonAddRounded />}
           endIcon={
             <motion.div animate={{ rotate: isOpen ? 90 : 0, display: "flex", justifyContent: "center", alignItems: "center" }} transition={{ duration: 0.2 }}>
               <ArrowRight />
             </motion.div>
           }
           onClick={() => setIsOpen((prev) => !prev)}
-          sx={{ textTransform: "none", fontWeight: "bold", color: "#000000a6", p: "1rem", px: "2rem" }}
+          sx={{ textTransform: "none", fontWeight: "bold", color: "#000000a6", p: "1rem", px: ".8rem" }}
         >
           Friend Requests
         </Button>
@@ -65,7 +66,7 @@ const SideNavFriendRequestsView = () => {
       {/* Friend Requests List */}
       <motion.div animate={{ height: isOpen ? "auto" : 0 }} transition={{ duration: 0.2, ease: "easeInOut" }} style={{ overflow: "hidden", width: "100%" }}>
         {isOpen && (
-          <Stack ml="1.6rem" sx={{ maxHeight: "50vh", overflowY: "auto" }}>
+          <Stack ml="1.4rem" sx={{ maxHeight: { xs: "40vh", sm: "50vh", md: "60vh" }, overflowY: "auto" }}>
             <List disablePadding>
               {isLoading ? (
                 [...Array(4)].map((_, index) => (
@@ -78,11 +79,19 @@ const SideNavFriendRequestsView = () => {
                 ))
               ) : friendRequests.length > 0 ? (
                 friendRequests.map((user, index) => (
-                  <ListItemButton key={user._id} sx={{ borderRadius: "8px" }} onClick={() => navigate(`/user-profile/${user._id}`)} ref={index === friendRequests.length - 1 ? lastRequestRef : null}>
+                  <ListItemButton
+                    key={user._id}
+                    sx={{ borderRadius: "8px" }}
+                    onClick={() => {
+                      setOpenDrawer(false);
+                      navigate(`/user-profile/${user._id}`);
+                    }}
+                    ref={index === friendRequests.length - 1 ? lastRequestRef : null}
+                  >
                     <ListItemAvatar>
                       <Avatar src={user.profileImage} sx={{ boxShadow: 3 }} />
                     </ListItemAvatar>
-                    <Typography variant="body2" fontWeight="bold" color="#000000a6">
+                    <Typography variant="body2" fontWeight="bold" color="#000000a6" sx={{ maxWidth: "8rem" }}>
                       {user.firstName} {user.lastName}
                     </Typography>
                   </ListItemButton>
@@ -107,14 +116,20 @@ const SideNavFriendRequestsView = () => {
             )}
 
             {/* See All Button */}
-            {friendRequests.length > 0 && (
-              <Button sx={{ textTransform: "none", alignSelf: "flex-end", fontWeight: "bold", position: "sticky", bottom: 0, backgroundColor: "#ffffff" }} onClick={() => navigate("/friend-requests")}>
-                See all
-              </Button>
-            )}
           </Stack>
         )}
       </motion.div>
+      {friendRequests.length > 0 && isOpen && (
+        <Button
+          sx={{ textTransform: "none", fontWeight: "bold", backgroundColor: "#ffffff", alignSelf: "flex-end" }}
+          onClick={() => {
+            setOpenDrawer(false);
+            navigate("/friend-requests");
+          }}
+        >
+          See all
+        </Button>
+      )}
     </Stack>
   );
 };

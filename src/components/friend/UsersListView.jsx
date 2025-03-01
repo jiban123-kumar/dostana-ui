@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 import React from "react";
-import { Avatar, Badge, IconButton, Paper, Stack, styled, Tooltip, Box, Typography, Button } from "@mui/material";
+import { Avatar, Badge, IconButton, Paper, Stack, styled, Tooltip, Box, Typography, Button, useMediaQuery } from "@mui/material";
 import { CheckCircle as CheckCircleIcon, PersonRemove as PersonRemoveIcon, PersonAdd as PersonAddIcon, CancelOutlined, Message as MessageIcon } from "@mui/icons-material";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
@@ -8,8 +8,6 @@ import { formatDate } from "../../utilsFunction/dateFn";
 import { useCancelFriendRequest, useSendFriendRequest } from "../../hooks/friends/suggestedUsers";
 import { useAcceptFriendRequest, useDeclineFriendRequest } from "../../hooks/friends/friendRequests";
 import { useGetFriendOnlineStatus, useRemoveFriend } from "../../hooks/friends/friends";
-import { useDispatch } from "react-redux";
-import { setChatRecipientProfile } from "../../reduxSlices/chatRecipient";
 
 const StyledBadge = styled(Badge)(({ theme }) => ({
   "& .MuiBadge-badge": {
@@ -53,8 +51,11 @@ const UsersListView = ({ user, mode }) => {
 
   // Fetch real-time status of the user
   const { data: userStatus, isLoading: isLoadingUserStatus } = useGetFriendOnlineStatus({ userId, mode });
-  console.log(userStatus);
   const { isOnline, lastSeen } = userStatus || {};
+
+  const isBelow400 = useMediaQuery("(max-width:400px)");
+  const isBelow600 = useMediaQuery("(max-width:600px)");
+  const isBelow300 = useMediaQuery("(max-width:300px)");
 
   // --- Event Handlers ---
   const handleSendFriendRequest = () => {
@@ -89,10 +90,28 @@ const UsersListView = ({ user, mode }) => {
     if (mode === "pendingRequests") {
       return (
         <>
-          <Button variant="contained" color="success" size="small" startIcon={<CheckCircleIcon />} onClick={handleAcceptFriendRequest} loading={isAcceptingFriendRequest} loadingPosition="start">
+          <Button
+            variant="contained"
+            color="success"
+            size="small"
+            startIcon={<CheckCircleIcon />}
+            onClick={handleAcceptFriendRequest}
+            loading={isAcceptingFriendRequest}
+            loadingPosition="start"
+            fullWidth={isBelow300}
+          >
             Accept
           </Button>
-          <Button variant="outlined" size="small" startIcon={<CancelOutlined />} onClick={handleDeclineFriendRequest} sx={{ fontWeight: "bold", color: "grey", borderColor: "grey", ml: 1 }} loading={isDecliningFriendRequest} loadingPosition="start">
+          <Button
+            variant="outlined"
+            size="small"
+            startIcon={<CancelOutlined />}
+            onClick={handleDeclineFriendRequest}
+            sx={{ fontWeight: "bold", color: "grey", borderColor: "grey", ml: 1 }}
+            loading={isDecliningFriendRequest}
+            loadingPosition="start"
+            fullWidth={isBelow300}
+          >
             Decline
           </Button>
         </>
@@ -102,7 +121,7 @@ const UsersListView = ({ user, mode }) => {
     if (mode === "friends") {
       return (
         <>
-          <Button variant="outlined" size="small" startIcon={<PersonRemoveIcon />} onClick={handleRemoveFriend} loading={isRemovingFriend} loadingPosition="start">
+          <Button variant="outlined" size="small" startIcon={<PersonRemoveIcon />} onClick={handleRemoveFriend} loading={isRemovingFriend} loadingPosition="start" fullWidth={isBelow300}>
             Remove
           </Button>
           <Button
@@ -113,6 +132,7 @@ const UsersListView = ({ user, mode }) => {
               navigate(`/chats/${userId}?name=${firstName} ${lastName}&profileImage=${profileImage}`);
             }}
             sx={{ ml: 1 }}
+            fullWidth={isBelow300}
           >
             Message
           </Button>
@@ -124,12 +144,30 @@ const UsersListView = ({ user, mode }) => {
     // Rely on the user's status from props.
     return user.status === "pending" ? (
       <Tooltip title="Cancel Request">
-        <Button variant="outlined" size="small" startIcon={<CancelOutlined />} onClick={handleCancelFriendRequest} sx={{ color: "grey", borderColor: "grey" }} loading={isCancelingFriendRequest} loadingPosition="start">
+        <Button
+          variant="outlined"
+          size="small"
+          startIcon={<CancelOutlined />}
+          onClick={handleCancelFriendRequest}
+          sx={{ color: "grey", borderColor: "grey" }}
+          loading={isCancelingFriendRequest}
+          loadingPosition="start"
+          fullWidth={isBelow300}
+        >
           Request Sent
         </Button>
       </Tooltip>
     ) : (
-      <Button variant="contained" size="small" startIcon={<PersonAddIcon />} onClick={handleSendFriendRequest} sx={{ fontWeight: "bold" }} loading={isSendingFriendRequest} loadingPosition="start">
+      <Button
+        variant="contained"
+        size="small"
+        startIcon={<PersonAddIcon />}
+        onClick={handleSendFriendRequest}
+        sx={{ fontWeight: "bold", wordBreak: "keep-all", whiteSpace: "nowrap" }}
+        loading={isSendingFriendRequest}
+        loadingPosition="start"
+        fullWidth={isBelow300}
+      >
         Add Friend
       </Button>
     );
@@ -139,20 +177,38 @@ const UsersListView = ({ user, mode }) => {
   return (
     <motion.div whileHover={{ scale: 1.02 }} style={{ width: "100%" }}>
       <Paper elevation={2} sx={{ margin: "0.5rem 0", borderRadius: "0.8rem", overflow: "hidden" }}>
-        <Box sx={{ display: "flex", alignItems: "center", padding: "0.8rem" }}>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            padding: "0.8rem",
+            flexDirection: isBelow400 || isBelow600 ? "column" : "row",
+            gap: isBelow400 || (mode !== "suggestedUsers" && isBelow600) ? ".4rem" : "0",
+          }}
+        >
           <Tooltip title="Visit Profile">
             <IconButton onClick={() => navigate(`/user-profile/${userId}`)}>
               {mode === "friends" && isOnline && !isLoadingUserStatus ? (
                 <StyledBadge overlap="circular" anchorOrigin={{ vertical: "bottom", horizontal: "right" }} variant="dot">
-                  <Avatar src={profileImage} sx={{ height: "3rem", width: "3rem", boxShadow: 3 }} />
+                  <Avatar src={profileImage} sx={{ height: isBelow400 ? "5rem" : "3rem", width: isBelow400 ? "5rem" : "3rem", boxShadow: 3 }} />
                 </StyledBadge>
               ) : (
-                <Avatar src={profileImage} sx={{ height: "3rem", width: "3rem", boxShadow: 3 }} />
+                <Avatar src={profileImage} sx={{ height: isBelow400 || isBelow600 ? "5rem" : "3rem", width: isBelow400 || isBelow600 ? "5rem" : "3rem", boxShadow: 3 }} />
               )}
             </IconButton>
           </Tooltip>
-          <Box sx={{ flexGrow: 1, marginLeft: "1rem" }}>
-            <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#000", fontSize: "1rem" }}>
+          <Box sx={{ flexGrow: 1, marginLeft: { sm: "1rem", xs: ".4rem" } }}>
+            <Typography
+              variant="subtitle1"
+              sx={{
+                fontWeight: "bold",
+                color: "#000",
+                fontSize: isBelow400 || isBelow600 ? ".9rem" : "1.1rem",
+                wordBreak: "break-all",
+                overflowWrap: "break-word",
+                textAlign: isBelow400 || isBelow600 ? "center" : "left",
+              }}
+            >
               {firstName} {lastName}
             </Typography>
             {mode === "friends" && (
@@ -161,7 +217,7 @@ const UsersListView = ({ user, mode }) => {
               </Typography>
             )}
           </Box>
-          <Stack direction="row" spacing={1} alignItems="center">
+          <Stack direction={isBelow300 ? "column" : "row"} spacing={1} alignItems="center" sx={{ ml: { sm: "1rem", xs: ".4rem" } }}>
             {renderActionButtons()}
           </Stack>
         </Box>

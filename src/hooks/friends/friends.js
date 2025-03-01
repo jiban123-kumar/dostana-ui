@@ -1,9 +1,6 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useDispatch } from "react-redux";
 import { useContext } from "react";
 import axiosInstance from "../../configs/axiosInstance";
-import { useUserProfile } from "../userProfile/userProfile";
-import { setLoading, showAlert } from "../../reduxSlices/alertSlice";
 import { SocketContext } from "../../contextProvider/SocketProvider.jsx";
 
 const removeFriendApi = async (friendId) => {
@@ -13,7 +10,6 @@ const removeFriendApi = async (friendId) => {
 
 const getFriendsApi = async ({ pageParam = 1 }) => {
   const response = await axiosInstance.get(`/friend/friends?page=${pageParam}&limit=10`);
-  console.log(response.data);
   return response.data;
 };
 const fetchRelationshipApi = async (userId) => {
@@ -35,13 +31,11 @@ const fetchSearchFriendRelationships = async ({ queryKey }) => {
 
 export const useRemoveFriend = () => {
   const socket = useContext(SocketContext);
-  const dispatch = useDispatch();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: removeFriendApi,
-    onMutate: () => {
-    },
+    onMutate: () => {},
     onSuccess: (data, friendId) => {
       const { friendship } = data;
       const requester = friendship.requester;
@@ -79,12 +73,8 @@ export const useRemoveFriend = () => {
       });
     },
 
-    onError: (err) => {
-      console.log(err);
-    },
-    onSettled: () => {
-      dispatch(setLoading(false));
-    },
+    onError: (err) => {},
+    onSettled: () => {},
   });
 };
 

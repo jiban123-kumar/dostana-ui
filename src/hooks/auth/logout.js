@@ -13,11 +13,9 @@ const useLogout = () => {
   return useMutation({
     mutationFn: logoutUserApi,
     onSuccess: (data) => {
-      // Handle success (e.g., redirect user, clear state)
-      console.log(`${data.message}`);
-      // Example: Redirect to login page
+      navigate("/login", { replace: true });
       queryClient.removeQueries();
-      navigate("/login");
+      localStorage.removeItem("isLoggedIn");
     },
     onError: (error) => {
       if (error.code === "ERR_NETWORK") {

@@ -4,6 +4,7 @@ import { useContext } from "react";
 import { setLoading, showAlert } from "../../reduxSlices/alertSlice";
 import axiosInstance from "../../configs/axiosInstance";
 import { SocketContext } from "../../contextProvider/SocketProvider";
+import { updateContent } from "../../reduxSlices/contentSlice";
 
 const createContentApi = async (data) => {
   const response = await axiosInstance.post("/content/create-content", data, {
@@ -31,75 +32,39 @@ const fetchContentByIdApi = async (contentId) => {
 
 // Updated to accept pageParam for infinite scrolling
 export const useCreateContent = ({ handleClose, type }) => {
-  const dispatch = useDispatch();
   const socket = useContext(SocketContext);
-  const queryClient = useQueryClient();
+  const dispatch = useDispatch();
 
   return useMutation({
     mutationFn: createContentApi,
     onMutate: () => {
       // Immediately close modal and show posting alert
       handleClose();
-      dispatch(
-        showAlert({
-          message: `Creating ${type}...`,
-          type: "info",
-          loading: true,
-        })
-      );
     },
-    onSuccess: (response) => {
+    onSuccess: (response, { newContentId }) => {
       const newContent = response.content;
-
-      dispatch(
-        showAlert({
-          message: `${type.charAt(0).toUpperCase() + type.slice(1)} created and shared on your feed!`,
-
-          type: "success",
-          loading: false,
-        })
-      );
+      dispatch(updateContent({ id: newContentId, updates: { status: "success" } }));
       socket.emit("contentCreation", { newContent });
     },
-    onError: (error) => {
-      let errorMessage = `Failed to create ${type}. Please try again.`;
-      if (error.response?.status === 400) {
-        errorMessage = error.response.data.message || "Invalid data provided.";
-      } else if (error.code === "ERR_NETWORK") {
-        errorMessage = "Network error. Please check your connection.";
-      }
-      dispatch(
-        showAlert({
-          message: errorMessage,
-          type: "error",
-          loading: false,
-        })
-      );
+    onError: (error, { newContentId }) => {
+      dispatch(updateContent({ id: newContentId, updates: { status: "error" } }));
     },
-    onSettled: () => {
-      dispatch(setLoading(false));
-    },
+    onSettled: () => {},
   });
 };
 
 export const useDeleteContent = ({ type = "post" }) => {
-  const dispatch = useDispatch();
   const socket = useContext(SocketContext);
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: deleteContentApi,
-    onMutate: () => {
-      dispatch(
-        showAlert({
-          message: `Deleting ${type}...`,
-          type: "info",
-          loading: true,
-        })
-      );
-    },
-    onSuccess: async (_, contentId) => {
+
+    onSuccess: async (data) => {
       // Update the infinite query cache optimistically:
+      const contentId = data.content._id;
+      const contentOwnerId = data.content.user;
+
       queryClient.setQueryData(["contents"], (oldData) => {
         if (!oldData) return oldData;
         return {
@@ -110,33 +75,21 @@ export const useDeleteContent = ({ type = "post" }) => {
           })),
         };
       });
-      dispatch(
-        showAlert({
-          message: `${type} deleted`,
-          type: "success",
-          loading: false,
-        })
-      );
-      socket.emit("contentDeletion", { contentId });
+      queryClient.setQueryData(["contents", contentOwnerId], (oldData) => {
+        if (!oldData) return oldData;
+        return {
+          ...oldData,
+          pages: oldData.pages.map((page) => ({
+            ...page,
+            contents: page.contents.filter((c) => c._id !== contentId),
+          })),
+        };
+      });
+
+      socket.emit("contentDeletion", { contentId, contentOwnerId });
     },
-    onError: (error) => {
-      let errorMessage = `Failed to delete ${type}. Please try again.`;
-      if (error.response?.status === 404) {
-        errorMessage = "Content not found.";
-      } else if (error.code === "ERR_NETWORK") {
-        errorMessage = "Network error. Please check your connection.";
-      }
-      dispatch(
-        showAlert({
-          message: errorMessage,
-          type: "error",
-          loading: false,
-        })
-      );
-    },
-    onSettled: () => {
-      dispatch(setLoading(false));
-    },
+    onError: (error) => {},
+    onSettled: () => {},
   });
 };
 

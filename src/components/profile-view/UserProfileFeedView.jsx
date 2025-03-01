@@ -15,7 +15,7 @@ const UserProfileFeedView = () => {
 
   const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useGetContents(userId);
 
-  const isSelf = !userId;
+  const isSelf = !routeUserId || userProfile?._id === userId;
   const userContents = useMemo(() => {
     if (!data || !data.pages) return [];
     return data.pages.flatMap((page) => page.contents || []);
@@ -44,7 +44,7 @@ const UserProfileFeedView = () => {
   };
 
   return (
-    <Stack p={1} alignItems="center" width={"38rem"}>
+    <Stack p={1} alignItems="center" width={"100%"}>
       {renderContent()}
     </Stack>
   );

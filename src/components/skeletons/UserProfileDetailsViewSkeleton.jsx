@@ -1,11 +1,18 @@
 import React from "react";
-import { Card, Stack, Box, Skeleton, Divider, Chip } from "@mui/material";
+import { Card, Stack, Box, Skeleton, Divider } from "@mui/material";
 
 const UserProfileDetailsViewSkeleton = () => {
   return (
     <Stack mt="1rem" alignItems="center" spacing={4}>
       {/* Personal Details Card Skeleton */}
-      <Card sx={{ width: "90%", padding: 4, boxShadow: 3, borderRadius: "1rem" }}>
+      <Card
+        sx={{
+          width: "90%",
+          p: 4,
+          boxShadow: 3,
+          borderRadius: "1rem",
+        }}
+      >
         <Stack direction={{ xs: "column", md: "row" }} spacing={4}>
           <Box
             sx={{
@@ -17,28 +24,67 @@ const UserProfileDetailsViewSkeleton = () => {
               flexDirection: "column",
             }}
           >
-            <Skeleton variant="circular" width={150} height={150} />
-            {/* <Skeleton variant="rectangular" width={120} height={36} sx={{ marginTop: "1rem" }} /> */}
+            <Skeleton
+              variant="circular"
+              sx={{
+                width: { xs: 80, md: 150 },
+                height: { xs: 80, md: 150 },
+              }}
+            />
           </Box>
-
           <Stack flex={1} spacing={3}>
-            <Skeleton variant="text" width="40%" height={24} />
+            <Skeleton
+              variant="text"
+              sx={{
+                width: { xs: "50%", md: "40%" },
+                height: 24,
+              }}
+            />
             <Divider />
             <Stack spacing={2}>
               {[1, 2, 3, 4, 5].map((key) => (
-                <Skeleton key={key} variant="rectangular" height={36} sx={{ width: "100%", borderRadius: "4px" }} />
+                <Skeleton
+                  key={key}
+                  variant="rectangular"
+                  sx={{
+                    width: "100%",
+                    height: { xs: 32, md: 36 },
+                    borderRadius: "4px",
+                  }}
+                />
               ))}
             </Stack>
             <Stack direction="row" justifyContent="flex-end" spacing={2}>
-              <Skeleton variant="rectangular" width={100} height={36} sx={{ borderRadius: "4px" }} />
-              <Skeleton variant="rectangular" width={100} height={36} sx={{ borderRadius: "4px" }} />
+              <Skeleton
+                variant="rectangular"
+                sx={{
+                  width: { xs: 80, md: 100 },
+                  height: { xs: 32, md: 36 },
+                  borderRadius: "4px",
+                }}
+              />
+              <Skeleton
+                variant="rectangular"
+                sx={{
+                  width: { xs: 80, md: 100 },
+                  height: { xs: 32, md: 36 },
+                  borderRadius: "4px",
+                }}
+              />
             </Stack>
           </Stack>
         </Stack>
       </Card>
 
       {/* Hobbies Card Skeleton */}
-      <Card sx={{ width: "90%", padding: 4, boxShadow: 3, borderRadius: "1rem" }}>
+      <Card
+        sx={{
+          width: "90%",
+          p: 4,
+          boxShadow: 3,
+          borderRadius: "1rem",
+        }}
+      >
         <Stack direction={{ xs: "column", md: "row" }} spacing={4} alignItems="center">
           <Box
             sx={{
@@ -49,15 +95,35 @@ const UserProfileDetailsViewSkeleton = () => {
               maxWidth: "20rem",
             }}
           >
-            <Skeleton variant="circular" width={150} height={150} />
+            <Skeleton
+              variant="circular"
+              sx={{
+                width: { xs: 80, md: 150 },
+                height: { xs: 80, md: 150 },
+              }}
+            />
           </Box>
-
           <Stack flex={1} spacing={3}>
-            <Skeleton variant="text" width="40%" height={24} />
+            <Skeleton
+              variant="text"
+              sx={{
+                width: { xs: "50%", md: "40%" },
+                height: 24,
+              }}
+            />
             <Divider />
             <Stack direction="row" spacing={1} flexWrap="wrap" gap="1rem">
               {[...Array(8)].map((_, index) => (
-                <Skeleton key={index} variant="rectangular" width={80} height={24} sx={{ borderRadius: "12px", cursor: "pointer" }} />
+                <Skeleton
+                  key={index}
+                  variant="rectangular"
+                  sx={{
+                    width: { xs: 60, md: 80 },
+                    height: { xs: 20, md: 24 },
+                    borderRadius: "12px",
+                    cursor: "pointer",
+                  }}
+                />
               ))}
             </Stack>
           </Stack>

@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 import React from "react";
-import { ListItem, Avatar, ListItemText, Badge, styled, SpeedDial, SpeedDialAction, Tooltip, CircularProgress } from "@mui/material";
+import { ListItem, Avatar, ListItemText, Badge, styled, SpeedDial, SpeedDialAction, Tooltip, CircularProgress, Stack } from "@mui/material";
 import { motion } from "framer-motion";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
@@ -47,6 +47,7 @@ const StyledBadge = styled(Badge)(({ theme }) => ({
 
 const ChatListView = ({ chat }) => {
   const navigate = useNavigate();
+  console.log(chat);
   const { _id: chatId, participants, archived, lastMessage } = chat;
   // Destructure text and media from lastMessage
   const { text, media } = lastMessage || {};
@@ -57,7 +58,6 @@ const ChatListView = ({ chat }) => {
 
   // Hook for unread count in this chat.
   const { data: unreadCount, isLoading: isUnreadLoading } = useGetUnreadCountForChat(chatId);
-  console.log(unreadCount);
 
   // Assuming that on the backend the logged-in user is filtered out from participants,
   // so the remaining participant is the other user in the chat.
@@ -75,12 +75,26 @@ const ChatListView = ({ chat }) => {
     {
       icon: isDeleting ? <CircularProgress size={24} /> : <DeleteOutlineIcon />,
       name: "Delete Chat",
-      onClick: () => deleteConversation(chatId),
+      onClick: () => {
+        if (isArchiving) return;
+        deleteConversation(chatId);
+      },
     },
     {
       icon: isArchiving ? <CircularProgress size={24} /> : archived ? <UnarchiveIcon /> : <ArchiveIcon />,
       name: archived ? "Unarchive Chat" : "Archive Chat",
-      onClick: () => toggleArchive(chatId),
+      onClick: () => {
+        if (isDeleting) return;
+        toggleArchive({ chatId, recipientId: participant._id });
+      },
+      fabProps: {
+        sx: {
+          bgcolor: archived ? "green" : "inherit", // Green if archived
+          "&:hover": {
+            bgcolor: archived ? "darkgreen" : "gray", // Dark green on hover if archived
+          },
+        },
+      },
     },
   ];
 
@@ -94,6 +108,7 @@ const ChatListView = ({ chat }) => {
 
   // Function to render the last message content based on text and media.
   const renderLastMessageContent = () => {
+    console.log(lastMessage);
     if (!lastMessage) return null;
     const mediaArray = Array.isArray(media) ? media : [];
 
@@ -143,16 +158,14 @@ const ChatListView = ({ chat }) => {
   };
 
   return (
-    <ListItem divider>
-      <motion.div
-        whileHover={{ scale: 1.02 }}
+    <ListItem divider sx={{ position: "relative", py: 1, px: { sm: 2, xs: 0 } }} disablePadding>
+      <div
         style={{
           borderRadius: "0.6rem",
           overflow: "hidden",
-          width: "100%",
           display: "flex",
           alignItems: "center",
-          padding: "0.5rem",
+          width: "100%",
         }}
       >
         <Tooltip title="Open Chat">
@@ -194,12 +207,26 @@ const ChatListView = ({ chat }) => {
             </>
           }
           primaryTypographyProps={{
-            sx: { fontWeight: "bold", color: "#000", fontSize: ".9rem" },
+            sx: {
+              fontWeight: "bold",
+              color: "#000",
+              fontSize: { xs: ".8rem", sm: ".9rem", md: "1rem" },
+            },
           }}
-          sx={{ marginLeft: "1rem" }}
+          secondaryTypographyProps={{
+            sx: { fontSize: { xs: ".6rem", sm: ".7rem", md: ".8rem" } },
+          }}
+          sx={{ marginLeft: "1rem", flex: 1 }}
         />
-        {/* SpeedDial for chat actions */}
-        <div style={{ marginLeft: "auto", position: "relative" }}>
+        {/* SpeedDial for chat actions positioned absolutely */}
+        <Stack
+          sx={{
+            position: "absolute",
+            right: { sm: "1rem", xs: 0 },
+            top: "50%",
+            transform: "translateY(-50%)",
+          }}
+        >
           <SpeedDial
             ariaLabel="Chat actions"
             icon={<MoreVertIcon />}
@@ -210,11 +237,11 @@ const ChatListView = ({ chat }) => {
             }}
           >
             {actions.map((action) => (
-              <SpeedDialAction key={action.name} icon={action.icon} tooltipTitle={action.name} onClick={action.onClick} FabProps={{ size: "small" }} />
+              <SpeedDialAction key={action.name} icon={action.icon} tooltipTitle={action.name} onClick={action.onClick} FabProps={{ size: "small", ...action.FabProps }} color={action.color} />
             ))}
           </SpeedDial>
-        </div>
-      </motion.div>
+        </Stack>
+      </div>
     </ListItem>
   );
 };

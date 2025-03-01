@@ -1,11 +1,15 @@
 /* eslint-disable react/prop-types */
 import React, { useCallback, useState } from "react";
-import { Dialog, DialogTitle, DialogContent, Stack, Tooltip, IconButton, Avatar, Box, Skeleton, Button, TextField, Typography } from "@mui/material";
+import { Dialog, DialogTitle, DialogContent, Stack, Tooltip, IconButton, Avatar, Box, Skeleton, Button, TextField, Typography, useMediaQuery } from "@mui/material";
 import { CloudUpload } from "@mui/icons-material";
 import styled from "styled-components";
 import EmojiPickerComponent from "../common/EmojiPickerComponent";
 import EmojiEmotionsIcon from "@mui/icons-material/EmojiEmotions";
 import { useCreateContent } from "../../hooks/content/content";
+import { secondaryShareIcon } from "../../assets";
+import { useDispatch } from "react-redux";
+import { addContent, updateContent } from "../../reduxSlices/contentSlice";
+import { v4 as uuidv4 } from "uuid";
 
 const HiddenFileInput = styled("input")({
   clip: "rect(0 0 0 0)",
@@ -18,6 +22,7 @@ const HiddenFileInput = styled("input")({
 });
 
 const PostCreator = ({ open, handleClose }) => {
+  const dispatch = useDispatch();
   const [fileData, setFileData] = useState({
     file: null,
     previewURL: "",
@@ -27,7 +32,8 @@ const PostCreator = ({ open, handleClose }) => {
   const [error, setError] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
-  const { mutate: createContent } = useCreateContent({ handleClose, type: "post" });
+  const { mutate: createContent, isError } = useCreateContent({ handleClose, type: "post" });
+  const isBelow480 = useMediaQuery("(max-width:480px)");
 
   // Handle file selection
   const handleFileChange = (e) => {
@@ -60,8 +66,18 @@ const PostCreator = ({ open, handleClose }) => {
     formData.append("caption", description);
     formData.append("type", "post");
     formData.append("mediaType", fileData.type); // "image" or "video"
+    const newContent = {
+      id: uuidv4(),
+      files: [{ fileData }],
+      text: description,
+      status: "loading",
+      retryAction: () => {
+        createContent({ ...formData, newContentId: this.id });
+      },
+    };
+    dispatch(addContent(newContent));
 
-    createContent(formData);
+    createContent({ ...formData, newContentId: newContent.id });
   };
 
   // Render media preview
@@ -126,13 +142,13 @@ const PostCreator = ({ open, handleClose }) => {
   return (
     <>
       <Dialog open={open} fullWidth maxWidth="sm" onClose={handleClose}>
-        <Stack sx={{ maxHeight: "30rem", paddingX: "1rem", pb: "1.4rem" }}>
+        <Stack sx={{ maxHeight: "60vh", paddingX: { xs: ".2rem", md: "1rem" }, pb: "1.4rem" }}>
           {/* Header */}
           <Stack flexDirection="row" justifyContent="space-between" alignItems="center">
-            <DialogTitle sx={{ fontWeight: "bold", fontFamily: "Poppins" }}>Share Post</DialogTitle>
+            <DialogTitle sx={{ fontWeight: "bold", fontFamily: "Poppins", fontSize: { xs: "1rem", md: "1.2rem" } }}>Share Post</DialogTitle>
             <Tooltip title="Share">
-              <IconButton sx={{ height: "3.2rem", width: "3.2rem" }} onClick={handleCreatePost}>
-                <Avatar src="/next.png" />
+              <IconButton sx={{ height: { xs: "1.6rem", md: "3rem" }, width: { xs: "1.6rem", md: "3rem" }, mr: "1rem" }} onClick={handleCreatePost}>
+                <Avatar src={secondaryShareIcon} />
               </IconButton>
             </Tooltip>
           </Stack>
@@ -144,10 +160,16 @@ const PostCreator = ({ open, handleClose }) => {
               msOverflowStyle: "none",
             }}
           >
-            <Stack sx={{ height: "16rem", position: "relative" }}>
+            <Stack sx={{ height: { sm: "16rem", xs: "12rem" }, position: "relative" }}>
               {!fileData.file && <Skeleton variant="rounded" width="100%" height="100%" animation="wave" />}
               {renderMediaPreview()}
-              <Button variant="contained" startIcon={<CloudUpload />} color="primary" sx={{ ...uploadButtonStyles, fontWeight: "bold", paddingX: "2rem" }} component="label">
+              <Button
+                variant="contained"
+                startIcon={<CloudUpload />}
+                color="primary"
+                sx={{ ...uploadButtonStyles, fontWeight: "bold", paddingX: { xs: "1rem", md: "2rem" }, fontSize: { xs: ".8rem", md: "1rem" }, wordBreak: "keep-all", whiteSpace: "nowrap" }}
+                component="label"
+              >
                 Upload files
                 <HiddenFileInput type="file" onChange={handleFileChange} accept="image/*,video/*" />
               </Button>
@@ -181,7 +203,7 @@ const PostCreator = ({ open, handleClose }) => {
             {showEmojiPicker && <EmojiPickerComponent onEmojiClick={handleEmojiClick} />}
           </DialogContent>
           <Stack mt={"1rem"} alignItems={"flex-end"} px={"1rem"}>
-            <Button variant="contained" onClick={handleCreatePost} sx={{ minWidth: "10rem", fontWeight: "bold" }}>
+            <Button variant="contained" onClick={handleCreatePost} sx={{ minWidth: { md: "10rem", xs: "8rem" }, fontWeight: "bold" }} size={isBelow480 ? "small" : "medium"}>
               Share Post
             </Button>
           </Stack>

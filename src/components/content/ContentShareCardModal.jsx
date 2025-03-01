@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 import React, { useState, useEffect, useContext, useRef } from "react";
-import { Button, Dialog, DialogContent, Stack, Typography, Checkbox, List, ListItem, ListItemAvatar, ListItemText, Avatar, ListItemButton, Box } from "@mui/material";
+import { Button, Dialog, DialogContent, Stack, Typography, Checkbox, List, ListItem, ListItemAvatar, ListItemText, Avatar, ListItemButton, Box, useMediaQuery } from "@mui/material";
 import Lottie from "lottie-react";
 import { useNavigate } from "react-router-dom";
 import ShareIcon from "@mui/icons-material/Share";
@@ -20,11 +20,14 @@ const ContentShareCardModal = ({ onClose, open, content }) => {
   const { data: userProfile } = useUserProfile();
 
   // Share content hook (and its loading state)
-  const { mutate: shareContent, isPending: isSharingContent } = useShareContent();
+  const { mutate: shareContent, isPending: isSharingContent } = useShareContent({ type: content.type });
   const { mutate: createNotification } = useCreateNotification();
 
   // Infinite query for friends
   const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useGetFriends();
+
+  const isBelow600 = useMediaQuery("(max-width:600px)");
+  const isBelow480 = useMediaQuery("(max-width:480px)");
 
   // Flatten paginated friends into a single array.
   const friends = data ? data.pages.flatMap((page) => page.friends) : [];
@@ -116,12 +119,12 @@ const ContentShareCardModal = ({ onClose, open, content }) => {
   }, [isSharingContent]);
 
   return (
-    <Dialog open={open} maxWidth="md" fullWidth onClose={onClose}>
+    <Dialog open={open} maxWidth="sm" fullWidth onClose={onClose}>
       <DialogContent
         sx={{
           display: "flex",
           flexDirection: "column",
-          height: "90vh",
+          maxHeight: isBelow480 ? "60vh" : "70vh",
           position: "relative",
           p: 2,
         }}
@@ -153,8 +156,10 @@ const ContentShareCardModal = ({ onClose, open, content }) => {
             ) : friends.length === 0 ? (
               // When no friends are available, show an empty state with a CTA.
               <Stack alignItems="center" justifyContent="center" mt={1}>
-                <Lottie animationData={emptyFeedAnimation} loop autoPlay style={{ height: "12rem", width: "12rem" }} />
-                <Typography variant="body2" sx={{ fontWeight: "bold" }}>
+                <Stack sx={{ width: { sm: "14rem", xs: "10rem" }, height: { sm: "14rem", xs: "10rem" } }}>
+                  <Lottie animationData={emptyFeedAnimation} loop autoPlay style={{ height: "100%", width: "100%" }} />
+                </Stack>
+                <Typography variant="body2" sx={{ fontWeight: "bold", fontSize: { sm: ".9rem", xs: ".8rem" } }}>
                   You have no friends to share this feed.
                 </Typography>
                 <Button
@@ -162,11 +167,11 @@ const ContentShareCardModal = ({ onClose, open, content }) => {
                   variant="contained"
                   sx={{
                     mt: 2,
-                    minWidth: "10rem",
                     fontFamily: "Poppins",
                     fontWeight: "bold",
-                    px: "2rem",
+                    px: { md: "2rem", xs: "1rem" },
                   }}
+                  size={isBelow600 ? "small" : "medium"}
                 >
                   Start to Add Friends
                 </Button>
@@ -178,9 +183,9 @@ const ContentShareCardModal = ({ onClose, open, content }) => {
                   <ListItem key={user._id}>
                     <ListItemButton onClick={() => handleButtonClick(user)} sx={{ p: "1rem", borderRadius: ".4rem", boxShadow: 3 }}>
                       <ListItemAvatar>
-                        <Avatar src={user.profileImage || ""} sx={{ boxShadow: 3 }} />
+                        <Avatar src={user.profileImage || ""} sx={{ height: { sm: "3rem", xs: "2.6rem" }, width: { sm: "3rem", xs: "2.6rem" }, boxShadow: 3 }} />
                       </ListItemAvatar>
-                      <ListItemText primary={`${user.firstName} ${user.lastName}`} />
+                      <ListItemText primary={`${user.firstName} ${user.lastName}`} primaryTypographyProps={{ fontWeight: "bold", fontSize: { sm: "1rem", xs: ".9rem" } }} />
                       <Checkbox onChange={(event) => handleCheckboxChange(event, user)} checked={selectedUsers.includes(user._id)} />
                     </ListItemButton>
                   </ListItem>
@@ -198,20 +203,21 @@ const ContentShareCardModal = ({ onClose, open, content }) => {
         </Box>
         {/* Fixed share button area */}
         {friends.length > 0 && (
-          <Box sx={{ pt: 1 }}>
+          <Box sx={{ pt: 1, display: "flex", justifyContent: "flex-end" }}>
             <Button
               onClick={handleShare}
               disabled={isSharingContent || selectedUsers.length === 0}
               sx={{
                 p: ".5rem",
                 fontFamily: "Poppins",
-                px: "2rem",
+                px: { sm: "3.4rem", xs: "2rem" },
                 mt: "1rem",
-                minWidth: "10rem",
+                mr: 2,
               }}
               variant="contained"
               color="primary"
               startIcon={<ShareIcon />}
+              size={isBelow600 ? "small" : "medium"}
             >
               Share
             </Button>
@@ -231,8 +237,10 @@ const ContentShareCardModal = ({ onClose, open, content }) => {
               bgcolor: "#000000b2",
             }}
           >
-            <Lottie animationData={sharingContentAnimation} loop autoPlay style={{ height: "12rem", width: "12rem" }} />
-            <Typography variant="h6" color="#fff" sx={{ mt: 2, fontFamily: "Poppins" }}>
+            <Stack sx={{ height: { xs: "8rem", sm: "10rem" }, width: { xs: "8rem", sm: "10rem" } }}>
+              <Lottie animationData={sharingContentAnimation} loop autoPlay style={{ height: "100%", width: "100%" }} />
+            </Stack>
+            <Typography variant="h6" color="#fff" sx={{ mt: 2, fontFamily: "Poppins", fontSize: { xs: ".9rem", sm: "1rem", md: "1.2rem" } }}>
               {sharingText}
             </Typography>
           </Stack>

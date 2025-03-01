@@ -9,7 +9,7 @@ const UserNoContentMsg = ({ isUserPostedContent = false }) => {
 
   return (
     <Stack alignItems={"center"} justifyContent={"center"}>
-      <Lottie animationData={addFirstPostAnimation} style={{ height: "20rem", width: "20rem" }} loop={true} autoPlay={true} />
+      <Lottie animationData={addFirstPostAnimation} style={{ height: { md: "20rem", xs: "15rem" }, width: { md: "20rem", xs: "15rem" } }} loop={true} autoPlay={true} />
       <Stack sx={{ transform: "translateY(-2rem)" }} justifyContent={"center"} alignItems={"center"}>
         {!isUserPostedContent && (
           <Typography variant="body2" fontWeight={"bold"}>

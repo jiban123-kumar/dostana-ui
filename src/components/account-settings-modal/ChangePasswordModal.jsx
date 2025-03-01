@@ -1,5 +1,5 @@
 import React, { useState, useRef } from "react";
-import { Box, Button, Dialog, DialogContent, DialogTitle, InputAdornment, IconButton, Stack, TextField } from "@mui/material";
+import { Box, Button, Dialog, DialogContent, DialogTitle, InputAdornment, IconButton, Stack, TextField, useMediaQuery } from "@mui/material";
 import KeyIcon from "@mui/icons-material/Key";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
@@ -7,6 +7,9 @@ import { useChangePassword } from "../../hooks/auth/password";
 
 const ChangePasswordModal = ({ open, handleClose }) => {
   const oldPasswordRef = useRef(); // Ref for the oldPassword field
+
+  const isSmallScreen = useMediaQuery("(max-width:420px)");
+  const isMobile = useMediaQuery("(max-width:600px)");
 
   const [formData, setFormData] = useState({
     oldPassword: "",
@@ -64,9 +67,11 @@ const ChangePasswordModal = ({ open, handleClose }) => {
   };
 
   return (
-    <Dialog open={open} onClose={handleClose}>
-      <Box sx={{ width: "30rem" }}>
-        <DialogTitle sx={{ fontWeight: "bold", fontFamily: "Poppins" }}>Change Password</DialogTitle>
+    <Dialog open={open} onClose={handleClose} fullWidth maxWidth="xs">
+      <Box>
+        <DialogTitle sx={{ fontWeight: "bold", fontFamily: "Poppins", fontSize: { sm: "1.3rem", xs: "1rem" } }} textAlign={"center"}>
+          Change Password
+        </DialogTitle>
         <DialogContent>
           <form onSubmit={onSubmit}>
             <Stack spacing={2}>
@@ -120,7 +125,7 @@ const ChangePasswordModal = ({ open, handleClose }) => {
             </Stack>
 
             {/* Buttons */}
-            <Stack flexDirection="row" marginTop="3rem" gap={2}>
+            <Stack flexDirection={isSmallScreen ? "column" : "row"} marginTop={isSmallScreen ? 4 : 3} gap={2}>
               <Button
                 variant="outlined"
                 fullWidth
@@ -129,10 +134,11 @@ const ChangePasswordModal = ({ open, handleClose }) => {
                   setErrors({});
                   handleClose();
                 }}
+                size={isMobile ? "small" : "medium"}
               >
                 Cancel
               </Button>
-              <Button type="submit" variant="contained" fullWidth sx={{ fontWeight: "bold" }} disabled={isChangingPassword}>
+              <Button type="submit" variant="contained" fullWidth sx={{ fontWeight: "bold" }} disabled={isChangingPassword} size={isMobile ? "small" : "medium"}>
                 Change Password
               </Button>
             </Stack>

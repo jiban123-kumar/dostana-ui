@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 import React, { useState, useEffect, useRef } from "react";
-import { Box, Dialog, DialogContent, IconButton, InputAdornment, Stack, TextField, Tooltip, Typography, List, ListItem, CircularProgress, Button } from "@mui/material";
+import { Box, Dialog, DialogContent, IconButton, InputAdornment, Stack, TextField, Tooltip, Typography, List, ListItem, CircularProgress, Button, useMediaQuery } from "@mui/material";
 import Lottie from "lottie-react";
 import { chatSecondaryAnimation } from "../../animation";
 import AddReactionIcon from "@mui/icons-material/AddReaction";
@@ -12,14 +12,16 @@ import CommentItem from "./CommentItem";
 import { useCreateNotification } from "../../hooks/notification/notification";
 import { useCreateComment, useGetCommentsForContent } from "../../hooks/comment/comment";
 import { Refresh as RefreshIcon, Check, ErrorOutline, Close as CloseIcon } from "@mui/icons-material";
+import { sendIcon } from "../../assets";
 
 // Pending (sending) comment component with constrained width and motion animation
 const SendingComment = ({ comment, onRetry, onRemove }) => (
   <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3 }}>
     <Box
       sx={{
-        minWidth: "5rem",
-        maxWidth: "40%",
+        maxWidth: "100%",
+        width: "fit-content",
+        minWidth: "50%",
         alignSelf: "flex-start",
         bgcolor: "background.paper",
         p: 2,
@@ -58,13 +60,14 @@ const SendingComment = ({ comment, onRetry, onRemove }) => (
 
 const CommentsViewModal = ({ onClose, content }) => {
   const { _id: contentId, user: contentOwner, mediaUrl = [] } = content || {};
+  const isBelow600 = useMediaQuery("(max-width: 600px)");
 
   // State for emoji picker, input text, and pending (sending) comments
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [comment, setComment] = useState("");
   const [pendingComments, setPendingComments] = useState([]);
 
-  const { mutate: createComment, isLoading: isCreatingComment } = useCreateComment();
+  const { mutate: createComment, isLoading: isCreatingComment } = useCreateComment({ type: content.type });
   const { data, isError, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useGetCommentsForContent({ contentId, limit: 10 });
   const { mutate: createNotification } = useCreateNotification();
 
@@ -153,38 +156,46 @@ const CommentsViewModal = ({ onClose, content }) => {
   // Flatten pages from the infinite query into a single array of loaded comments
   const loadedComments = data ? data.pages.flatMap((page) => page.comments) : [];
 
+  // Update the sticky header section
+  const StickyHeader = () => (
+    <Stack
+      direction="row"
+      alignItems="center"
+      gap={1}
+      sx={{
+        position: "sticky",
+        top: 0,
+        zIndex: 2,
+        mb: ".4rem",
+        pt: 1,
+        pl: 1,
+        bgcolor: "#fff",
+        transition: "all 0.3s ease",
+      }}
+    >
+      <Typography variant="body1" fontWeight="bold" color="#000000d1">
+        Comments
+      </Typography>
+    </Stack>
+  );
+
   return (
-    <Dialog open={true} maxWidth="md" fullWidth onClose={onClose}>
+    <Dialog open={true} maxWidth="sm" fullWidth onClose={onClose} fullScreen={isBelow600}>
       <DialogContent
         sx={{
           display: "flex",
           flexDirection: "column",
-          height: "90vh",
           p: 2,
+          maxHeight: isBelow600 ? "100vh" : "70vh",
         }}
       >
         {/* Scrollable container for content card and comments */}
-        <Box sx={{ flex: 1, overflowY: "auto", mb: 2 }}>
+        <Stack sx={{ flex: 1, overflowY: "auto", mb: 2 }}>
           {/* Content card - maintains its full (provided) size */}
           <Box sx={{ mb: 2 }}>
-            <ContentHeaderAndMedia content={content} />
+            <ContentHeaderAndMedia content={content} mode="comment" onClose={onClose} />
           </Box>
-          <Typography
-            variant="body1"
-            fontWeight="bold"
-            color="#000000d1"
-            sx={{
-              position: "sticky",
-              top: 0,
-              backgroundColor: "inherit", // Ensures it doesn't look transparent when overlaying
-              zIndex: 2,
-              mb: ".4rem",
-              pt: 1,
-              pl: 1,
-            }}
-          >
-            Comments
-          </Typography>
+          <StickyHeader />
           {/* This Box is referenced to scroll to the top when a new comment is added */}
           <Box ref={scrollContainerRef}>
             {/* Pending comments as a sticky header inside the scrollable area */}
@@ -196,9 +207,12 @@ const CommentsViewModal = ({ onClose, content }) => {
                 backgroundColor: "inherit",
                 pt: 1,
                 pl: 1,
+                maxHeight: isBelow600 ? "40vh" : "60vh",
+                overflowY: "auto",
+                width: "80%",
               }}
             >
-              <AnimatePresence>
+              <AnimatePresence initial={false}>
                 {pendingComments.map((pendingComment) => (
                   <SendingComment key={pendingComment.clientId} comment={pendingComment} onRetry={handleRetryComment} onRemove={handleRemovePendingComment} />
                 ))}
@@ -209,17 +223,21 @@ const CommentsViewModal = ({ onClose, content }) => {
               <CommentViewModalSkeleton />
             ) : isError ? (
               <Stack alignItems="center" justifyContent="center" sx={{ height: "100%" }}>
-                <Lottie animationData={chatSecondaryAnimation} loop={false} style={{ height: "8rem", width: "8rem" }} />
-                <Typography variant="body1" fontWeight="bold" color="#000000d1" sx={{ fontSize: ".8rem" }}>
+                <Stack sx={{ height: { sm: "12rem", xs: "8rem" }, width: { sm: "12rem", xs: "8rem" } }}>
+                  <Lottie animationData={chatSecondaryAnimation} loop={false} style={{ height: "100%", width: "100%" }} />
+                </Stack>
+                <Typography variant="body1" fontWeight="bold" color="#000000d1" sx={{ fontSize: { sm: ".9rem", xs: ".7rem" } }}>
                   Failed to load comments.
                 </Typography>
               </Stack>
             ) : (
               <>
                 {loadedComments.length === 0 ? (
-                  <Stack alignItems="center" justifyContent="center" sx={{ height: "100%" }}>
-                    <Lottie animationData={chatSecondaryAnimation} loop={true} style={{ height: "8rem", width: "8rem" }} />
-                    <Typography variant="body1" fontWeight="bold" color="#000000d1" sx={{ fontSize: ".8rem" }}>
+                  <Stack alignItems="center" justifyContent="center" sx={{ height: "100%" }} flex={1}>
+                    <Stack sx={{ height: { sm: "12rem", xs: "8rem" }, width: { sm: "12rem", xs: "8rem" } }}>
+                      <Lottie animationData={chatSecondaryAnimation} loop={true} style={{ height: "100%", width: "100%" }} />
+                    </Stack>
+                    <Typography variant="body1" fontWeight="bold" color="#000000d1" sx={{ fontSize: { sm: ".9rem", xs: ".7rem" } }}>
                       No comments yet
                     </Typography>
                   </Stack>
@@ -244,7 +262,7 @@ const CommentsViewModal = ({ onClose, content }) => {
               </>
             )}
           </Box>
-        </Box>
+        </Stack>
         {/* Fixed input area */}
         <Box>
           <Box
@@ -278,7 +296,7 @@ const CommentsViewModal = ({ onClose, content }) => {
                     </Tooltip>
                     <Tooltip title="Send">
                       <IconButton onClick={handleAddComment} disabled={isCreatingComment}>
-                        {isCreatingComment ? <CircularProgress size={20} sx={{ color: "inherit" }} /> : <Box component="img" src="/send.png" sx={{ height: "2rem", width: "2rem" }} />}
+                        {isCreatingComment ? <CircularProgress size={20} sx={{ color: "inherit" }} /> : <Box component="img" src={sendIcon} sx={{ height: "2rem", width: "2rem" }} />}
                       </IconButton>
                     </Tooltip>
                   </InputAdornment>

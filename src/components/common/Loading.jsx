@@ -1,12 +1,16 @@
 import React from "react";
 import Lottie from "lottie-react";
-import { Backdrop, Stack } from "@mui/material";
+import { Backdrop, Stack, useMediaQuery } from "@mui/material";
 import { loadingHandAnimation } from "../../animation";
 
-export const Loading = () => {
+const Loading = () => {
+  const isSmallScreen = useMediaQuery("(max-width:600px)");
+  console.log(isSmallScreen);
   return (
     <Stack alignItems={"center"} justifyContent={"center"} height={"100%"} width={"100%"} component={Backdrop} open={true} bgcolor={"#fff"}>
-      <Lottie animationData={loadingHandAnimation} style={{ height: "50%", width: "50%" }} loop={true} autoPlay={true} />
+      <Lottie animationData={loadingHandAnimation} style={{ height: isSmallScreen ? "60%" : "50%", width: isSmallScreen ? "60%" : "50%" }} loop={true} autoPlay={true} />
     </Stack>
   );
 };
+
+export default React.memo(Loading);

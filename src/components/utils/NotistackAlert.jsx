@@ -74,6 +74,7 @@ const NotistackAlert = () => {
               textTransform: "none",
               borderRadius: ".4rem",
               bgcolor: "#fff",
+              maxWidth: "100%",
             }}
             variant="filled"
             component={Paper}

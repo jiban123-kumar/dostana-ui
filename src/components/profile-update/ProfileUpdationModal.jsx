@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback, useMemo } from "react";
-import { Dialog, DialogTitle, Stack, Box, Button, IconButton, Avatar, Badge, Tooltip, Divider, TextField, Skeleton, Select, MenuItem, FormControl, InputLabel } from "@mui/material";
+import { Dialog, DialogTitle, Stack, Box, Button, IconButton, Avatar, Badge, Tooltip, Divider, TextField, Skeleton, Select, MenuItem, FormControl, InputLabel, useMediaQuery } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import CloudUpload from "@mui/icons-material/CloudUpload";
 import styled from "styled-components";
@@ -29,14 +29,16 @@ const formatDate = (date) => {
   return d.toISOString().split("T")[0];
 };
 
-const resetDialogTitlePadding = {
+const dialogTitleStyle = {
   padding: 0,
   fontWeight: "bold",
-  fontSize: "1.2rem",
+  fontSize: { md: "1.2rem", xs: "1rem" },
 };
 
 const ProfileUpdationModal = ({ open, handleClose }) => {
   const dispatch = useDispatch();
+
+  const isSmallScreen = useMediaQuery("(max-width:480px)");
 
   // Refs for form fields and file inputs
   const profileImageRef = useRef(null);
@@ -289,16 +291,22 @@ const ProfileUpdationModal = ({ open, handleClose }) => {
   );
 
   return (
-    <Dialog open={open} maxWidth="sm" fullWidth PaperProps={{ sx: { maxHeight: "60vh", overflow: "hidden" } }} onClose={handleClose}>
+    <Dialog open={open} maxWidth="sm" fullWidth PaperProps={{ sx: { maxHeight: "75vh", overflow: "hidden" } }} onClose={handleClose}>
       <Box sx={{ overflowY: "auto", width: "100%" }}>
         <form onSubmit={handleSubmit}>
           {/* Profile Image Section */}
           <Stack paddingY={2} paddingX={3} gap={1}>
-            <Stack justifyContent="space-between" direction="row">
-              <DialogTitle sx={resetDialogTitlePadding} fontFamily="Roboto">
+            <Stack justifyContent="space-between" direction="row" alignItems={"center"}>
+              <DialogTitle sx={dialogTitleStyle} fontFamily="Roboto">
                 Profile Picture
               </DialogTitle>
-              <Button variant="text" sx={{ fontWeight: 600, color: "grey" }} onClick={() => handleImageRemove("removeProfileImage")} disabled={!userProfile?.profileImage || isUpdatingProfile}>
+              <Button
+                variant="text"
+                sx={{ fontWeight: 600, color: "grey" }}
+                onClick={() => handleImageRemove("removeProfileImage")}
+                disabled={!userProfile?.profileImage || isUpdatingProfile}
+                size="small"
+              >
                 Remove
               </Button>
             </Stack>
@@ -341,8 +349,8 @@ const ProfileUpdationModal = ({ open, handleClose }) => {
           <Divider />
           {/* Cover Image Section */}
           <Stack padding={2} paddingX={3} gap={1}>
-            <Stack justifyContent="space-between" direction="row">
-              <DialogTitle sx={resetDialogTitlePadding} fontFamily="Roboto">
+            <Stack justifyContent="space-between" direction="row" alignItems={"center"}>
+              <DialogTitle sx={dialogTitleStyle} fontFamily="Roboto">
                 Cover Photo
               </DialogTitle>
               <Button variant="text" sx={{ fontWeight: 600, color: "grey" }} onClick={() => handleImageRemove("removeCoverImage")} disabled={!userProfile?.coverImage || isUpdatingProfile}>
@@ -391,14 +399,41 @@ const ProfileUpdationModal = ({ open, handleClose }) => {
           {/* Name Section */}
           <Stack padding={2} paddingX={3}>
             <Stack gap={2}>
-              <TextField label="First Name" variant="standard" value={formData.firstName} onChange={handleChange("firstName")} onBlur={() => handleBlur("firstName", firstNameRef)} error={!!errors.firstName} helperText={errors.firstName} inputRef={firstNameRef} />
-              <TextField label="Last Name" variant="standard" value={formData.lastName} onChange={handleChange("lastName")} onBlur={() => handleBlur("lastName", lastNameRef)} error={!!errors.lastName} helperText={errors.lastName} inputRef={lastNameRef} />
+              <TextField
+                label="First Name"
+                variant="standard"
+                value={formData.firstName}
+                onChange={handleChange("firstName")}
+                onBlur={() => handleBlur("firstName", firstNameRef)}
+                error={!!errors.firstName}
+                helperText={errors.firstName}
+                inputRef={firstNameRef}
+              />
+              <TextField
+                label="Last Name"
+                variant="standard"
+                value={formData.lastName}
+                onChange={handleChange("lastName")}
+                onBlur={() => handleBlur("lastName", lastNameRef)}
+                error={!!errors.lastName}
+                helperText={errors.lastName}
+                inputRef={lastNameRef}
+              />
             </Stack>
           </Stack>
           <Divider />
           {/* Mobile Number Section */}
           <Stack padding={2} paddingX={3}>
-            <TextField label="Mobile Number" variant="standard" value={formData.mobileNumber} onChange={handleChange("mobileNumber")} onBlur={() => handleBlur("mobileNumber", mobileNumberRef)} error={!!errors.mobileNumber} helperText={errors.mobileNumber} inputRef={mobileNumberRef} />
+            <TextField
+              label="Mobile Number"
+              variant="standard"
+              value={formData.mobileNumber}
+              onChange={handleChange("mobileNumber")}
+              onBlur={() => handleBlur("mobileNumber", mobileNumberRef)}
+              error={!!errors.mobileNumber}
+              helperText={errors.mobileNumber}
+              inputRef={mobileNumberRef}
+            />
           </Stack>
           <Divider />
           {/* Gender Section */}
@@ -431,7 +466,7 @@ const ProfileUpdationModal = ({ open, handleClose }) => {
               }}
             />
           </Stack>
-          <Stack direction="row" padding={3} gap={2}>
+          <Stack direction={isSmallScreen ? "column" : "row"} padding={3} gap={2}>
             <Button variant="outlined" fullWidth onClick={handleClose}>
               Cancel
             </Button>

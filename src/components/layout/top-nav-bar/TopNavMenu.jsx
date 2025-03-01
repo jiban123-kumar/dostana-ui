@@ -1,9 +1,6 @@
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Box } from "@mui/system";
-import BottomNavigation from "@mui/material/BottomNavigation";
-import BottomNavigationAction from "@mui/material/BottomNavigationAction";
-import Badge from "@mui/material/Badge";
+import { Box, useTheme, useMediaQuery, BottomNavigation, BottomNavigationAction, Badge } from "@mui/material";
 import HomeRoundedIcon from "@mui/icons-material/HomeRounded";
 import ChatRoundedIcon from "@mui/icons-material/ChatRounded";
 import GroupRoundedIcon from "@mui/icons-material/GroupRounded";
@@ -12,9 +9,7 @@ import ShareIcon from "@mui/icons-material/Share";
 import BookmarkRoundedIcon from "@mui/icons-material/BookmarkRounded";
 import { useGetTotalUnreadMessages } from "../../../hooks/chat/message";
 
-// Import the custom hook that fetches the total unread messages count.
-
-const menuItems = [
+const allMenuItems = [
   { label: "Home", icon: <HomeRoundedIcon />, path: "/home" },
   { label: "Profile", icon: <Person2Icon />, path: "/profile" },
   { label: "Friends", icon: <GroupRoundedIcon />, path: "/friends" },
@@ -26,8 +21,17 @@ const menuItems = [
 const TopNavMenu = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const theme = useTheme();
 
-  // Get the unread messages count.
+  // Determine if the viewport is below the "md" breakpoint.
+  const isBelowMd = useMediaQuery(theme.breakpoints.down("md"));
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm")); // typically below 600px
+  const isBelow450 = useMediaQuery("(max-width:450px)");
+
+  // If below md, filter out the extra menu items from the top nav.
+  const menuItems = allMenuItems.filter((item) => (!isBelowMd || (item.label !== "Shared Post" && item.label !== "Saved Feed")) && (!isBelow450 || item.label !== "Profile"));
+
+  // Get unread messages count for the Chats icon badge.
   const { data: totalUnreadMessages } = useGetTotalUnreadMessages();
 
   const handleChange = (event, newValue) => {
@@ -37,18 +41,12 @@ const TopNavMenu = () => {
   const activeIndex = menuItems.findIndex((item) => location.pathname.startsWith(item.path));
 
   return (
-    <Box sx={{ width: 500, margin: 0 }}>
-      <BottomNavigation
-        showLabels
-        value={activeIndex}
-        onChange={handleChange}
-        sx={{ overflow: "hidden" }} // Ensure the menu fits in the container
-      >
+    <Box sx={{ margin: 0 }}>
+      <BottomNavigation showLabels={!isMobile} value={activeIndex} onChange={handleChange} sx={{ overflow: "hidden" }}>
         {menuItems.map((item, index) => (
           <BottomNavigationAction
             key={index}
             label={item.label}
-            // For the "Chats" menu item, wrap the icon in a Badge
             icon={
               item.label === "Chats" ? (
                 <Badge badgeContent={totalUnreadMessages > 0 ? totalUnreadMessages : null} color="error">
@@ -59,11 +57,16 @@ const TopNavMenu = () => {
               )
             }
             sx={{
-              width: 80, // Set a consistent width for each menu item
-              whiteSpace: "nowrap", // Prevent text wrapping
-              overflow: "hidden", // Prevent text overflow
-              textOverflow: "ellipsis", // Show ellipsis for overflow text
+              width: isMobile ? "auto" : "100%",
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
               color: activeIndex === index ? "primary.main" : "text.secondary",
+              fontSize: isMobile ? "0.75rem" : "inherit",
+              "& .MuiSvgIcon-root": {
+                width: isMobile ? "1.2rem" : "1.5rem",
+                height: isMobile ? "1.2rem" : "1.5rem",
+              },
             }}
           />
         ))}

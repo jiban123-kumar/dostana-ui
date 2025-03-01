@@ -23,7 +23,7 @@ const fetchSharedContentsApi = async ({ pageParam = 1 }) => {
   return response.data;
 };
 
-const useShareContent = () => {
+const useShareContent = ({ type }) => {
   const { mutate: createNotification } = useCreateNotification();
   const dispatch = useDispatch();
   const queryClient = useQueryClient();
@@ -34,7 +34,7 @@ const useShareContent = () => {
     onMutate: () => {
       dispatch(
         showAlert({
-          message: "Sharing content...",
+          message: `Sharing ${type} with friends...`,
           type: "info",
           loading: true,
         })
@@ -48,7 +48,7 @@ const useShareContent = () => {
         createNotification({
           type: "content-share",
           receiverIds: userIds,
-          action: `Shared a post with you!`,
+          action: `Shared a ${type} with you!`,
           referenceId: newShare._id,
           user: userId,
         });
@@ -79,14 +79,14 @@ const useShareContent = () => {
       });
       dispatch(
         showAlert({
-          message: "Content shared successfully!",
+          message: `${type} shared with friends!`,
           type: "success",
           loading: false,
         })
       );
     },
     onError: (error) => {
-      let errorMessage = "Failed to share content. Please try again.";
+      let errorMessage = `Failed to share ${type} with friends. Please try again.`;
       if (error.response?.status === 400) {
         errorMessage = error.response.data.message || "Invalid data provided.";
       } else if (error.code === "ERR_NETWORK") {

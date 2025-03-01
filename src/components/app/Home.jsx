@@ -17,9 +17,9 @@ const Home = () => {
   }, [data]);
 
   return (
-    <Stack>
+    <Stack alignItems={"center"}>
       <HomePageToolBar firstPostOpenModal={firstPostOpenModal} setFirstPostOpenModal={setFirstPostOpenModal} />
-      <Stack alignItems="center" pb="1rem">
+      <Stack alignItems="center" pb="1rem" width="100%">
         {isLoading ? (
           <ContentFeed loading />
         ) : contents.length > 0 ? (
@@ -27,7 +27,7 @@ const Home = () => {
         ) : (
           <Stack alignItems="center" spacing={3} sx={{ mt: "6rem", textAlign: "center" }}>
             <Lottie animationData={emptyFeedAnimation} style={{ height: "10rem", width: "100%" }} autoplay loop={false} />
-            <Typography variant="h6" color="text.secondary">
+            <Typography variant="h6" color="text.secondary" sx={{ fontSize: { xs: ".8rem", sm: "1rem", md: "1.6rem" } }}>
               Ohh! Looks like you're the first user.
             </Typography>
             <Button variant="contained" size="large" color="secondary" onClick={() => setFirstPostOpenModal(true)} sx={{ borderRadius: "2rem", textTransform: "none", px: 4, py: 1 }}>

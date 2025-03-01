@@ -1,12 +1,14 @@
 import { useCallback, useRef, useState } from "react";
 import { ArrowRightAlt, KeyboardArrowLeft } from "@mui/icons-material";
-import { Button, DialogTitle, DialogContent, DialogActions, Stack, TextField, Typography, Divider } from "@mui/material";
+import { Button, DialogTitle, DialogContent, DialogActions, Stack, TextField, Typography, Divider, useMediaQuery } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import { updateCurrentStep, updateProfileDetails } from "../../reduxSlices/profileSlice";
 
 const ProfileDetailsStep = () => {
   const dispatch = useDispatch();
   const { firstName, lastName, mobileNumber } = useSelector((state) => state.profile.details);
+
+  const isBelow420 = useMediaQuery("(max-width: 420px)");
 
   // Local state for form inputs and errors
   const [formValues, setFormValues] = useState({
@@ -24,7 +26,6 @@ const ProfileDetailsStep = () => {
 
   // Validation functions
   const validateName = useCallback((value, fieldName) => {
-    if (!value) return "";
     if (value.length < 3) return `${fieldName} must be at least 3 characters long`;
     if (value.length > 15) return `${fieldName} must be at most 15 characters long`;
     if (!/^[a-zA-Z\s]+$/.test(value)) return `${fieldName} must contain only alphabets`;
@@ -89,7 +90,7 @@ const ProfileDetailsStep = () => {
 
   return (
     <form onSubmit={handleSubmit}>
-      <DialogContent>
+      <DialogContent sx={{ px: { md: "1rem", sm: ".6rem", xs: ".2rem" } }}>
         <Stack gap={2}>
           {/* Profile Name Section */}
           <Stack>
@@ -97,8 +98,30 @@ const ProfileDetailsStep = () => {
               Profile Name
             </Typography>
             <Stack spacing={1}>
-              <TextField label="First Name" variant="standard" fullWidth name="firstName" value={formValues.firstName} onChange={handleInputChange} onBlur={handleInputBlur} error={Boolean(formErrors.firstName)} helperText={formErrors.firstName} inputRef={firstNameRef} />
-              <TextField label="Last Name" variant="standard" fullWidth name="lastName" value={formValues.lastName} onChange={handleInputChange} onBlur={handleInputBlur} error={Boolean(formErrors.lastName)} helperText={formErrors.lastName} inputRef={lastNameRef} />
+              <TextField
+                label="First Name"
+                variant="standard"
+                fullWidth
+                name="firstName"
+                value={formValues.firstName}
+                onChange={handleInputChange}
+                onBlur={handleInputBlur}
+                error={Boolean(formErrors.firstName)}
+                helperText={formErrors.firstName}
+                inputRef={firstNameRef}
+              />
+              <TextField
+                label="Last Name"
+                variant="standard"
+                fullWidth
+                name="lastName"
+                value={formValues.lastName}
+                onChange={handleInputChange}
+                onBlur={handleInputBlur}
+                error={Boolean(formErrors.lastName)}
+                helperText={formErrors.lastName}
+                inputRef={lastNameRef}
+              />
             </Stack>
           </Stack>
 
@@ -127,7 +150,7 @@ const ProfileDetailsStep = () => {
         </Stack>
       </DialogContent>
       <Divider />
-      <DialogActions sx={{ justifyContent: "space-between", p: "1rem" }}>
+      <DialogActions sx={{ justifyContent: "space-between", py: isBelow420 ? ".6rem" : ".8rem" }}>
         <Button variant="outlined" startIcon={<KeyboardArrowLeft />} onClick={() => dispatch(updateCurrentStep(0))} sx={{ fontWeight: 600 }}>
           Back
         </Button>

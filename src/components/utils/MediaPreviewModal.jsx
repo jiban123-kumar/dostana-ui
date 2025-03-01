@@ -135,7 +135,7 @@ const MediaPreviewModal = () => {
                 },
               }}
             >
-              <CloseIcon sx={{ width: "2rem", height: "2rem", color: "#fff" }} />
+              <CloseIcon sx={{ width: { md: "2rem", sm: "1.8rem", xs: "1.6rem" }, height: { md: "2rem", sm: "1.8rem", xs: "1.6rem" }, color: "#fff" }} />
             </IconButton>
           </Tooltip>
 

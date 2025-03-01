@@ -8,19 +8,27 @@ import { debounce } from "lodash";
 import { useNavigate } from "react-router-dom";
 import { useSearchUsers } from "../../hooks/userProfile/userProfile";
 
-const PeopleSearch = () => {
+const PeopleSearch = ({ onActiveChange }) => {
   const navigate = useNavigate();
   const inputRef = useRef(null);
   const cardRef = useRef(null);
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [debouncedQuery, setDebouncedQuery] = useState(""); // Debounced query
+  const [debouncedQuery, setDebouncedQuery] = useState("");
   const [isFocused, setIsFocused] = useState(false);
+
+  // Compute "active": true if field is focused or has a non-empty value
+  const active = isFocused || searchQuery.trim() !== "";
+
+  // Notify parent whenever the computed active state changes
+  useEffect(() => {
+    onActiveChange && onActiveChange(active);
+  }, [active, onActiveChange]);
 
   // Fetch search results using the debounced query
   const { data: results = [], isLoading, isError } = useSearchUsers(debouncedQuery);
 
-  // Memoized debounce function
+  // Debounced updater for the query
   const updateDebouncedQuery = useMemo(
     () =>
       debounce((query) => {
@@ -29,7 +37,7 @@ const PeopleSearch = () => {
     []
   );
 
-  // Handle input change (memoized)
+  // Handle input changes
   const handleInputChange = useCallback(
     (e) => {
       setSearchQuery(e.target.value);
@@ -38,36 +46,49 @@ const PeopleSearch = () => {
     [updateDebouncedQuery]
   );
 
-  // Focus input field
+  // Focus the input field
   const handleFocusInput = useCallback(() => {
     inputRef.current?.focus();
   }, []);
 
-  // Select a result
+  // When selecting a result, close the search (set active false)
   const handleListButtonClick = useCallback(
     (result) => {
       setSearchQuery(result.name);
       setIsFocused(false);
+      onActiveChange && onActiveChange(false);
+      console.log(result._id);
       navigate(`/user-profile/${result._id}`);
     },
-    [navigate]
+    [navigate, onActiveChange]
   );
 
-  // Handle clicks outside the card (memoized)
+  // Listen for clicks outside the search card
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (cardRef.current && !cardRef.current.contains(event.target) && inputRef.current !== event.target) {
+      if (cardRef.current && !cardRef.current.contains(event.target) && inputRef.current && !inputRef.current.contains(event.target)) {
         setIsFocused(false);
+        // Only trigger inactive if there's no text value
+        if (searchQuery.trim() === "") {
+          onActiveChange && onActiveChange(false);
+        }
       }
     };
 
     document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [searchQuery, onActiveChange]);
 
-  // Handle errors
+  // On blur, update focus state. (This will be overridden if a click happens on the card.)
+  const handleBlur = useCallback(() => {
+    setIsFocused(false);
+    setSearchQuery("");
+
+    if (searchQuery.trim() === "") {
+      onActiveChange && onActiveChange(false);
+    }
+  }, [searchQuery, onActiveChange]);
+
   useEffect(() => {
     if (isError) {
       console.error("Error fetching search results");
@@ -85,8 +106,16 @@ const PeopleSearch = () => {
   const memoizedResults = useMemo(() => results, [results]);
 
   return (
-    <Stack width="20rem" marginRight="0.4rem" position="relative">
-      {/* Search Input */}
+    <Stack
+      marginRight="0.4rem"
+      position="relative"
+      maxWidth="100%"
+      sx={{
+        transition: "width 0.3s",
+        // On small screens, expand to full width when active; otherwise shrink.
+        width: { xs: "100%", md: active ? "20rem" : "15rem" },
+      }}
+    >
       <TextField
         variant="standard"
         placeholder="Search for people"
@@ -94,6 +123,7 @@ const PeopleSearch = () => {
         value={searchQuery}
         onChange={handleInputChange}
         onFocus={() => setIsFocused(true)}
+        onBlur={handleBlur}
         sx={{ width: "100%" }}
         slotProps={{
           input: {
@@ -123,7 +153,7 @@ const PeopleSearch = () => {
             boxShadow: 2,
           }}
         >
-          <Stack height={memoizedResults.length > 0 && !isLoading ? "auto" : "20rem"} justifyContent="center" alignItems="center" position="relative">
+          <Stack height={memoizedResults.length > 0 && !isLoading ? "auto" : { xs: "15rem", md: "20rem" }} justifyContent="center" alignItems="center" position="relative">
             {/* Loading Animation */}
             {isLoading && <Lottie animationData={searchingPeople} style={{ height: "100%", width: "100%" }} />}
 
@@ -142,7 +172,15 @@ const PeopleSearch = () => {
                     transform: "translate(-50%,-50%)",
                   }}
                 >
-                  <Typography variant="body1" sx={{ fontWeight: "bold", transform: "translateY(-1rem)" }}>
+                  <Typography
+                    variant="body1"
+                    noWrap
+                    sx={{
+                      fontWeight: "bold",
+                      transform: "translateY(-1rem)",
+                      fontSize: { xs: ".8rem", md: "1.2rem" },
+                    }}
+                  >
                     No Results Found
                   </Typography>
                 </motion.div>
@@ -164,7 +202,12 @@ const PeopleSearch = () => {
                 key={1}
               >
                 {memoizedResults.map((result, index) => (
-                  <ListItemButton key={index} sx={{ padding: "0.8rem" }} onClick={() => handleListButtonClick(result)}>
+                  <ListItemButton
+                    key={index}
+                    sx={{ padding: "0.8rem" }}
+                    onMouseDown={(e) => e.preventDefault()} // Prevents the input from blurring
+                    onClick={() => handleListButtonClick(result)}
+                  >
                     <ListItemIcon>
                       <Avatar src={result.profileImage || ""} alt={result.name} sx={{ boxShadow: 3 }} />
                     </ListItemIcon>

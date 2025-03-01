@@ -6,7 +6,7 @@ const ContentCardSkeleton = () => {
     <Stack
       sx={{
         minHeight: "20rem",
-        width: "38rem",
+        width: "100%",
         mt: "1rem",
         borderRadius: ".8rem",
         bgcolor: "#fff",

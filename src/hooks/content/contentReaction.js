@@ -66,7 +66,7 @@ export const updateQueryData = (queryClient, contentId, targetUserId, data) => {
   queryClient.setQueryData(["content", contentId], (oldData) => updateContentReactions([oldData])[0] || oldData);
 };
 
-export const useToggleReaction = () => {
+export const useToggleReaction = ({ type }) => {
   const socket = useContext(SocketContext);
   const queryClient = useQueryClient();
   const sound = new Audio(notificationSound);
@@ -75,13 +75,14 @@ export const useToggleReaction = () => {
   return useMutation({
     mutationFn: toggleReactionApi,
     onSuccess: (data, { contentId, targetUserId }) => {
+      console.log(data);
       sound.play().catch(console.error);
       if (data.reactionDetails.isReacted) {
         createNotification({
           type: "content-reaction",
           userId: targetUserId,
           referenceId: contentId,
-          action: "Reacted to your post!",
+          action: `Reacted to your ${type}!`,
         });
       }
       socket.emit("contentReaction", { targetUserId, contentId, data });

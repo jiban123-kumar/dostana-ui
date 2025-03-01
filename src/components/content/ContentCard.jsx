@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 import React, { useState } from "react";
-import { Avatar, AvatarGroup, Box, Chip, CircularProgress, IconButton, List, ListItemIcon, ListItemText, SpeedDial, SpeedDialAction, Stack, Tooltip, Typography } from "@mui/material";
+import { Avatar, AvatarGroup, Box, Chip, CircularProgress, IconButton, List, ListItemIcon, ListItemText, SpeedDial, SpeedDialAction, Stack, Tooltip, Typography, useMediaQuery } from "@mui/material";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import DownloadIcon from "@mui/icons-material/Download";
 import SaveIcon from "@mui/icons-material/Save";
@@ -10,6 +10,7 @@ import { Delete } from "@mui/icons-material";
 import FileSaver from "file-saver";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { motion } from "motion/react";
 
 // Helpers & Utils
 import { formatDate } from "../../utilsFunction/dateFn.js";
@@ -17,7 +18,6 @@ import getReactedByText from "../../utilsFunction/getReactedByText";
 
 // Redux slices and dialogs
 import { openMediaDialog } from "../../reduxSlices/mediaPreviewSlice";
-import { showDownloading } from "../../reduxSlices/downloadingSlice";
 
 // Custom hooks for content actions
 import { useToggleSaveContent } from "../../hooks/content/contentSave";
@@ -30,9 +30,16 @@ import ReactionViewModal from "../reaction/ReactionViewModal";
 import CommentsViewModal from "../comment/CommentsViewModal";
 import ContentShareCardModal from "./ContentShareCardModal.jsx";
 
-const ContentCard = ({ content, userProfile }) => {
+const cardVariants = {
+  hidden: { y: 20, opacity: 0 },
+  visible: { y: 0, opacity: 1, transition: { duration: 0.3 } },
+  exit: { y: 20, opacity: 0, transition: { duration: 0.3 } },
+};
+
+const ContentCard = ({ content, userProfile, setSelectedContentId }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const [isDownloading, setIsDownloading] = useState(false);
 
   // Destructure common properties from content object.
   // Note: reactionDetails is now attached directly to the content.
@@ -48,14 +55,12 @@ const ContentCard = ({ content, userProfile }) => {
     reactionDetails,
   } = content || {};
 
+  const isSmallScreen = useMediaQuery("(max-width:480px)");
+
   // Destructure reaction details.
   const { totalReactions, reactions } = reactionDetails || { totalReactions: 0, reactions: [] };
 
   const { profileImage, firstName = "", lastName = "" } = contentOwner || {};
-
-  // Determine header label based on content type.
-  const actionLabel = type === "tweet" ? "Tweeted" : "Posted";
-  // console.log(reactionDetails?.reactions[0]?.user?._id === userProfile._id);
 
   // Determine if the current user has reacted (for text details).
   const userReaction = reactionDetails?.reactions?.find((reaction) => reaction?.user?._id === userProfile?._id) || null;
@@ -68,7 +73,6 @@ const ContentCard = ({ content, userProfile }) => {
   const { mutate: toggleSaveContent, isPending: isTogglingSave } = useToggleSaveContent({ type });
 
   // Local state for tooltips and modal controls.
-  const [downloadTooltip, setDownloadTooltip] = useState("Download");
   const [openReactionViewModal, setOpenReactionViewModal] = useState(false);
   const [openCommentViewModal, setOpenCommentViewModal] = useState(false);
   const [openShareModal, setOpenShareModal] = useState(false);
@@ -89,28 +93,26 @@ const ContentCard = ({ content, userProfile }) => {
 
   // Handler for downloading media files.
   const handleDownload = async () => {
-    setDownloadTooltip("Downloading...");
-    dispatch(showDownloading({ message: "Downloading in progress...", type: "downloading" }));
     try {
+      setIsDownloading(true);
       await Promise.all(
         mediaUrl.map(async (url) => {
           const filename = url.split("/").pop();
           FileSaver.saveAs(url, filename);
         })
       );
-      setDownloadTooltip("Downloaded");
-      dispatch(showDownloading({ message: "Download successful!", type: "success" }));
+      console.log("Media downloaded successfully");
     } catch (error) {
-      dispatch(showDownloading({ message: "Download failed. Please try again.", type: "error" }));
-      setDownloadTooltip("Failed");
+      console.error("Error downloading media:", error);
     } finally {
-      setTimeout(() => setDownloadTooltip("Download"), 2000);
+      setIsDownloading(false);
     }
   };
+  const truncateName = (name) => (name.length > 24 && isSmallScreen ? `${name.substring(0, 16)}...` : name);
 
   // Handler for deleting content.
   const handleDeleteClick = () => {
-    deleteContent({ contentId });
+    deleteContent({ contentId }, { onSuccess: () => setSelectedContentId && setSelectedContentId(null) });
   };
 
   // Handler for toggling save/unsave status.
@@ -218,110 +220,120 @@ const ContentCard = ({ content, userProfile }) => {
       return (
         <Stack flexDirection="row" gap={1} sx={{ width: "100%" }}>
           <ReactionChip content={content} userProfile={userProfile} userReaction={userReaction} />
-          <Chip icon={<CommentRoundedIcon />} label="Retweet" onClick={() => setOpenCommentViewModal(true)} variant="outlined" sx={{ width: "100%" }} />
+          <Chip icon={<CommentRoundedIcon />} label="Comment" onClick={() => setOpenCommentViewModal(true)} variant="outlined" sx={{ width: "100%" }} />
         </Stack>
       );
     }
   };
 
   return (
-    <Stack
-      sx={{
-        minHeight: type === "post" ? "20rem" : "10rem",
-        width: "100%",
-        borderRadius: ".8rem",
-        boxShadow: 3,
-        bgcolor: "#fff",
-        position: "relative",
-      }}
-    >
-      {/* Header Section */}
-      <Stack flexDirection="row" justifyContent="space-between" alignItems="center" pr={0} py={".4rem"} pl={".8rem"}>
-        <List>
-          <ListItemIcon sx={{ display: "flex", alignItems: "center" }}>
-            <Tooltip title="View Profile">
-              <IconButton onClick={navigateToProfile}>
-                <Avatar sx={{ height: "3.2rem", width: "3.2rem", boxShadow: 3 }} src={profileImage || ""} />
-              </IconButton>
-            </Tooltip>
-            <ListItemText
-              primary={`${firstName} ${lastName}`}
-              secondary={`${actionLabel} ${formatDate(createdAt)}`}
-              sx={{ marginLeft: "1rem" }}
-              slotProps={{
-                primary: { sx: { fontWeight: "bold", color: "#0000008d" } },
-              }}
+    <motion.div variants={cardVariants} initial="hidden" animate="visible" exit="exit" style={{ width: "100%" }}>
+      <Stack
+        sx={{
+          minHeight: type === "post" ? "20rem" : "10rem",
+          width: "100%",
+          borderRadius: ".8rem",
+          boxShadow: 3,
+          bgcolor: "#fff",
+          position: "relative",
+        }}
+      >
+        {/* Header Section */}
+        <Stack flexDirection="row" justifyContent="space-between" alignItems="center" pr={0} py={".4rem"} pl={".8rem"}>
+          <List>
+            <ListItemIcon sx={{ display: "flex", alignItems: "center" }}>
+              <Tooltip title="View Profile">
+                <IconButton onClick={navigateToProfile}>
+                  <Avatar sx={{ height: { xs: "2.8rem", sm: "3.2rem" }, width: { xs: "2.8rem", sm: "3.2rem" }, boxShadow: 3 }} src={profileImage || ""} />
+                </IconButton>
+              </Tooltip>
+              <ListItemText
+                primary={truncateName(firstName + " " + lastName)}
+                secondary={`${formatDate(createdAt)}`}
+                sx={{ marginLeft: "1rem" }}
+                slotProps={{
+                  primary: { sx: { fontWeight: "bold", color: "#0000008d" } },
+                }}
+              />
+            </ListItemIcon>
+          </List>
+          <SpeedDial
+            ariaLabel="SpeedDial"
+            direction="left"
+            sx={{
+              zIndex: 1,
+              position: "absolute",
+              right: "1rem",
+              "& .MuiSpeedDial-fab": {
+                boxShadow: "none",
+                backgroundColor: "transparent",
+                "&:hover": { backgroundColor: "transparent" },
+              },
+            }}
+            icon={<MoreVertIcon sx={{ color: "#0000007f" }} />}
+          >
+            {isSelf && (
+              <SpeedDialAction icon={isDeletingContent ? <CircularProgress size={24} /> : <Delete />} tooltipTitle={isDeletingContent ? "Deleting..." : "Delete"} onClick={handleDeleteClick} />
+            )}
+            {mediaUrl.length > 0 && <SpeedDialAction icon={<DownloadIcon />} tooltipTitle={isDownloading ? "Downloading..." : "Download"} onClick={handleDownload} />}
+            <SpeedDialAction
+              icon={isTogglingSave ? <CircularProgress size={24} /> : <SaveIcon sx={{ color: isSavedByUser ? "#ffffff" : "#000000" }} />}
+              tooltipTitle={isSavedByUser ? "Unsave" : "Save"}
+              sx={{ bgcolor: isSavedByUser ? "#006400" : "transparent" }}
+              onClick={handleSaveOrUnsave}
             />
-          </ListItemIcon>
-        </List>
-        <SpeedDial
-          ariaLabel="SpeedDial"
-          direction="left"
-          sx={{
-            zIndex: 1,
-            position: "relative",
-            "& .MuiSpeedDial-fab": {
-              boxShadow: "none",
-              backgroundColor: "transparent",
-              "&:hover": { backgroundColor: "transparent" },
-            },
-          }}
-          icon={<MoreVertIcon sx={{ color: "#0000007f" }} />}
-        >
-          {isSelf && <SpeedDialAction icon={isDeletingContent ? <CircularProgress size={24} /> : <Delete />} tooltipTitle={isDeletingContent ? "Deleting..." : "Delete"} onClick={handleDeleteClick} />}
-          {mediaUrl.length > 0 && <SpeedDialAction icon={<DownloadIcon />} tooltipTitle={downloadTooltip} onClick={handleDownload} />}
-          <SpeedDialAction icon={isTogglingSave ? <CircularProgress size={24} /> : <SaveIcon sx={{ color: isSavedByUser ? "#ffffff" : "#000000" }} />} tooltipTitle={isSavedByUser ? "Unsave" : "Save"} sx={{ bgcolor: isSavedByUser ? "#006400" : "transparent" }} onClick={handleSaveOrUnsave} />
-          {type === "tweet" && <SpeedDialAction icon={<ShareRoundedIcon />} tooltipTitle="Share" onClick={() => setOpenShareModal(true)} />}
-        </SpeedDial>
-      </Stack>
-
-      {/* Caption Section (if any) */}
-      {caption.trim().length > 0 && (
-        <Stack sx={{ px: "1rem" }}>
-          <Typography variant="body2" sx={{ color: "#000000" }}>
-            {caption}
-          </Typography>
+            {type === "tweet" && <SpeedDialAction icon={<ShareRoundedIcon />} tooltipTitle="Share" onClick={() => setOpenShareModal(true)} />}
+          </SpeedDial>
         </Stack>
-      )}
 
-      {/* Media Section */}
-      {renderMediaSection()}
-
-      {/* Reaction and Action Buttons */}
-      <Stack p={".8rem"}>
-        {totalReactions > 0 && (
-          <Stack px={".8rem"} sx={{ mb: ".4rem" }} flexDirection="row" alignItems="center" gap={".2rem"}>
-            <AvatarGroup max={3} onClick={() => setOpenReactionViewModal(true)} sx={{ cursor: "pointer" }}>
-              {reactions.map((reaction, index) => (
-                <Avatar key={index} sx={{ width: "1.6rem", height: "1.6rem", boxShadow: 3 }} src={reaction.user.profileImage || ""} />
-              ))}
-            </AvatarGroup>
-            <Typography
-              variant="body2"
-              sx={{
-                ml: ".4rem",
-                fontFamily: "poppins",
-                fontSize: ".7rem",
-                cursor: "pointer",
-              }}
-              onClick={handleOpenReactionViewModal}
-            >
-              {getReactedByText({
-                reactionDetails, // Pass the attached reactionDetails
-                userProfile,
-              })}
+        {/* Caption Section (if any) */}
+        {caption.trim().length > 0 && (
+          <Stack sx={{ px: "1rem" }}>
+            <Typography variant="body2" sx={{ color: "#000000" }}>
+              {caption}
             </Typography>
           </Stack>
         )}
 
-        {renderActionButtons()}
-      </Stack>
+        {/* Media Section */}
+        {renderMediaSection()}
 
-      {/* Modals */}
-      {openReactionViewModal && <ReactionViewModal contentOwner={contentOwner} open={openReactionViewModal} onClose={() => setOpenReactionViewModal(false)} content={content} />}
-      {openCommentViewModal && <CommentsViewModal open={openCommentViewModal} onClose={() => setOpenCommentViewModal(false)} contentOwner={contentOwner} type={type === "post" ? "post" : "tweet"} content={content} />}
-      {openShareModal && <ContentShareCardModal open={openShareModal} onClose={() => setOpenShareModal(false)} content={content} contentOwner={contentOwner} />}
-    </Stack>
+        {/* Reaction and Action Buttons */}
+        <Stack p={".8rem"}>
+          {totalReactions > 0 && (
+            <Stack px={".8rem"} sx={{ mb: ".4rem" }} flexDirection="row" alignItems="center" gap={".2rem"}>
+              <AvatarGroup max={3} onClick={() => setOpenReactionViewModal(true)} sx={{ cursor: "pointer" }}>
+                {reactions.map((reaction, index) => (
+                  <Avatar key={index} sx={{ width: "1.6rem", height: "1.6rem", boxShadow: 3 }} src={reaction.user.profileImage || ""} />
+                ))}
+              </AvatarGroup>
+              <Typography
+                variant="body2"
+                sx={{
+                  ml: ".4rem",
+                  fontFamily: "poppins",
+                  fontSize: ".7rem",
+                  cursor: "pointer",
+                }}
+                onClick={handleOpenReactionViewModal}
+              >
+                {getReactedByText({
+                  reactionDetails, // Pass the attached reactionDetails
+                  userProfile,
+                })}
+              </Typography>
+            </Stack>
+          )}
+
+          {renderActionButtons()}
+        </Stack>
+
+        {/* Modals */}
+        {openReactionViewModal && <ReactionViewModal contentOwner={contentOwner} open={openReactionViewModal} onClose={() => setOpenReactionViewModal(false)} content={content} />}
+        {openCommentViewModal && <CommentsViewModal open={openCommentViewModal} onClose={() => setOpenCommentViewModal(false)} contentOwner={contentOwner} content={content} />}
+        {openShareModal && <ContentShareCardModal open={openShareModal} onClose={() => setOpenShareModal(false)} content={content} contentOwner={contentOwner} />}
+      </Stack>
+    </motion.div>
   );
 };
 

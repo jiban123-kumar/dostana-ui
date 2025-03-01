@@ -10,7 +10,6 @@ import AddFriendList from "./AddFriendList";
 
 const FriendCardHeader = ({ mode = "pendingRequests", children }) => {
   const [isUserListOpen, setIsUserListOpen] = useState(false);
-  console.log(mode);
 
   // Replace separate hooks with the single useManageFriendRequests hook for each action.
   const { mutate: acceptAllRequests, isPending: isAcceptingRequests } = useManageFriendRequests("accept_all");
@@ -24,7 +23,7 @@ const FriendCardHeader = ({ mode = "pendingRequests", children }) => {
   return (
     <>
       <Stack flexDirection="row" alignItems="center" justifyContent="space-between">
-        <Typography variant="h5" sx={{ fontWeight: "bold", mb: "1rem" }}>
+        <Typography variant="h5" sx={{ fontWeight: "bold", mb: { xs: ".2rem", sm: "1rem" }, fontSize: { md: "1.4rem", xs: "1rem", sm: "1.2rem" } }}>
           {mode === "pendingRequests" ? "Friend Requests" : mode === "friends" ? "Friends" : "Add Friends"}
         </Typography>
 
@@ -41,9 +40,33 @@ const FriendCardHeader = ({ mode = "pendingRequests", children }) => {
               },
             }}
           >
-            {mode === "pendingRequests" && <SpeedDialAction key="cancel-all" icon={isDecliningRequests ? <CircularProgress size={24} /> : <HighlightOffIcon />} tooltipTitle="Cancel All" onClick={declineAllRequests} disabled={isDecliningRequests} />}
-            {mode === "pendingRequests" && <SpeedDialAction key="accept-all" icon={isAcceptingRequests ? <CircularProgress size={24} /> : <DoneAllIcon />} tooltipTitle="Accept All" onClick={acceptAllRequests} disabled={isAcceptingRequests} />}
-            {mode === "friends" && <SpeedDialAction key="remove-all" icon={isRemovingFriends ? <CircularProgress size={24} /> : <PersonRemoveIcon />} tooltipTitle="Remove All Friends" onClick={removeAllFriends} disabled={isRemovingFriends} />}
+            {mode === "pendingRequests" && (
+              <SpeedDialAction
+                key="cancel-all"
+                icon={isDecliningRequests ? <CircularProgress size={24} /> : <HighlightOffIcon />}
+                tooltipTitle="Cancel All"
+                onClick={declineAllRequests}
+                disabled={isDecliningRequests}
+              />
+            )}
+            {mode === "pendingRequests" && (
+              <SpeedDialAction
+                key="accept-all"
+                icon={isAcceptingRequests ? <CircularProgress size={24} /> : <DoneAllIcon />}
+                tooltipTitle="Accept All"
+                onClick={acceptAllRequests}
+                disabled={isAcceptingRequests}
+              />
+            )}
+            {mode === "friends" && (
+              <SpeedDialAction
+                key="remove-all"
+                icon={isRemovingFriends ? <CircularProgress size={24} /> : <PersonRemoveIcon />}
+                tooltipTitle="Remove All Friends"
+                onClick={removeAllFriends}
+                disabled={isRemovingFriends}
+              />
+            )}
           </SpeedDial>
         )}
 

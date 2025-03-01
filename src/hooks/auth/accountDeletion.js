@@ -2,19 +2,22 @@ import { useMutation } from "@tanstack/react-query";
 import { useDispatch } from "react-redux";
 import axiosInstance from "../../configs/axiosInstance";
 import { setLoading, showAlert } from "../../reduxSlices/alertSlice";
+import { useNavigate } from "react-router-dom";
 
 // API call to delete the account
 const requestDeleteAccountApi = async (data) => {
-  console.log(data);
   const response = await axiosInstance.delete("/auth/account", { data });
   return response.data;
 };
 const useDeleteAccount = () => {
+  const navigate = useNavigate();
   const dispatch = useDispatch();
   return useMutation({
     mutationFn: requestDeleteAccountApi,
     onSuccess: () => {
-      dispatch(showAlert({ message: "Account deleted successfully!Login with new account", type: "success", loading: false }));
+      navigate("/login");
+      dispatch(showAlert({ message: "Account deleted successfully!", type: "success", loading: false }));
+      localStorage.removeItem("isLoggedIn");
     },
     onMutate: () => {
       dispatch(showAlert({ message: "Deleting account...", type: "info", loading: true }));
