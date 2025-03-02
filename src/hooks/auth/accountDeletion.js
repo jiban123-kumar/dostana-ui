@@ -18,6 +18,7 @@ const useDeleteAccount = () => {
       navigate("/login");
       dispatch(showAlert({ message: "Account deleted successfully!", type: "success", loading: false }));
       localStorage.removeItem("isLoggedIn");
+      localStorage.removeItem("token");
     },
     onMutate: () => {
       dispatch(showAlert({ message: "Deleting account...", type: "info", loading: true }));
