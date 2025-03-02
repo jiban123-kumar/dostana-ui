@@ -5,6 +5,7 @@ import { setLoading, showAlert } from "../../reduxSlices/alertSlice";
 import axiosInstance from "../../configs/axiosInstance";
 import { SocketContext } from "../../contextProvider/SocketProvider";
 import { updateContent } from "../../reduxSlices/contentSlice";
+import { useUserProfile } from "../userProfile/userProfile";
 
 const createContentApi = async (data) => {
   const response = await axiosInstance.post("/content/create-content", data, {
@@ -30,10 +31,24 @@ const fetchContentByIdApi = async (contentId) => {
   return response.data.content;
 };
 
+const prependToFirstPage = (oldData, newItem, listKey) => {
+  if (!oldData || !oldData.pages || !oldData.pages.length) return oldData;
+  const firstPage = oldData.pages[0];
+  const updatedFirstPage = {
+    ...firstPage,
+    [listKey]: [newItem, ...firstPage[listKey]],
+  };
+  return {
+    ...oldData,
+    pages: [updatedFirstPage, ...oldData.pages.slice(1)],
+  };
+};
+
 // Updated to accept pageParam for infinite scrolling
 export const useCreateContent = ({ handleClose, type }) => {
   const socket = useContext(SocketContext);
   const dispatch = useDispatch();
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: createContentApi,
@@ -46,7 +61,12 @@ export const useCreateContent = ({ handleClose, type }) => {
     onSuccess: (response, { newContentId }) => {
       const newContent = response.content;
       dispatch(updateContent({ id: newContentId, updates: { status: "success" } }));
-      socket.emit("contentCreation", { newContent });
+      // socket.emit("contentCreation", { newContent });
+
+      queryClient.setQueryData(["contents"], (oldData) => prependToFirstPage(oldData, newContent, "contents"));
+
+      // Prepend to the user-specific contents list.
+      queryClient.setQueryData(["contents", newContent.user._id], (oldData) => prependToFirstPage(oldData, newContent, "contents"));
       dispatch(setLoading(false));
       dispatch(showAlert({ type: "success", message: "Content posted successfully!", isPosting: false, loading: false }));
     },
@@ -92,7 +112,7 @@ export const useDeleteContent = ({ type = "post" }) => {
         };
       });
 
-      socket.emit("contentDeletion", { contentId, contentOwnerId });
+      // socket.emit("contentDeletion", { contentId, contentOwnerId });
     },
     onError: (error) => {},
     onSettled: () => {},
