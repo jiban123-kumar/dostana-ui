@@ -11,7 +11,7 @@ const SocketProvider = ({ children }) => {
   useEffect(() => {
     if (!userProfile) return; // Wait until user profile is available
 
-    const newSocket = io("http://localhost:3000", {
+    const newSocket = io(import.meta.env.VITE_BACKEND_URL, {
       withCredentials: true, // Allow authentication cookies
       auth: {
         userId: userProfile._id,
