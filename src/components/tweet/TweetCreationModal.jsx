@@ -6,20 +6,19 @@ import EmojiEmotionsIcon from "@mui/icons-material/EmojiEmotions";
 import EmojiPickerComponent from "../common/EmojiPickerComponent";
 import { useCreateContent } from "../../hooks/content/content";
 import { secondaryShareIcon } from "../../assets";
-import { useDispatch } from "react-redux";
-import { addContent, updateContent } from "../../reduxSlices/contentSlice";
+import { useDispatch, useSelector } from "react-redux";
 import { v4 as uuidv4 } from "uuid";
 
 const MAX_IMAGES = 6;
 
 // eslint-disable-next-line react/prop-types
 const TweetCreationModal = ({ open, handleClose }) => {
-  const dispatch = useDispatch();
   const [images, setImages] = useState([]);
   const [tweetText, setTweetText] = useState("");
   const [error, setError] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const { mutate: createContent } = useCreateContent({ handleClose, type: "tweet" });
+  const { isPosting } = useSelector((state) => state.alert);
 
   const isBelow900 = useMediaQuery("(max-width:900px)");
   const isBelow480 = useMediaQuery("(max-width:480px)");
@@ -38,6 +37,10 @@ const TweetCreationModal = ({ open, handleClose }) => {
 
   // Handle content submission with extra create content logic
   const handleSubmitContent = async () => {
+    if (isPosting) {
+      setError("A post is already being uploaded. Please try again later.");
+      return;
+    }
     if (!tweetText.trim()) {
       setError("Content text is required!");
       return;
@@ -53,20 +56,6 @@ const TweetCreationModal = ({ open, handleClose }) => {
     formData.append("caption", tweetText);
     formData.append("type", "tweet");
     formData.append("mediaType", "image"); // Tweets are limited to images in this case
-
-    // Create a new content object similar to PostCreator
-    const newContent = {
-      id: uuidv4(),
-      files: images, // You can adjust the structure if you need additional metadata (e.g., preview URLs)
-      text: tweetText,
-      status: "loading",
-      retryAction: () => {
-        createContent(formData);
-      },
-    };
-
-    // Add the new content to the Redux store
-    dispatch(addContent(newContent));
 
     // Call createContent and update content status based on the API response
     createContent(formData);

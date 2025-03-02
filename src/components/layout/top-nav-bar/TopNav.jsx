@@ -61,6 +61,8 @@ const TopNav = () => {
   const theme = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
+  const isBelow600 = useMediaQuery("(max-width:600px)");
+
   const isBellow500 = useMediaQuery("(max-width:500px)");
   const isBelow450 = useMediaQuery("(max-width:450px)");
   const isBelow370 = useMediaQuery("(max-width:370px)"); // New condition for below 370px
@@ -128,6 +130,7 @@ const TopNav = () => {
                     )}
                   </>
                 )}
+
                 <SideNavFriendRequestsView setOpenDrawer={setDrawerOpen} />
               </Drawer>
             </>

@@ -36,7 +36,7 @@ const cardVariants = {
   exit: { y: 20, opacity: 0, transition: { duration: 0.3 } },
 };
 
-const ContentCard = ({ content, userProfile, setSelectedContentId }) => {
+const ContentCard = ({ content, userProfile, handleClose = () => {} }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [isDownloading, setIsDownloading] = useState(false);
@@ -112,7 +112,7 @@ const ContentCard = ({ content, userProfile, setSelectedContentId }) => {
 
   // Handler for deleting content.
   const handleDeleteClick = () => {
-    deleteContent({ contentId }, { onSuccess: () => setSelectedContentId && setSelectedContentId(null) });
+    deleteContent({ contentId }, { onSuccess: () => handleClose() });
   };
 
   // Handler for toggling save/unsave status.

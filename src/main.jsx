@@ -32,6 +32,8 @@ const queryClient = new QueryClient({
   },
 });
 
+// Optional: Explicit service worker registration (if not using auto registration)
+
 // Root Rendering
 createRoot(document.getElementById("root")).render(
   <StrictMode>

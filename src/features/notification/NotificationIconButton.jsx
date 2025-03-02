@@ -21,7 +21,7 @@ const NotificationButton = () => {
       <Tooltip title="Notifications">
         <IconButton onClick={toggleModal}>
           <Badge badgeContent={badgeContent} color="secondary" max={99}>
-            <NotificationsIcon color="action" sx={{ width: { xs: "1.6rem", sm: "1.8rem", md: "2rem" }, height: { xs: "1.6rem", sm: "1.8rem", md: "2rem" } }} />
+            <NotificationsIcon color="action" sx={{ width: { xs: "1.7rem", sm: "1.8rem", md: "2rem" }, height: { xs: "1.7rem", sm: "1.8rem", md: "2rem" } }} />
           </Badge>
         </IconButton>
       </Tooltip>

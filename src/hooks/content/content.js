@@ -40,14 +40,20 @@ export const useCreateContent = ({ handleClose, type }) => {
     onMutate: () => {
       // Immediately close modal and show posting alert
       handleClose();
+      dispatch(setLoading(true));
+      dispatch(showAlert({ type: "info", message: "Posting Content...", isPosting: true, loading: true }));
     },
     onSuccess: (response, { newContentId }) => {
       const newContent = response.content;
       dispatch(updateContent({ id: newContentId, updates: { status: "success" } }));
       socket.emit("contentCreation", { newContent });
+      dispatch(setLoading(false));
+      dispatch(showAlert({ type: "success", message: "Content posted successfully!", isPosting: false, loading: false }));
     },
     onError: (error, { newContentId }) => {
       dispatch(updateContent({ id: newContentId, updates: { status: "error" } }));
+      dispatch(setLoading(false));
+      dispatch(showAlert({ type: "error", message: "Failed to post content. Please try again.", isPosting: false }));
     },
     onSettled: () => {},
   });

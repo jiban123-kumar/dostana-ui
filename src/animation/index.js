@@ -31,6 +31,7 @@ import chatPrimaryAnimation from "./chatPrimary.json";
 import chatSecondaryAnimation from "./chatSecondary.json";
 
 import errorBoundaryAnimation from "./errorBoundary.json";
+import offlineAnimation from "./offline.json";
 export {
   noResultFound,
   loadingHandAnimation,
@@ -64,4 +65,5 @@ export {
   errorBoundaryAnimation,
   chatPrimaryAnimation,
   chatSecondaryAnimation,
+  offlineAnimation,
 };

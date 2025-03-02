@@ -8,7 +8,7 @@ import ContentCard from "./ContentCard";
 import { useUserProfile } from "../../hooks/userProfile/userProfile";
 import { noPostFoundAnimation } from "../../animation";
 
-const SingleContentModal = ({ contentId, open, handleClose, setSelectedContentId }) => {
+const SingleContentModal = ({ contentId, open, handleClose }) => {
   const { data: content, isLoading: isFetchingContent, error } = useGetContentById({ contentId });
   const { data: userProfile } = useUserProfile();
 
@@ -28,7 +28,7 @@ const SingleContentModal = ({ contentId, open, handleClose, setSelectedContentId
 
   return (
     <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm" slotProps={{ paper: { sx: { overflow: "visible" } } }}>
-      {isFetchingContent ? <ContentCardSkeleton /> : content && <ContentCard content={content} userProfile={userProfile} setSelectedContentId={setSelectedContentId} />}
+      {isFetchingContent ? <ContentCardSkeleton /> : content && <ContentCard content={content} userProfile={userProfile} handleClose={handleClose} />}
     </Dialog>
   );
 };

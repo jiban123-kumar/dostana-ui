@@ -182,7 +182,7 @@ const Signup = () => {
           </Button>
         )}
         {step === 2 && (
-          <Button variant="contained" fullWidth sx={BTN_STYLE} color="secondary" onClick={handleSignUp} disabled={isSigningUp} size={isMediumScreen ? "small" : "medium"} fullWidth={isMediumScreen}>
+          <Button variant="contained" sx={BTN_STYLE} color="secondary" onClick={handleSignUp} disabled={isSigningUp} size={isMediumScreen ? "small" : "medium"} fullWidth={isMediumScreen}>
             Sign up
           </Button>
         )}

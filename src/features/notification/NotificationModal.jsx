@@ -3,6 +3,8 @@ import { Dialog, DialogContent, DialogTitle, List, SpeedDial, SpeedDialAction, S
 import { styled } from "@mui/material/styles";
 import { DeleteRounded, SettingsRounded, NotificationsActiveRounded } from "@mui/icons-material";
 import NotificationsOffIcon from "@mui/icons-material/NotificationsOff";
+import PhoneAndroid from "@mui/icons-material/PhoneAndroid";
+import PhoneDisabled from "@mui/icons-material/PhoneDisabled";
 import Lottie from "lottie-react";
 import { notificationAnimation } from "../../animation";
 import { useGetNotificationSetting, useToggleNotificationSetting } from "../../hooks/notification/notificationSetting";
@@ -10,6 +12,7 @@ import { useMarkNotificationsAsReadByIds } from "../../hooks/notification/notifi
 import { useDeleteAllNotifications, useGetNotifications } from "../../hooks/notification/notification";
 import NotificationList from "./NotificationList";
 import { AnimatePresence } from "motion/react";
+import usePushNotifications from "../../hooks/notification/pushNotification";
 
 // Custom styled SpeedDial component
 const CustomSpeedDial = styled(SpeedDial)(({ theme }) => ({
@@ -103,6 +106,9 @@ const NotificationModal = ({ open, handleClose }) => {
     handleClose();
   }, [handleClose]);
 
+  // Use the push notifications hook
+  const { isPushEnabled: isPushNotificationEnabled, isPushLoading, togglePushNotifications } = usePushNotifications();
+
   return (
     <Dialog open={open} onClose={handleClose} fullWidth maxWidth={isSmallScreen ? "xs" : "sm"}>
       {/* Header with title and SpeedDial */}
@@ -142,16 +148,25 @@ const NotificationModal = ({ open, handleClose }) => {
               },
             }}
           >
+            {/* Delete All Notifications */}
             <SpeedDialAction
               icon={isDeletingNotifications ? <CircularProgress size={24} /> : <DeleteRounded />}
               tooltipTitle={isDeletingNotifications ? "Deleting..." : "Delete All"}
               onClick={handleDeleteAll}
               tooltipPlacement={isSmallScreen ? "top" : "right"}
             />
+            {/* Toggle In-App (Bullet) Notifications */}
             <SpeedDialAction
               icon={isTogglingSetting ? <CircularProgress size={24} /> : bulletNotificationEnabled ? <NotificationsActiveRounded /> : <NotificationsOffIcon />}
               tooltipTitle={bulletNotificationEnabled ? "Turn Off Notifications" : "Turn On Notifications"}
               onClick={handleToggleNotifications}
+              tooltipPlacement={isSmallScreen ? "top" : "right"}
+            />
+            {/* Toggle Push Notifications */}
+            <SpeedDialAction
+              icon={isPushLoading ? <CircularProgress size={24} /> : isPushNotificationEnabled ? <PhoneAndroid color="action" /> : <PhoneDisabled color="action" />}
+              tooltipTitle={isPushNotificationEnabled ? "Disable Push Notifications" : "Enable Push Notifications"}
+              onClick={togglePushNotifications}
               tooltipPlacement={isSmallScreen ? "top" : "right"}
             />
           </CustomSpeedDial>

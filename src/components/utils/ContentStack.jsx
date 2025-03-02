@@ -1,35 +1,35 @@
+// ContentStack.jsx
 import React, { useEffect } from "react";
-import { useSelector, useDispatch } from "react-redux";
 import { motion, AnimatePresence } from "framer-motion";
 import { Box, IconButton, Typography, Alert, Stack } from "@mui/material";
 import Lottie from "lottie-react";
 import ReplayIcon from "@mui/icons-material/Replay";
 import CloseIcon from "@mui/icons-material/Close";
-import { removeContent, updateContent } from "../../reduxSlices/contentSlice";
 import { alertError, alertSpinner, alertSuccess } from "../../animation";
+import useContentStack from "../../contextProvider/useContentStack";
 
 const Content = ({ content }) => {
-  const dispatch = useDispatch();
   const { id, files = [], text, status, retryAction } = content;
+  const { removeContent, updateContent } = useContentStack();
 
   useEffect(() => {
     if (status === "success") {
       const timer = setTimeout(() => {
-        dispatch(removeContent({ id }));
+        removeContent(id);
       }, 2000);
       return () => clearTimeout(timer);
     }
-  }, [status, dispatch, id]);
+  }, [status, id, removeContent]);
 
   const handleRetry = () => {
     if (retryAction) {
       retryAction();
-      dispatch(updateContent({ id, updates: { status: "loading" } }));
+      updateContent(id, { status: "loading" });
     }
   };
 
   const handleRemove = () => {
-    dispatch(removeContent({ id }));
+    removeContent(id);
   };
 
   const renderIcon = () => {
@@ -49,7 +49,12 @@ const Content = ({ content }) => {
     <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} layout>
       <Alert
         severity={status === "error" ? "error" : status === "success" ? "success" : "info"}
-        sx={{ display: "flex", alignItems: "center", minWidth: "20rem", maxWidth: "100%" }}
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          minWidth: "20rem",
+          maxWidth: "100%",
+        }}
         icon={renderIcon()}
         action={
           status !== "loading" && (
@@ -74,13 +79,28 @@ const Content = ({ content }) => {
               return (
                 <Box key={index} sx={{ width: 60, height: 60 }}>
                   {type === "image" ? (
-                    <Box component="img" src={previewURL} alt={`preview-${index}`} sx={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: 4 }} />
+                    <Box
+                      component="img"
+                      src={previewURL}
+                      alt={`preview-${index}`}
+                      sx={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                        borderRadius: 4,
+                      }}
+                    />
                   ) : (
                     <Box
                       component="video"
                       src={previewURL}
                       alt={`video-cover-${index}`}
-                      sx={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: 4 }}
+                      sx={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                        borderRadius: 4,
+                      }}
                       controls={false}
                       autoPlay={false}
                     />
@@ -97,7 +117,8 @@ const Content = ({ content }) => {
 };
 
 const ContentStack = () => {
-  const contentList = useSelector((state) => state.content);
+  const { contentList } = useContentStack();
+
   return (
     <Box
       sx={{

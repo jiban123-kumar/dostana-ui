@@ -1,13 +1,11 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import ErrorBoundary from "./components/common/ErrorBoundary";
 import SocketProvider from "./contextProvider/SocketProvider";
-import ContentStack from "./components/utils/ContentStack";
 import SnackBarAlert from "./components/utils/SnackBarAlert";
 import MediaPreviewModal from "./components/utils/MediaPreviewModal";
 import DownloadSnackbarAlert from "./components/utils/DownloadSnackbarAlert";
 import NotistackAlert from "./components/utils/NotistackAlert";
-import Loading from "./components/common/Loading";
 
 // Directly import route components instead of lazy-loading them
 import LoginPage from "./pages/auth/LoginPage";
@@ -27,16 +25,31 @@ import ChatModalPage from "./pages/chat/ChatModalPage";
 import SharedFeedViewPage from "./pages/feed/SharedFeedViewPage";
 import SavedFeedViewPage from "./pages/feed/SavedFeedViewPage";
 import AppLayout from "./components/layout/AppLayout";
+import SnackbarInstallButton from "./components/utils/SnackbarInstall";
+import OfflineIndicator from "./components/utils/OfflineIndicator";
+import SingleContentViewModal from "./components/content/SingleContentViewModal";
 
 const App = () => {
+  const [isOnline, setIsOnline] = React.useState(window.navigator.onLine);
+
+  useEffect(() => {
+    window.addEventListener("online", () => {
+      setIsOnline(true);
+    });
+    window.addEventListener("offline", () => {
+      setIsOnline(false);
+    });
+  }, []);
+
   return (
     <BrowserRouter>
       <ErrorBoundary>
         <SnackBarAlert />
         <MediaPreviewModal />
         <DownloadSnackbarAlert />
-        <ContentStack />
         <NotistackAlert />
+        {!isOnline && <OfflineIndicator />}
+        <SnackbarInstallButton />
         <Routes>
           <Route path="/" element={<Navigate to="/login" />} />
           <Route path="login" element={<LoginPage />} />
@@ -52,7 +65,9 @@ const App = () => {
               </SocketProvider>
             }
           >
-            <Route path="home" element={<HomePage />} />
+            <Route path="home" element={<HomePage />}>
+              <Route path="content/:contentId" element={<SingleContentViewModal />} />
+            </Route>
             <Route path="profile" element={<UserProfileViewPage />}>
               <Route index element={<Navigate to="feed" />} />
               <Route path="feed" element={<UserProfileFeedViewPage />} />
