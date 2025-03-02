@@ -38,6 +38,9 @@ export default defineConfig({
         swSrc: "src/sw.js", // Path to your custom SW file
         swDest: "sw.js", // Output location for the built SW
       },
+      workbox: {
+        maximumFileSizeToCacheInBytes: 10 * 1024 * 1024, // Increase to 10 MiB (for example)
+      },
     }),
   ],
 });
