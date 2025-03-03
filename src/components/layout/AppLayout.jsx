@@ -18,9 +18,7 @@ const AppLayout = () => {
   const { isLoading: isProfileFetching, data: userProfile, isError: isProfileError, isFetched: isProfileFetched } = useUserProfile();
   const [isReady, setIsReady] = useState(false);
   const bellow1300px = useMediaQuery("(max-width: 1300px)");
-  const [searchParams] = useSearchParams();
-  const token = searchParams.get("token");
-  localStorage.setItem("token", token);
+
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -38,6 +36,9 @@ const AppLayout = () => {
   usePushNotifications(isProfileFetched && userProfile?.isProfileComplete);
 
   useEffect(() => {
+    if (!localStorage.getItem("isLoggedIn")) {
+      return navigate("/login");
+    }
     if (isProfileFetching) return;
     if (isProfileError || !userProfile) {
       dispatch(
@@ -52,9 +53,7 @@ const AppLayout = () => {
       if (!userProfile?.isProfileComplete) {
         navigate("/welcome");
       }
-      if (userProfile?.isProfileComplete) {
-        localStorage.setItem("isLoggedIn", true);
-      }
+
       setIsReady(true);
     }
   }, [isProfileError, isProfileFetched, userProfile, navigate, dispatch, isProfileFetching]);

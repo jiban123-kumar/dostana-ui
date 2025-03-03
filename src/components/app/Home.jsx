@@ -1,14 +1,25 @@
 import { Stack, Typography, Button } from "@mui/material";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useGetContents } from "../../hooks/content/content";
 import Lottie from "lottie-react";
 import { emptyFeedAnimation } from "../../animation";
 import HomePageToolBar from "../layout/HomePageToolBar";
 import ContentFeed from "../content/ContentFeed";
+import { useSearchParams } from "react-router-dom";
 
 const Home = () => {
   const [firstPostOpenModal, setFirstPostOpenModal] = useState(false);
   const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useGetContents();
+
+  const [searchParams] = useSearchParams();
+  const token = searchParams.get("token");
+
+  useEffect(() => {
+    if (token) {
+      localStorage.setItem("token", token);
+    }
+    localStorage.setItem("isLoggedIn", true);
+  }, [token]);
 
   // Flatten the content from all pages
   const contents = useMemo(() => {

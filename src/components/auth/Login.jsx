@@ -6,12 +6,11 @@ import { Link, useNavigate } from "react-router-dom";
 import LoginIcon from "@mui/icons-material/Login";
 import { useLogin } from "../../hooks/auth/login";
 import { googleIcon } from "../../assets";
-import axiosInstance from "../../configs/axiosInstance";
-import Loading from "../common/Loading";
 
 const googleAuthLogin = (e) => {
   e.preventDefault();
   window.location.href = import.meta.env.VITE_GOOGLE_AUTH_URL;
+  // window.location.href = "http://localhost:3000/auth/google";
 };
 
 const Login = () => {
@@ -21,33 +20,10 @@ const Login = () => {
   const [errors, setErrors] = useState({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
 
-  const navigate = useNavigate();
-
   const emailRef = useRef(null);
   const passwordRef = useRef(null);
 
-  const [isCheckingAuth, setIsCheckingAuth] = useState(false);
-
   const { mutate: login, isPending: isLoggingIn } = useLogin({ emailRef, passwordRef });
-  useEffect(() => {
-    const isLoggedIn = localStorage.getItem("isLoggedIn");
-    if (!isLoggedIn) return;
-    const checkAuth = async () => {
-      setIsCheckingAuth(true);
-      try {
-        const response = await axiosInstance.get("/auth/check-session", { withCredentials: true });
-        if (response.data.authenticated) {
-          navigate("/home"); // Redirect to home if authenticated
-        }
-      } catch (error) {
-        console.error("Error checking authentication", error);
-      } finally {
-        setIsCheckingAuth(false);
-      }
-    };
-
-    checkAuth();
-  }, [navigate]);
 
   const handleChange = useCallback((e) => {
     const { name, value } = e.target;
@@ -102,9 +78,6 @@ const Login = () => {
       login({ email: formData.email.trim(), password: formData.password.trim() });
     }
   };
-  if (isCheckingAuth) {
-    return <Loading />;
-  }
 
   return (
     <Stack paddingX={"2rem"} paddingY={"1rem"} component="form" onSubmit={handleSubmit} minHeight={"40vh"}>

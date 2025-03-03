@@ -3,12 +3,18 @@ import { ArrowRightAlt, KeyboardArrowLeft } from "@mui/icons-material";
 import { Button, DialogTitle, DialogContent, DialogActions, Stack, TextField, Typography, Divider, useMediaQuery } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import { updateCurrentStep, updateProfileDetails } from "../../reduxSlices/profileSlice";
+import { useUserProfile } from "../../hooks/userProfile/userProfile";
+import { useQueryClient } from "@tanstack/react-query";
 
-const ProfileDetailsStep = () => {
+const ProfileDetailsStep = ({ setCurrentStep }) => {
   const dispatch = useDispatch();
-  const { firstName, lastName, mobileNumber } = useSelector((state) => state.profile.details);
+  const queryClient = useQueryClient();
 
   const isBelow420 = useMediaQuery("(max-width: 420px)");
+
+  const {
+    data: { firstName, lastName, mobileNumber },
+  } = useUserProfile();
 
   // Local state for form inputs and errors
   const [formValues, setFormValues] = useState({
@@ -81,11 +87,11 @@ const ProfileDetailsStep = () => {
       } else if (errors.mobileNumber) {
         mobileNumberRef.current.focus();
       } else {
-        dispatch(updateProfileDetails(formValues));
-        dispatch(updateCurrentStep(2)); // Proceed to the next step
+        queryClient.setQueryData(["userProfile"], (prev) => ({ ...prev, ...formValues }));
+        setCurrentStep((prevStep) => prevStep + 1);
       }
     },
-    [dispatch, formValues, validateName, validateMobileNumber]
+    [validateName, formValues, validateMobileNumber, queryClient, setCurrentStep]
   );
 
   return (

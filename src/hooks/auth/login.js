@@ -23,6 +23,7 @@ const useLogin = ({ passwordRef, emailRef }) => {
     onSuccess: async () => {
       // Login successful
       dispatch(showAlert({ message: "Login successful", type: "success", loading: false }));
+      localStorage.setItem("isLoggedIn", true);
 
       // Refresh user profile data
       queryClient.removeQueries({ queryKey: ["userProfile"] });

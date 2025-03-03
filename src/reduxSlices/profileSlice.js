@@ -9,10 +9,9 @@ const initialState = {
     gender: "male",
     mobileNumber: "",
     aboutMe: "",
+    isGoogleAccount: false,
   },
   currentStep: 0,
-  googleProfileImage: "",
-  isGoogleAccount: false, // Tracks the current step in the profile creation process
 };
 
 const userProfileSlice = createSlice({

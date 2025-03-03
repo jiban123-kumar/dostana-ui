@@ -3,8 +3,7 @@ import { ArrowRightAlt, CloudUpload } from "@mui/icons-material";
 import { Avatar, Badge, Button, DialogTitle, DialogContent, DialogActions, Divider, IconButton, Skeleton, Stack, Tooltip, Typography, Box, useMediaQuery } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import styled from "styled-components";
-import { useDispatch } from "react-redux";
-import { updateCurrentStep } from "../../reduxSlices/profileSlice";
+import { useUserProfile } from "../../hooks/userProfile/userProfile";
 
 const HiddenInput = styled("input")({
   clip: "rect(0 0 0 0)",
@@ -17,10 +16,10 @@ const HiddenInput = styled("input")({
 });
 
 // eslint-disable-next-line react/prop-types
-const ProfileImageStep = ({ coverImage, profileImage, updateCoverImage, updateProfileImage }) => {
-  const dispatch = useDispatch();
+const ProfileImageStep = ({ coverImage, profileImage, updateCoverImage, updateProfileImage, setCurrentStep }) => {
   const profileImageRef = useRef(null);
   const coverImageRef = useRef(null);
+  const { data: userProfile } = useUserProfile();
 
   const isBelow380 = useMediaQuery("(max-width:380px)");
 
@@ -30,7 +29,7 @@ const ProfileImageStep = ({ coverImage, profileImage, updateCoverImage, updatePr
   };
 
   const handleNext = () => {
-    dispatch(updateCurrentStep(1));
+    setCurrentStep((prevStep) => prevStep + 1);
   };
 
   const getPreviewUrl = (file, fallback) => (file ? URL.createObjectURL(file) : fallback);
@@ -71,7 +70,7 @@ const ProfileImageStep = ({ coverImage, profileImage, updateCoverImage, updatePr
                   </IconButton>
                 }
               >
-                <Avatar src={getPreviewUrl(profileImage) || ""} sx={{ width: { md: "12rem", sm: "10rem", xs: "8rem" }, height: { md: "12rem", sm: "10rem", xs: "8rem" } }} />
+                <Avatar src={getPreviewUrl(profileImage) || userProfile?.profileImage} sx={{ width: { md: "12rem", sm: "10rem", xs: "8rem" }, height: { md: "12rem", sm: "10rem", xs: "8rem" } }} />
               </Badge>
             </Stack>
           </Stack>
@@ -113,7 +112,7 @@ const ProfileImageStep = ({ coverImage, profileImage, updateCoverImage, updatePr
       </DialogContent>
       <Divider />
       <DialogActions sx={{ justifyContent: "space-between", py: "1rem", flexDirection: isBelow380 ? "column" : "row", gap: isBelow380 ? ".4rem" : "0" }}>
-        <Button variant="outlined" onClick={() => dispatch(updateCurrentStep(1))} sx={{ fontWeight: 600 }} fullWidth={isBelow380}>
+        <Button variant="outlined" onClick={() => setCurrentStep((prevStep) => prevStep + 1)} sx={{ fontWeight: 600 }} fullWidth={isBelow380}>
           Skip for Now
         </Button>
         <Button variant="contained" endIcon={<ArrowRightAlt />} onClick={handleNext} sx={{ fontWeight: 600, transform: `translateX(${isBelow380 ? "-.2rem" : "0"})` }} fullWidth={isBelow380}>

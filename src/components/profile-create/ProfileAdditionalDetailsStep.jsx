@@ -2,21 +2,21 @@ import { useCallback, useRef, useState } from "react";
 import { KeyboardArrowLeft } from "@mui/icons-material";
 import { Button, DialogContent, DialogActions, MenuItem, Select, Stack, TextField, Typography, useMediaQuery } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
-import { updateCurrentStep } from "../../reduxSlices/profileSlice";
 import { useProfileCreation } from "../../hooks/userProfile/userProfileCreation";
+import { useUserProfile } from "../../hooks/userProfile/userProfile";
 
 // eslint-disable-next-line react/prop-types
-const ProfileAdditionalDetailsStep = ({ coverImage, profileImage }) => {
-  const dispatch = useDispatch();
+const ProfileAdditionalDetailsStep = ({ coverImage, profileImage, setCurrentStep }) => {
   const profile = useSelector((state) => state.profile.details);
-  const isGoogleAccount = useSelector((state) => state.profile.isGoogleAccount);
   const { mutate: createProfile, isPending: isCreatingProfile } = useProfileCreation();
   const isBelow420 = useMediaQuery("(max-width: 420px)");
 
+  const { data: userProfile } = useUserProfile();
+
   const [formValues, setFormValues] = useState({
-    gender: profile.gender || "male",
-    dob: profile.dob || "",
-    aboutMe: profile.aboutMe || "",
+    gender: userProfile.gender || "male",
+    dob: userProfile.dob || "",
+    aboutMe: userProfile.aboutMe || "",
   });
 
   const [formErrors, setFormErrors] = useState({});
@@ -76,7 +76,6 @@ const ProfileAdditionalDetailsStep = ({ coverImage, profileImage }) => {
     formData.append("firstName", profile.firstName);
     formData.append("lastName", profile.lastName);
     formData.append("mobileNum", profile.mobileNumber || "");
-    formData.append("isGoogleAccount", isGoogleAccount);
 
     createProfile(formData);
   };
@@ -148,7 +147,14 @@ const ProfileAdditionalDetailsStep = ({ coverImage, profileImage }) => {
         </Stack>
       </DialogContent>
       <DialogActions sx={{ justifyContent: "space-between", pY: isBelow420 ? ".4rem" : ".8rem", flexDirection: isBelow420 ? "column" : "row", gap: 1 }}>
-        <Button variant="outlined" startIcon={<KeyboardArrowLeft />} onClick={() => dispatch(updateCurrentStep(1))} sx={{ fontWeight: 600 }} disabled={isCreatingProfile} fullWidth={isBelow420}>
+        <Button
+          variant="outlined"
+          startIcon={<KeyboardArrowLeft />}
+          onClick={() => setCurrentStep((prevStep) => prevStep - 1)}
+          sx={{ fontWeight: 600 }}
+          disabled={isCreatingProfile}
+          fullWidth={isBelow420}
+        >
           Back
         </Button>
         <Button
