@@ -15,6 +15,7 @@ import { store } from "./reduxStore/store.js";
 
 // Notifications
 import { SnackbarProvider } from "notistack";
+import { GoogleOAuthProvider } from "@react-oauth/google";
 
 // Query Client Setup
 const queryClient = new QueryClient({
@@ -43,7 +44,9 @@ createRoot(document.getElementById("root")).render(
       <QueryClientProvider client={queryClient}>
         <ReactQueryDevtools initialIsOpen={false} />
         <SnackbarProvider maxSnack={3} autoHideDuration={6000}>
-          <App />
+          <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
+            <App />
+          </GoogleOAuthProvider>
         </SnackbarProvider>
       </QueryClientProvider>
     </Provider>

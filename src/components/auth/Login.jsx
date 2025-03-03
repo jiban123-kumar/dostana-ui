@@ -6,6 +6,7 @@ import { Link, useNavigate } from "react-router-dom";
 import LoginIcon from "@mui/icons-material/Login";
 import { useLogin } from "../../hooks/auth/login";
 import { googleIcon } from "../../assets";
+import GoogleAuthButton from "./GoogleAuthBtn";
 
 const googleAuthLogin = (e) => {
   e.preventDefault();
@@ -152,7 +153,7 @@ const Login = () => {
         </Button>
       </Stack>
       <Divider />
-      <Button
+      {/* <Button
         variant="outlined"
         color="secondary"
         fullWidth
@@ -163,7 +164,8 @@ const Login = () => {
         size={isMobileScreen ? "small" : "medium"}
       >
         Continue with Google
-      </Button>
+      </Button> */}
+      <GoogleAuthButton />
     </Stack>
   );
 };
