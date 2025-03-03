@@ -152,7 +152,7 @@ const Login = () => {
           </Link>
         </Button>
       </Stack>
-      <Divider />
+      <Divider sx={{ my: "1rem" }} />
       {/* <Button
         variant="outlined"
         color="secondary"

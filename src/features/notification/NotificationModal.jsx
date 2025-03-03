@@ -7,12 +7,13 @@ import PhoneAndroid from "@mui/icons-material/PhoneAndroid";
 import PhoneDisabled from "@mui/icons-material/PhoneDisabled";
 import Lottie from "lottie-react";
 import { notificationAnimation } from "../../animation";
-import { useGetNotificationSetting, useToggleNotificationSetting } from "../../hooks/notification/notificationSetting";
+import { useGetNotificationSetting, useGetPushNotificationSetting, useToggleNotificationSetting, useTogglePushNotificationSetting } from "../../hooks/notification/notificationSetting";
 import { useMarkNotificationsAsReadByIds } from "../../hooks/notification/notificationReader";
 import { useDeleteAllNotifications, useGetNotifications } from "../../hooks/notification/notification";
 import NotificationList from "./NotificationList";
 import { AnimatePresence } from "motion/react";
 import usePushNotifications from "../../hooks/notification/pushNotification";
+import { useUserProfile } from "../../hooks/userProfile/userProfile";
 
 // Custom styled SpeedDial component
 const CustomSpeedDial = styled(SpeedDial)(({ theme }) => ({
@@ -55,10 +56,13 @@ const NotificationModal = ({ open, handleClose }) => {
   // Fetch notification settings
   const { data: notificationData } = useGetNotificationSetting();
   const bulletNotificationEnabled = notificationData?.bulletNotificationEnabled;
+
   const { mutate: toggleNotificationSetting, isPending: isTogglingSetting } = useToggleNotificationSetting();
   const handleToggleNotifications = () => {
     toggleNotificationSetting();
   };
+
+  const { data: userProfile } = useUserProfile();
 
   // Fetch notifications
   const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useGetNotifications();
@@ -107,7 +111,9 @@ const NotificationModal = ({ open, handleClose }) => {
   }, [handleClose]);
 
   // Use the push notifications hook
-  const { isPushEnabled: isPushNotificationEnabled, isPushLoading, togglePushNotifications } = usePushNotifications();
+  const { data: pushNotificationSetting } = useGetPushNotificationSetting();
+
+  const { mutate: togglePushNotificationSetting, isPending: isPushLoading } = useTogglePushNotificationSetting();
 
   return (
     <Dialog open={open} onClose={handleClose} fullWidth maxWidth={isSmallScreen ? "xs" : "sm"}>
@@ -164,11 +170,12 @@ const NotificationModal = ({ open, handleClose }) => {
             />
             {/* Toggle Push Notifications */}
             <SpeedDialAction
-              icon={isPushLoading ? <CircularProgress size={24} /> : isPushNotificationEnabled ? <PhoneAndroid color="action" /> : <PhoneDisabled color="action" />}
-              tooltipTitle={isPushNotificationEnabled ? "Disable Push Notifications" : "Enable Push Notifications"}
-              onClick={togglePushNotifications}
+              icon={isPushLoading ? <CircularProgress size={24} /> : pushNotificationSetting?.pushEnabled ? <PhoneAndroid color="action" /> : <PhoneDisabled color="action" />}
+              tooltipTitle={pushNotificationSetting?.pushEnabled ? "Disable Push Notifications" : "Enable Push Notifications"}
+              onClick={togglePushNotificationSetting}
               tooltipPlacement={isSmallScreen ? "top" : "right"}
             />
+            ;
           </CustomSpeedDial>
         </Stack>
       </Stack>
