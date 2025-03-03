@@ -83,7 +83,7 @@ const SideNavFriendRequestsView = ({ setOpenDrawer }) => {
                     key={user._id}
                     sx={{ borderRadius: "8px" }}
                     onClick={() => {
-                      setOpenDrawer(false);
+                      if (setOpenDrawer) setOpenDrawer(false);
                       navigate(`/user-profile/${user._id}`);
                     }}
                     ref={index === friendRequests.length - 1 ? lastRequestRef : null}
@@ -123,7 +123,9 @@ const SideNavFriendRequestsView = ({ setOpenDrawer }) => {
         <Button
           sx={{ textTransform: "none", fontWeight: "bold", backgroundColor: "#ffffff", alignSelf: "flex-end" }}
           onClick={() => {
-            setOpenDrawer(false);
+            if (setOpenDrawer) {
+              setOpenDrawer(false);
+            }
             navigate("/friend-requests");
           }}
         >

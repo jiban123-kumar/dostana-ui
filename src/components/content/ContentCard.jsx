@@ -239,7 +239,7 @@ const ContentCard = ({ content, userProfile, handleClose = () => {} }) => {
         }}
       >
         {/* Header Section */}
-        <Stack flexDirection="row" justifyContent="space-between" alignItems="center" pr={0} py={".4rem"} pl={".8rem"}>
+        <Stack flexDirection="row" justifyContent="space-between" alignItems="center" pr={0} py={".4rem"} pl={{ md: ".8rem", sm: ".2rem" }}>
           <List>
             <ListItemIcon sx={{ display: "flex", alignItems: "center" }}>
               <Tooltip title="View Profile">
@@ -263,7 +263,7 @@ const ContentCard = ({ content, userProfile, handleClose = () => {} }) => {
             sx={{
               zIndex: 1,
               position: "absolute",
-              right: "1rem",
+              right: { xs: "1rem", sm: ".2rem" },
               "& .MuiSpeedDial-fab": {
                 boxShadow: "none",
                 backgroundColor: "transparent",
