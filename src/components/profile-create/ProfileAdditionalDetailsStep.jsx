@@ -1,17 +1,16 @@
 import { useCallback, useRef, useState } from "react";
 import { KeyboardArrowLeft } from "@mui/icons-material";
 import { Button, DialogContent, DialogActions, MenuItem, Select, Stack, TextField, Typography, useMediaQuery } from "@mui/material";
-import { useDispatch, useSelector } from "react-redux";
 import { useProfileCreation } from "../../hooks/userProfile/userProfileCreation";
 import { useUserProfile } from "../../hooks/userProfile/userProfile";
 
 // eslint-disable-next-line react/prop-types
 const ProfileAdditionalDetailsStep = ({ coverImage, profileImage, setCurrentStep }) => {
-  const profile = useSelector((state) => state.profile.details);
   const { mutate: createProfile, isPending: isCreatingProfile } = useProfileCreation();
   const isBelow420 = useMediaQuery("(max-width: 420px)");
 
   const { data: userProfile } = useUserProfile();
+  console.log(userProfile);
 
   const [formValues, setFormValues] = useState({
     gender: userProfile.gender || "male",
@@ -73,9 +72,9 @@ const ProfileAdditionalDetailsStep = ({ coverImage, profileImage, setCurrentStep
     formData.append("gender", formValues.gender);
     formData.append("dob", formValues.dob);
     formData.append("aboutMe", formValues.aboutMe);
-    formData.append("firstName", profile.firstName);
-    formData.append("lastName", profile.lastName);
-    formData.append("mobileNum", profile.mobileNumber || "");
+    formData.append("firstName", userProfile.firstName);
+    formData.append("lastName", userProfile.lastName);
+    formData.append("mobileNum", userProfile.mobileNumber || "");
 
     createProfile(formData);
   };

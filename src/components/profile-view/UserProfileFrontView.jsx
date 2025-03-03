@@ -351,7 +351,7 @@ const UserProfileFrontView = ({ userProfile }) => {
       </Stack>
       {/* Friend action buttons: Only display if viewing another user’s profile */}
       {!isSelf && (
-        <Stack direction={isBelow380 ? "column" : "row"} justifyContent="flex-end" spacing={2} mb={2}>
+        <Stack spacing={2} mb={2} alignItems={isBelow380 ? "center" : "flex-end"}>
           {renderFriendActions()}
         </Stack>
       )}

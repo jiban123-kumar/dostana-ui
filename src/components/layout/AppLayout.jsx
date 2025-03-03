@@ -36,9 +36,6 @@ const AppLayout = () => {
   usePushNotifications(isProfileFetched && userProfile?.isProfileComplete);
 
   useEffect(() => {
-    if (!localStorage.getItem("isLoggedIn")) {
-      return navigate("/login");
-    }
     if (isProfileFetching) return;
     if (isProfileError || !userProfile) {
       dispatch(

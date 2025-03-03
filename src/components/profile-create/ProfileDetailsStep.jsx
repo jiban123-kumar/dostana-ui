@@ -157,7 +157,7 @@ const ProfileDetailsStep = ({ setCurrentStep }) => {
       </DialogContent>
       <Divider />
       <DialogActions sx={{ justifyContent: "space-between", py: isBelow420 ? ".6rem" : ".8rem" }}>
-        <Button variant="outlined" startIcon={<KeyboardArrowLeft />} onClick={() => dispatch(updateCurrentStep(0))} sx={{ fontWeight: 600 }}>
+        <Button variant="outlined" startIcon={<KeyboardArrowLeft />} onClick={() => dispatch(setCurrentStep((prevStep) => prevStep - 1))} sx={{ fontWeight: 600 }}>
           Back
         </Button>
         <Button variant="contained" endIcon={<ArrowRightAlt />} type="submit" sx={{ fontWeight: 600 }}>

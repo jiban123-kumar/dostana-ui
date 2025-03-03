@@ -6,6 +6,7 @@ import TweetPost from "../tweet/TweetCreationModal";
 import { galleryIcon, tweetIcon } from "../../assets";
 import { useUserProfile } from "../../hooks/userProfile/userProfile";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 
 const TOOLTIP_OFFSET = {
   popper: {
@@ -25,6 +26,7 @@ const HomePageToolBar = ({ setFirstPostOpenModal, firstPostOpenModal }) => {
   const [openTweetModal, setOpenTweetModal] = useState(false);
   // This state will be updated by PeopleSearch via onActiveChange
   const [searchActive, setSearchActive] = useState(false);
+  const navigate = useNavigate();
 
   const { data: userProfile } = useUserProfile();
   const theme = useTheme();
@@ -92,7 +94,12 @@ const HomePageToolBar = ({ setFirstPostOpenModal, firstPostOpenModal }) => {
               }}
             >
               <Tooltip title="Visit Profile" slotProps={TOOLTIP_OFFSET}>
-                <IconButton sx={{ height: { xs: "2.8rem", sm: "3.2rem" }, width: { xs: "2.8rem", sm: "3.2rem" }, mr: isSmallScreen ? 3 : 0 }}>
+                <IconButton
+                  sx={{ height: { xs: "2.8rem", sm: "3.2rem" }, width: { xs: "2.8rem", sm: "3.2rem" }, mr: isSmallScreen ? 3 : 0 }}
+                  onClick={() => {
+                    navigate("/profile");
+                  }}
+                >
                   <Avatar src={userProfile?.profileImage || ""} sx={{ boxShadow: 3 }} />
                 </IconButton>
               </Tooltip>

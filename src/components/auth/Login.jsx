@@ -10,8 +10,8 @@ import GoogleAuthButton from "./GoogleAuthBtn";
 
 const googleAuthLogin = (e) => {
   e.preventDefault();
-  window.location.href = import.meta.env.VITE_GOOGLE_AUTH_URL;
-  // window.location.href = "http://localhost:3000/auth/google";
+  // window.location.href = import.meta.env.VITE_GOOGLE_AUTH_URL;
+  window.location.href = "http://localhost:3000/auth/google";
 };
 
 const Login = () => {
@@ -165,7 +165,9 @@ const Login = () => {
       >
         Continue with Google
       </Button> */}
-      <GoogleAuthButton />
+      <Stack sx={{ width: "100%", alignItems: "center", justifyContent: "center" }}>
+        <GoogleAuthButton />
+      </Stack>
     </Stack>
   );
 };

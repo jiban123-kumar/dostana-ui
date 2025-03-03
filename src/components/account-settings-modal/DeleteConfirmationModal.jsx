@@ -81,7 +81,6 @@ const DeleteConfirmationModal = ({ open, handleClose, formData }) => {
             </Button>
             <Button
               variant="contained"
-              loading={isDeletingAccount}
               fullWidth
               color="warning"
               disabled={!isCaptchaVerified || isDeletingAccount}

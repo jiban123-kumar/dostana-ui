@@ -27,6 +27,7 @@ const useProfileCreation = () => {
     },
     onError: (error) => {
       let errorMessage = "Failed to create profile. Please try again.";
+      console.log(error);
 
       // Handle specific errors if needed
       if (error.code === "ERR_NETWORK") {

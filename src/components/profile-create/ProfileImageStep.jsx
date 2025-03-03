@@ -20,6 +20,7 @@ const ProfileImageStep = ({ coverImage, profileImage, updateCoverImage, updatePr
   const profileImageRef = useRef(null);
   const coverImageRef = useRef(null);
   const { data: userProfile } = useUserProfile();
+  console.log(userProfile);
 
   const isBelow380 = useMediaQuery("(max-width:380px)");
 
@@ -70,7 +71,7 @@ const ProfileImageStep = ({ coverImage, profileImage, updateCoverImage, updatePr
                   </IconButton>
                 }
               >
-                <Avatar src={getPreviewUrl(profileImage) || userProfile?.profileImage} sx={{ width: { md: "12rem", sm: "10rem", xs: "8rem" }, height: { md: "12rem", sm: "10rem", xs: "8rem" } }} />
+                <Avatar src={getPreviewUrl(profileImage, userProfile?.profileImage)} sx={{ width: { md: "12rem", sm: "10rem", xs: "8rem" }, height: { md: "12rem", sm: "10rem", xs: "8rem" } }} />
               </Badge>
             </Stack>
           </Stack>

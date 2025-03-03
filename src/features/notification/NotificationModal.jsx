@@ -7,7 +7,14 @@ import PhoneAndroid from "@mui/icons-material/PhoneAndroid";
 import PhoneDisabled from "@mui/icons-material/PhoneDisabled";
 import Lottie from "lottie-react";
 import { notificationAnimation } from "../../animation";
-import { useGetNotificationSetting, useGetPushNotificationSetting, useToggleNotificationSetting, useTogglePushNotificationSetting } from "../../hooks/notification/notificationSetting";
+import {
+  subscribePush,
+  unsubscribePush,
+  useGetNotificationSetting,
+  useGetPushNotificationSetting,
+  useToggleNotificationSetting,
+  useTogglePushNotificationSetting,
+} from "../../hooks/notification/notificationSetting";
 import { useMarkNotificationsAsReadByIds } from "../../hooks/notification/notificationReader";
 import { useDeleteAllNotifications, useGetNotifications } from "../../hooks/notification/notification";
 import NotificationList from "./NotificationList";
@@ -62,8 +69,6 @@ const NotificationModal = ({ open, handleClose }) => {
     toggleNotificationSetting();
   };
 
-  const { data: userProfile } = useUserProfile();
-
   // Fetch notifications
   const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useGetNotifications();
   const notifications = useMemo(() => (data ? data.pages.flatMap((page) => page.notifications) : []), [data]);
@@ -114,6 +119,22 @@ const NotificationModal = ({ open, handleClose }) => {
   const { data: pushNotificationSetting } = useGetPushNotificationSetting();
 
   const { mutate: togglePushNotificationSetting, isPending: isPushLoading } = useTogglePushNotificationSetting();
+
+  const handlePushNotificationSetting = async () => {
+    console.log("called");
+    try {
+      let subscription;
+      if (pushNotificationSetting.pushEnabled) {
+        subscription = await unsubscribePush();
+      } else {
+        subscription = await subscribePush();
+      }
+      console.log("called 2");
+      togglePushNotificationSetting(subscription);
+    } catch (error) {
+      console.error("Error subscribing to push notifications:", error);
+    }
+  };
 
   return (
     <Dialog open={open} onClose={handleClose} fullWidth maxWidth={isSmallScreen ? "xs" : "sm"}>
@@ -172,7 +193,7 @@ const NotificationModal = ({ open, handleClose }) => {
             <SpeedDialAction
               icon={isPushLoading ? <CircularProgress size={24} /> : pushNotificationSetting?.pushEnabled ? <PhoneAndroid color="action" /> : <PhoneDisabled color="action" />}
               tooltipTitle={pushNotificationSetting?.pushEnabled ? "Disable Push Notifications" : "Enable Push Notifications"}
-              onClick={togglePushNotificationSetting}
+              onClick={handlePushNotificationSetting}
               tooltipPlacement={isSmallScreen ? "top" : "right"}
             />
             ;
