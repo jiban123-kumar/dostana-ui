@@ -44,7 +44,7 @@ createRoot(document.getElementById("root")).render(
       <QueryClientProvider client={queryClient}>
         <ReactQueryDevtools initialIsOpen={false} />
         <SnackbarProvider maxSnack={3} autoHideDuration={6000}>
-          <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
+          <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID || " "}>
             <App />
           </GoogleOAuthProvider>
         </SnackbarProvider>

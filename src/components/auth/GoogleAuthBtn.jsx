@@ -1,9 +1,8 @@
 import React from "react";
-import axios from "axios";
-import { GoogleLogin } from "@react-oauth/google";
+import axiosInstance from "../../configs/axiosInstance";
 import { Button, Box } from "@mui/material";
 import { googleIcon } from "../../assets"; // ensure your path is correct
-import axiosInstance from "../../configs/axiosInstance";
+import { useGoogleLogin } from "@react-oauth/google";
 
 const CustomGoogleButton = ({ onClick, disabled }) => {
   return (
@@ -27,39 +26,31 @@ const CustomGoogleButton = ({ onClick, disabled }) => {
 };
 
 const GoogleAuthButton = () => {
-  const handleSuccess = (credentialResponse) => {
-    // credentialResponse.credential contains the Google token.
-    console.log("Google login success", credentialResponse);
+  const login = useGoogleLogin({
+    onSuccess: (credentialResponse) => {
+      console.log("Google login success", credentialResponse);
+      // Send the token to your backend endpoint for verification and JWT generation.
+      axiosInstance
+        .post("/auth/google/token", { token: credentialResponse.credential })
+        .then((res) => {
+          const data = res.data;
+          if (data.success) {
+            console.log("Logged in successfully!");
+            // Handle redirection or state update here
+          } else {
+            console.error("Authentication failed:", data.message);
+          }
+        })
+        .catch((err) => {
+          console.error("Error during authentication:", err);
+        });
+    },
+    onError: () => {
+      console.error("Google login error");
+    },
+  });
 
-    // Use Axios to send the token to your backend endpoint for verification and JWT generation.
-    axiosInstance
-      .post("/auth/google/token", { token: credentialResponse.credential })
-      .then((res) => {
-        const data = res.data;
-        if (data.success) {
-          // Handle successful login (e.g., redirect, update state, etc.)
-          console.log("Logged in successfully!");
-        } else {
-          console.error("Authentication failed:", data.message);
-        }
-      })
-      .catch((err) => {
-        console.error("Error during authentication:", err);
-      });
-  };
-
-  const handleError = () => {
-    console.error("Google login error");
-  };
-
-  return (
-    <GoogleLogin
-      onSuccess={handleSuccess}
-      onError={handleError}
-      // Use render prop to show your custom button design.
-      render={(renderProps) => <CustomGoogleButton onClick={renderProps.onClick} disabled={renderProps.disabled} />}
-    />
-  );
+  return <CustomGoogleButton onClick={login} disabled={false} />;
 };
 
 export default GoogleAuthButton;
