@@ -61,11 +61,9 @@ export const useCreateContent = ({ handleClose, type }) => {
     onSuccess: (response, { newContentId }) => {
       const newContent = response.content;
       dispatch(updateContent({ id: newContentId, updates: { status: "success" } }));
-      // socket.emit("contentCreation", { newContent });
 
       queryClient.setQueryData(["contents"], (oldData) => prependToFirstPage(oldData, newContent, "contents"));
 
-      // Prepend to the user-specific contents list.
       queryClient.setQueryData(["contents", newContent.user._id], (oldData) => prependToFirstPage(oldData, newContent, "contents"));
       dispatch(setLoading(false));
       dispatch(showAlert({ type: "success", message: "Content posted successfully!", isPosting: false, loading: false }));
@@ -80,7 +78,6 @@ export const useCreateContent = ({ handleClose, type }) => {
 };
 
 export const useDeleteContent = ({ type = "post" }) => {
-  const socket = useContext(SocketContext);
   const queryClient = useQueryClient();
 
   return useMutation({

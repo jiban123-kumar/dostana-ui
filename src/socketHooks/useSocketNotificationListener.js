@@ -30,20 +30,9 @@ export const useSocketNotificationListener = () => {
         );
       }
 
-      queryClient.setQueryData(["unreadNotificationCount"], (oldCount) => {
-        if (typeof oldCount === "number") {
-          return oldCount + 1;
-        }
-        return oldCount;
-      });
-
-      queryClient.setQueryData(["notifications"], (oldData) => {
-        if (!oldData) return oldData;
-        return {
-          ...oldData,
-          pages: oldData.pages.map((page, index) => (index === 0 ? { ...page, notifications: [notification, ...page.notifications] } : page)),
-        };
-      });
+      // Invalidate the unreadNotificationCount and notifications queries to fetch the latest data
+      queryClient.invalidateQueries({ queryKey: ["unreadNotificationCount"], exact: true });
+      queryClient.invalidateQueries({ queryKey: ["notifications"], exact: true });
     };
 
     socket.on("new-notification", handleNewNotification);

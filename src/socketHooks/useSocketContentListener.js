@@ -16,21 +16,6 @@ export const useSocketContentListener = (socket, userProfile) => {
     };
   };
 
-  // Helper: Prepend an item to a given list key on the first page.
-  const prependToFirstPage = (oldData, newItem, listKey) => {
-    if (!oldData || !oldData.pages || !oldData.pages.length) return oldData;
-    const firstPage = oldData.pages[0];
-    const updatedFirstPage = {
-      ...firstPage,
-      [listKey]: [newItem, ...firstPage[listKey]],
-    };
-    return {
-      ...oldData,
-      pages: [updatedFirstPage, ...oldData.pages.slice(1)],
-    };
-  };
-
-  // Helper: Update reaction details for a list of contents.
   const updateContentReactions = (contents, contentId, userId, isReacted, reaction) => {
     if (!contents) return contents;
     return contents.map((content) => {
@@ -82,8 +67,9 @@ export const useSocketContentListener = (socket, userProfile) => {
 
   const handleContentShare = useCallback(
     async (data) => {
-      const { requesterProfile, sharedContent } = data;
-      queryClient.setQueryData(["shared-contents"], (oldData) => prependToFirstPage(oldData, sharedContent, "contents"));
+      const { requesterProfile } = data;
+      // Instead of manually prepending, we invalidate the query to fetch updated data
+      queryClient.invalidateQueries({ queryKey: ["shared-contents"], exact: true });
 
       dispatch(
         showNotistackAlert({
@@ -97,38 +83,10 @@ export const useSocketContentListener = (socket, userProfile) => {
     [dispatch, queryClient]
   );
 
-  const handleContentCreation = useCallback(
-    (data) => {
-      const { newContent } = data;
-      const userId = newContent?.user?._id;
-
-      // Prepend to general contents list.
-      queryClient.setQueryData(["contents"], (oldData) => prependToFirstPage(oldData, newContent, "contents"));
-
-      // Prepend to the user-specific contents list.
-      queryClient.setQueryData(["contents", userId], (oldData) => prependToFirstPage(oldData, newContent, "contents"));
-    },
-    [queryClient]
-  );
-
-  const handleContentDeletion = useCallback(
-    (data) => {
-      const { contentId, contentOwnerId } = data;
-      const removeContentFromPage = (page) => ({
-        ...page,
-        contents: page.contents.filter((c) => c._id !== contentId),
-      });
-
-      queryClient.setQueryData(["contents"], (oldData) => updatePages(oldData, removeContentFromPage));
-      queryClient.setQueryData(["contents", contentOwnerId], (oldData) => updatePages(oldData, removeContentFromPage));
-    },
-    [queryClient]
-  );
-
   const handleNewComment = useCallback(
     (data) => {
-      const { contentId, newComment } = data;
-      queryClient.setQueryData(["content-comments", contentId], (oldData) => prependToFirstPage(oldData, newComment, "comments"));
+      const { contentId } = data;
+      queryClient.invalidateQueries({ queryKey: ["content-comments", contentId], exact: true });
     },
     [queryClient]
   );
@@ -152,18 +110,14 @@ export const useSocketContentListener = (socket, userProfile) => {
 
     socket.on("contentReaction", handleReaction);
     socket.on("contentShare", handleContentShare);
-    socket.on("contentCreation", handleContentCreation);
-    socket.on("contentDeletion", handleContentDeletion);
     socket.on("contentNewComment", handleNewComment);
     socket.on("contentCommentDeletion", handleContentCommentDeletion);
 
     return () => {
       socket.off("contentReaction", handleReaction);
       socket.off("contentShare", handleContentShare);
-      socket.off("contentCreation", handleContentCreation);
-      socket.off("contentDeletion", handleContentDeletion);
       socket.off("contentNewComment", handleNewComment);
       socket.off("contentCommentDeletion", handleContentCommentDeletion);
     };
-  }, [socket, handleReaction, handleContentShare, handleContentCreation, handleContentDeletion, handleNewComment, handleContentCommentDeletion]);
+  }, [socket, handleReaction, handleContentShare, handleNewComment, handleContentCommentDeletion]);
 };

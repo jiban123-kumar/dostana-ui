@@ -5,7 +5,6 @@ import { SocketContext } from "../../contextProvider/SocketProvider";
 import { useUserProfile } from "../userProfile/userProfile";
 
 const sendMessageApi = async (data) => {
-  console.log(data);
   const response = await axiosInstance.post(`/chat/send`, data, { headers: { "Content-Type": "multipart/form-data" } });
   return response.data;
 };
@@ -39,23 +38,6 @@ const markMessageAsReadByIdsApi = async ({ messageIds }) => {
   return response.data;
 };
 
-export const addMessageToChat = (queryClient, recipientId, newMessage) => {
-  queryClient.setQueryData(["chats", recipientId], (oldData) => {
-    if (!oldData || !oldData.pages) {
-      return { pages: [{ messages: [newMessage] }] };
-    }
-
-    const updatedPages = oldData.pages.map((page, index, pages) => {
-      if (index === pages.length - 1) {
-        return { ...page, messages: [...(page.messages || []), newMessage] };
-      }
-      return page;
-    });
-
-    return { ...oldData, pages: updatedPages };
-  });
-};
-
 export const removeMessageFromChat = (queryClient, recipientId, deletedMessageId) => {
   queryClient.setQueryData(["chats", recipientId], (oldData) => {
     if (!oldData || !oldData.pages) {
@@ -79,25 +61,16 @@ export const useSendMessage = () => {
   return useMutation({
     mutationFn: sendMessageApi,
     onSuccess: (data) => {
-      const sender = { profileImage: userProfile?.profileImage, name: userProfile?.firstName + " " + userProfile?.lastName, _id: userProfile?._id };
+      const sender = {
+        profileImage: userProfile?.profileImage,
+        name: userProfile?.firstName + " " + userProfile?.lastName,
+        _id: userProfile?._id,
+      };
       const { recipientId, newMessage, chatId } = data;
-      console.log(chatId);
       socket.emit("newMessage", { targetUserId: recipientId, newMessage, sender, chatId });
-      addMessageToChat(queryClient, recipientId, newMessage);
-      queryClient.setQueryData(["chats"], (oldData) => {
-        if (!oldData || !oldData.pages) return oldData;
-        return {
-          ...oldData,
-          pages: oldData.pages.map((page) => {
-            // Each page should have a `chats` array
-            if (!page.chats) return page;
-            return {
-              ...page,
-              chats: page.chats.map((chat) => (chat._id === chatId ? { ...chat, lastMessage: newMessage } : chat)),
-            };
-          }),
-        };
-      });
+
+      // Instead of manually updating the chat cache, invalidate the "chats" query:
+      queryClient.invalidateQueries({ queryKey: ["chats"], exact: true });
     },
     onError: (err) => {
       console.log(err);
@@ -181,17 +154,11 @@ export const useMarkMessageAsReadByIds = () => {
   return useMutation({
     mutationFn: markMessageAsReadByIdsApi,
     onSuccess: (data, { chatId }) => {
-      const count = data.count;
       console.log(chatId);
-      queryClient.setQueryData(["unreadCount", chatId], (oldCount) => {
-        if (!oldCount) return oldCount;
-        return Math.max(oldCount - count, 0);
-      });
-
-      queryClient.setQueryData(["totalUnreadMessages"], (oldCount) => {
-        if (!oldCount) return oldCount;
-        return Math.max(oldCount - count, 0);
-      });
+      // Invalidate the cache for unreadCount for this specific chat
+      queryClient.invalidateQueries({ queryKey: ["unreadCount", chatId], exact: true });
+      // Invalidate the total unread messages cache
+      queryClient.invalidateQueries({ queryKey: ["totalUnreadMessages"], exact: true });
     },
     onError: (error) => {
       console.error("Error marking messages as read:", error);

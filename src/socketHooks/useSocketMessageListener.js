@@ -1,6 +1,6 @@
 import { useEffect, useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { addMessageToChat, getLastMessageByChatId, removeMessageFromChat } from "../hooks/chat/message";
+import { getLastMessageByChatId, removeMessageFromChat } from "../hooks/chat/message";
 import { useDispatch } from "react-redux";
 import { showNotistackAlert } from "../reduxSlices/notistackAlertSlice";
 import { useParams } from "react-router-dom";
@@ -15,11 +15,11 @@ export const useSocketMessageListener = (socket) => {
 
   const handleNewMessage = useCallback(
     async (data) => {
-      const { newMessage, sender, chatId } = data;
+      const { sender, chatId } = data;
       const { _id: senderId, name: senderName, profileImage: senderProfileImage } = sender || {};
 
-      // Update the messages for the particular chat.
-      addMessageToChat(queryClient, senderId, newMessage);
+      // Instead of manually updating the messages in the chat, invalidate the query for messages of this chat.
+      queryClient.invalidateQueries({ queryKey: ["messages", chatId], exact: true });
 
       // Dispatch a notification for the new message if the sender is not the current user and notifications are enabled.
       if (userId !== senderId && bulletNotificationEnabled) {
@@ -31,24 +31,13 @@ export const useSocketMessageListener = (socket) => {
             senderName,
           })
         );
-        queryClient.setQueryData(["totalUnreadMessages"], (oldCount) => oldCount + 1);
-        queryClient.setQueryData(["unreadCount", chatId], (oldCount) => oldCount + 1);
+        // Invalidate queries to update unread counts
+        queryClient.invalidateQueries({ queryKey: ["totalUnreadMessages"], exact: true });
+        queryClient.invalidateQueries({ queryKey: ["unreadCount", chatId], exact: true });
       }
 
-      // Update the global chats list with the last message for the chat.
-      queryClient.setQueryData(["chats"], (oldData) => {
-        if (!oldData || !oldData.pages) return oldData;
-        return {
-          ...oldData,
-          pages: oldData.pages.map((page) => {
-            if (!page.chats) return page;
-            return {
-              ...page,
-              chats: page.chats.map((chat) => (chat._id === chatId ? { ...chat, lastMessage: newMessage } : chat)),
-            };
-          }),
-        };
-      });
+      // Invalidate the global chats query to update the chat list with the latest last message.
+      queryClient.invalidateQueries({ queryKey: ["chats"], exact: true });
     },
     [dispatch, queryClient, userId, bulletNotificationEnabled]
   );
