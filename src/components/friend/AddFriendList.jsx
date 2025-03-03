@@ -69,22 +69,49 @@ export const AddFriendList = () => {
   const suggestedUsers = data ? data.pages.flatMap((page) => page.suggestedUsers) : [];
 
   return (
-    <Stack width="100%" sx={{ position: "relative", borderRadius: "0.6rem", padding: "1rem" }} component={Paper} elevation={3}>
+    <Stack
+      width="100%"
+      component={Paper}
+      elevation={3}
+      sx={{
+        position: "relative",
+        borderRadius: "0.6rem",
+        padding: "1rem",
+      }}
+    >
       {isLoading ? (
         <AddFriendListSkeleton />
       ) : suggestedUsers.length > 0 ? (
-        <Stack sx={{ overflowX: "auto", whiteSpace: "nowrap", paddingBottom: "1rem" }}>
-          <List sx={{ display: "flex", flexDirection: "row", gap: "1rem", alignItems: "center", justifyContent: suggestedUsers.length < 4 ? "center" : "flex-start" }}>
+        <Stack
+          sx={{
+            overflowX: "auto",
+            whiteSpace: "nowrap",
+            paddingBottom: "1rem",
+            scrollPaddingLeft: "1rem", // Ensures first item is fully visible
+          }}
+        >
+          <List
+            sx={{
+              display: "flex",
+              flexDirection: "row",
+              gap: "1rem",
+              alignItems: "center",
+              justifyContent: suggestedUsers.length < 4 ? "center" : "flex-start",
+              px: ".6rem", // Matches gap to prevent cutting off the first item
+              scrollSnapType: "x mandatory",
+            }}
+          >
             {suggestedUsers.map((user) => (
-              <AddFriendItem key={user._id} user={user} />
+              <AddFriendItem key={user._id} user={user} sx={{ scrollSnapAlign: "start" }} />
             ))}
           </List>
+
           {hasNextPage && (
             <Stack alignItems="center" mt={2}>
               {isFetchingNextPage ? (
                 <CircularProgress />
               ) : (
-                <Button variant="outlined" onClick={() => fetchNextPage()}>
+                <Button variant="outlined" onClick={fetchNextPage}>
                   Load More
                 </Button>
               )}

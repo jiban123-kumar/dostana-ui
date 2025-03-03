@@ -1,5 +1,4 @@
 /* eslint-disable react/prop-types */
-// src/components/shared/ContentFeed.jsx
 import { List, Stack, Typography } from "@mui/material";
 import { useRef, useCallback } from "react";
 import { useUserProfile } from "../../hooks/userProfile/userProfile.js";
@@ -8,23 +7,20 @@ import ContentCardSkeleton from "../skeletons/ContentCardSkeleton";
 import { AnimatePresence } from "motion/react";
 import NoFeedMsg from "../common/NoFeedMsg";
 
-const ContentFeed = ({ contents = [], fetchNextPage, hasNextPage, isFetchingNextPage, loading = false }) => {
+const ContentFeed = ({ contents = [], fetchNextPage, hasNextPage, isFetchingNextPage, loading = false, showFeedLogo = true }) => {
   const observerRef = useRef();
-
   const { data: userProfile } = useUserProfile();
 
-  // Intersection Observer logic
+  // Intersection Observer logic for infinite scrolling
   const lastContentElementRef = useCallback(
     (node) => {
       if (isFetchingNextPage) return;
       if (observerRef.current) observerRef.current.disconnect();
 
       observerRef.current = new IntersectionObserver((entries) => {
-        requestAnimationFrame(() => {
-          if (entries[0].isIntersecting && hasNextPage) {
-            fetchNextPage();
-          }
-        });
+        if (entries[0].isIntersecting && hasNextPage) {
+          requestAnimationFrame(fetchNextPage);
+        }
       });
       if (node) observerRef.current.observe(node);
     },
@@ -33,11 +29,9 @@ const ContentFeed = ({ contents = [], fetchNextPage, hasNextPage, isFetchingNext
 
   if (loading) {
     return (
-      <Stack alignItems="center" sx={{ maxWidth: "95%", width: { xs: "95%", sm: "80%", md: "38rem" } }} flex={1} overflow={"hidden"}>
-        {Array.from({ length: 5 }).map((_, index) => (
-          <Stack key={index} sx={{ display: "flex", flexDirection: "column", gap: "2rem", width: "100%" }}>
-            <ContentCardSkeleton />
-          </Stack>
+      <Stack alignItems="center" sx={{ maxWidth: "95%", width: { xs: "95%", sm: "80%", md: "38rem" } }} flex={1} overflow="hidden">
+        {[...Array(5)].map((_, index) => (
+          <ContentCardSkeleton key={index} />
         ))}
       </Stack>
     );
@@ -46,19 +40,13 @@ const ContentFeed = ({ contents = [], fetchNextPage, hasNextPage, isFetchingNext
   return (
     <List sx={{ display: "flex", flexDirection: "column", gap: "2rem", maxWidth: "95%", width: { xs: "95%", sm: "28rem", md: "38rem" } }}>
       <AnimatePresence initial={false}>
-        {contents.map((content, index) => {
-          if (contents.length === index + 1) {
-            return (
-              <div ref={lastContentElementRef} key={content._id} style={{ width: "100%" }}>
-                <ContentCard content={content} userProfile={userProfile} />
-              </div>
-            );
-          } else {
-            return <ContentCard key={content._id} content={content} userProfile={userProfile} />;
-          }
-        })}
+        {contents.map((content, index) => (
+          <div ref={index === contents.length - 1 ? lastContentElementRef : null} key={content._id} style={{ width: "100%" }}>
+            <ContentCard content={content} userProfile={userProfile} />
+          </div>
+        ))}
       </AnimatePresence>
-      <NoFeedMsg textMsg={"No more content"} />;
+      {showFeedLogo && <NoFeedMsg textMsg="No more content" />}
       {isFetchingNextPage && (
         <Stack mt={2} alignItems="center">
           <Typography variant="body2">Loading more...</Typography>

@@ -17,7 +17,7 @@ const SavedFeedView = () => {
   }, [data]);
 
   return (
-    <Stack alignItems="center" pb="1rem" width={"100%"}>
+    <Stack alignItems="center" pb="1rem" width={"100%"} flex={1}>
       {isLoadingSavedContent ? (
         <ContentFeed loading />
       ) : savedContents.length > 0 ? (

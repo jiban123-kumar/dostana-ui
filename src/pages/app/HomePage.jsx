@@ -4,7 +4,7 @@ import Home from "../../components/app/Home";
 const HomePage = () => {
   return (
     <>
-      <Home />;
+      <Home />
       <Outlet />
     </>
   );
