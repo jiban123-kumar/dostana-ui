@@ -6,6 +6,7 @@ import { useUserProfile } from "../../hooks/userProfile/userProfile.js";
 import ContentCard from "./ContentCard";
 import ContentCardSkeleton from "../skeletons/ContentCardSkeleton";
 import { AnimatePresence } from "motion/react";
+import NoFeedMsg from "../common/NoFeedMsg";
 
 const ContentFeed = ({ contents = [], fetchNextPage, hasNextPage, isFetchingNextPage, loading = false }) => {
   const observerRef = useRef();
@@ -57,6 +58,7 @@ const ContentFeed = ({ contents = [], fetchNextPage, hasNextPage, isFetchingNext
           }
         })}
       </AnimatePresence>
+      <NoFeedMsg textMsg={"No more content"} />;
       {isFetchingNextPage && (
         <Stack mt={2} alignItems="center">
           <Typography variant="body2">Loading more...</Typography>

@@ -35,11 +35,7 @@ const MediaPreviewModal = () => {
 
       // Update the snackbar to success
       dispatch(
-        showDownloading({
-          message: "Download completed",
-          type: "success",
-        })
-      );
+      
     } catch (error) {
       // Update the snackbar to error
       dispatch(
@@ -50,9 +46,7 @@ const MediaPreviewModal = () => {
       );
     } finally {
       // Hide the snackbar after a short delay
-      setTimeout(() => {
-        dispatch(hideDownloading());
-      }, 6000);
+
     }
   };
 

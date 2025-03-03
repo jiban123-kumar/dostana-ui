@@ -56,7 +56,7 @@ const SharedFeedView = () => {
     );
   }
 
-  if (!sharedContents.length) return <NoFeedMsg textMsg="No shared content found" />;
+  if (!sharedContents.length) return <NoFeedMsg textMsg="No shared content found" btnTitle={"Explore"} />;
 
   return (
     <Stack flex={1} py={2} gap={3} sx={{ width: { xs: "90%", sm: "28rem", md: "38rem" } }}>

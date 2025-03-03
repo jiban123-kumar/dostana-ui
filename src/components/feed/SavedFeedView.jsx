@@ -4,6 +4,7 @@ import Lottie from "lottie-react";
 import { useGetSavedContent } from "../../hooks/content/contentSave";
 import { emptyFeedAnimation } from "../../animation";
 import ContentFeed from "../content/ContentFeed";
+import NoFeedMsg from "../common/NoFeedMsg";
 
 const SavedFeedView = () => {
   const { isLoading: isLoadingSavedContent, fetchNextPage, hasNextPage, isFetchingNextPage, data } = useGetSavedContent();
@@ -22,25 +23,7 @@ const SavedFeedView = () => {
       ) : savedContents.length > 0 ? (
         <ContentFeed contents={savedContents} fetchNextPage={fetchNextPage} hasNextPage={hasNextPage} isFetchingNextPage={isFetchingNextPage} />
       ) : (
-        <Stack alignItems="center" spacing={3} sx={{ mt: "6rem", textAlign: "center" }}>
-          <Lottie animationData={emptyFeedAnimation} style={{ height: "10rem", width: "100%" }} autoplay loop={false} />
-          <Typography variant="h6" color="text.secondary">
-            No saved content found
-          </Typography>
-          <Button
-            variant="contained"
-            size="large"
-            color="secondary"
-            sx={{
-              borderRadius: "2rem",
-              textTransform: "none",
-              px: 4,
-              py: 1,
-            }}
-          >
-            Explore more
-          </Button>
-        </Stack>
+        <NoFeedMsg textMsg={"No saved content found"} btnTitle={"Explore"} />
       )}
     </Stack>
   );
