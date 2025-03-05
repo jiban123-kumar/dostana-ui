@@ -4,12 +4,18 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { welcomeBanner } from "../../animation";
 import { secondaryCompanyLogo } from "../../assets";
+import { useUserProfile } from "../../hooks/userProfile/userProfile";
+import { useDispatch } from "react-redux";
+import { showAlert } from "../../reduxSlices/alertSlice";
+import Loading from "../common/Loading";
 
 const ProfileCreationBanner = () => {
   const navigate = useNavigate();
   const isBelowSm = useMediaQuery("(max-width: 600px)");
+  const dispatch = useDispatch();
+  const [isReady, setIsReady] = useState(false);
 
-  // Memoizing the animation to prevent re-renders
+  const { isLoading: isProfileFetching, data: userProfile, isError: isProfileError, isFetched: isProfileFetched } = useUserProfile();
   const animationOptions = useMemo(
     () => ({
       animationData: welcomeBanner,
@@ -17,6 +23,33 @@ const ProfileCreationBanner = () => {
     }),
     []
   );
+
+  useEffect(() => {
+    if (isProfileFetching) return;
+    if (isProfileError || !userProfile) {
+      localStorage.clear();
+      dispatch(
+        showAlert({
+          message: "Something went wrong. Please login again.",
+          type: "error",
+          loading: false,
+        })
+      );
+      navigate("/login");
+    } else if (isProfileFetched) {
+      if (!userProfile?.isProfileComplete) {
+        navigate("/welcome");
+      }
+
+      setIsReady(true);
+    }
+  }, [isProfileError, isProfileFetched, userProfile, navigate, dispatch, isProfileFetching]);
+
+  if (isProfileFetching || !isReady) {
+    return <Loading />;
+  }
+
+  // Memoizing the animation to prevent re-renders
 
   return (
     <Stack height="100vh" width="100vw" justifyContent="center" alignItems="center">
