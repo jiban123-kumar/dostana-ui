@@ -107,7 +107,6 @@ const ChatListView = ({ chat }) => {
 
   // Function to render the last message content based on text and media.
   const renderLastMessageContent = () => {
-    console.log(lastMessage);
     if (!lastMessage) return null;
     const mediaArray = Array.isArray(media) ? media : [];
 

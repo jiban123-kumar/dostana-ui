@@ -35,6 +35,7 @@ const getUnreadCountForChatApi = async (chatId) => {
 };
 
 export const getLastMessageByChatId = async (chatId) => {
+  if (!chatId) return;
   const response = await axiosInstance.get(`/chat/lastMessage/${chatId}`);
   return response.data;
 };
@@ -204,7 +205,6 @@ export const useMarkMessageAsReadByChatId = () => {
     mutationFn: markMessageAsReadByChatIdApi,
     onSuccess: (data, { chatId }) => {
       const count = data.count;
-      console.log(chatId);
       queryClient.setQueryData(["unreadCount", chatId], (oldCount) => {
         if (!oldCount) return oldCount;
         console.log(oldCount, count);
