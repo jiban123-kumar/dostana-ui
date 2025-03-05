@@ -74,7 +74,7 @@ const Login = () => {
   };
 
   return (
-    <Stack paddingX={"2rem"} paddingY={"1rem"} component="form" onSubmit={handleSubmit} minHeight={"40vh"}>
+    <Stack component="form" onSubmit={handleSubmit} minHeight={"40vh"} sx={{ px: { xs: "1rem", sm: "2rem" }, py: { xs: "1rem", sm: "1.6rem" } }}>
       <Typography variant="h6" sx={{ fontWeight: "bold", fontSize: { xs: "1rem", sm: "1.2rem" } }}>
         Login to your account
       </Typography>

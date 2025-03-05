@@ -96,7 +96,7 @@ const Signup = () => {
   );
 
   return (
-    <Stack paddingX="2rem" paddingY="1.2rem" minHeight="35vh">
+    <Stack minHeight="35vh" sx={{ px: { xs: "1rem", sm: "2rem" }, py: { xs: "1rem", sm: "1.6rem" } }}>
       <Typography variant="h6" sx={{ fontWeight: "bold", fontSize: { xs: "1rem", sm: "1.2rem" } }}>
         Create your account
       </Typography>

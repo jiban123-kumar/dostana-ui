@@ -79,7 +79,7 @@ const ForgetPassword = () => {
   );
 
   return (
-    <Stack minHeight="35vh" padding="2rem" paddingY="1.2rem" component="form" onSubmit={handleSubmit}>
+    <Stack minHeight="35vh" component="form" onSubmit={handleSubmit} sx={{ px: { xs: "1rem", sm: "2rem" }, py: { xs: "1rem", sm: "1.6rem" } }}>
       <Typography variant="h6" sx={{ fontWeight: "bold", fontSize: { xs: "1rem", sm: "1.2rem" } }}>
         Forget your Password
       </Typography>
