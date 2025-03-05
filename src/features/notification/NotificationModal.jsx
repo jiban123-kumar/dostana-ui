@@ -1,26 +1,16 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
-import { Dialog, DialogContent, DialogTitle, List, SpeedDial, SpeedDialAction, Stack, Typography, Skeleton, CircularProgress, useMediaQuery, Box } from "@mui/material";
+import { Dialog, DialogContent, DialogTitle, List, SpeedDial, SpeedDialAction, Stack, Typography, Skeleton, CircularProgress, useMediaQuery, Box, IconButton } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { DeleteRounded, SettingsRounded, NotificationsActiveRounded } from "@mui/icons-material";
 import NotificationsOffIcon from "@mui/icons-material/NotificationsOff";
-import PhoneAndroid from "@mui/icons-material/PhoneAndroid";
-import PhoneDisabled from "@mui/icons-material/PhoneDisabled";
 import Lottie from "lottie-react";
 import { notificationAnimation } from "../../animation";
-import {
-  subscribePush,
-  unsubscribePush,
-  useGetNotificationSetting,
-  useGetPushNotificationSetting,
-  useToggleNotificationSetting,
-  useTogglePushNotificationSetting,
-} from "../../hooks/notification/notificationSetting";
+
 import { useMarkNotificationsAsReadByIds } from "../../hooks/notification/notificationReader";
 import { useDeleteAllNotifications, useGetNotifications } from "../../hooks/notification/notification";
 import NotificationList from "./NotificationList";
 import { AnimatePresence } from "motion/react";
-import usePushNotifications from "../../hooks/notification/pushNotification";
-import { useUserProfile } from "../../hooks/userProfile/userProfile";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 
 // Custom styled SpeedDial component
 const CustomSpeedDial = styled(SpeedDial)(({ theme }) => ({
@@ -38,6 +28,7 @@ const CustomSpeedDial = styled(SpeedDial)(({ theme }) => ({
   },
 }));
 
+// eslint-disable-next-line react/prop-types
 const NotificationModal = ({ open, handleClose }) => {
   const isSmallScreen = useMediaQuery("(max-width:600px)");
   const [openSetting, setOpenSetting] = useState(false);
@@ -59,6 +50,8 @@ const NotificationModal = ({ open, handleClose }) => {
 
   const handleOpenSettings = () => setOpenSetting(true);
   const handleCloseSetting = () => setOpenSetting(false);
+
+  const isBelow600 = useMediaQuery("(max-width:600px)");
 
   // Fetch notification settings
   const { data: notificationData } = useGetNotificationSetting();
@@ -116,47 +109,38 @@ const NotificationModal = ({ open, handleClose }) => {
   }, [handleClose]);
 
   // Use the push notifications hook
-  const { data: pushNotificationSetting } = useGetPushNotificationSetting();
-
-  const { mutate: togglePushNotificationSetting, isPending: isPushLoading } = useTogglePushNotificationSetting();
-
-  const handlePushNotificationSetting = async () => {
-    console.log("called");
-    try {
-      let subscription;
-      if (pushNotificationSetting.pushEnabled) {
-        subscription = await unsubscribePush();
-      } else {
-        subscription = await subscribePush();
-      }
-      console.log("called 2");
-      togglePushNotificationSetting(subscription);
-    } catch (error) {
-      console.error("Error subscribing to push notifications:", error);
-    }
-  };
 
   return (
-    <Dialog open={open} onClose={handleClose} fullWidth maxWidth={isSmallScreen ? "xs" : "sm"}>
+    <Dialog open={open} onClose={handleClose} fullWidth maxWidth={isSmallScreen ? "xs" : "sm"} fullScreen={isBelow600}>
       {/* Header with title and SpeedDial */}
       <Stack
         sx={{
           width: "100%",
           paddingX: isSmallScreen ? "0.5rem" : "1rem",
+          pt: { sm: "1rem" },
           position: "relative",
         }}
         flexDirection="row"
         justifyContent="space-between"
         alignItems="center"
       >
-        <DialogTitle
-          sx={{
-            fontWeight: "bold",
-            fontSize: isSmallScreen ? "1rem" : "1.3rem",
-          }}
-        >
-          Notifications
-        </DialogTitle>
+        <Stack sx={{ alignItems: "center", flexDirection: "row", py: ".3rem" }}>
+          {isBelow600 && (
+            <IconButton onClick={hideNotificationModal}>
+              <ArrowBackIcon />
+            </IconButton>
+          )}
+          <DialogTitle
+            sx={{
+              fontWeight: "bold",
+              fontSize: isSmallScreen ? "1rem" : "1.3rem",
+              p: 0,
+              m: 0,
+            }}
+          >
+            Notifications
+          </DialogTitle>
+        </Stack>
         <Stack sx={{ position: "absolute", zIndex: 1300, right: "1rem" }}>
           <CustomSpeedDial
             ariaLabel="Notification settings"
@@ -189,14 +173,6 @@ const NotificationModal = ({ open, handleClose }) => {
               onClick={handleToggleNotifications}
               tooltipPlacement={isSmallScreen ? "top" : "right"}
             />
-            {/* Toggle Push Notifications */}
-            <SpeedDialAction
-              icon={isPushLoading ? <CircularProgress size={24} /> : pushNotificationSetting?.pushEnabled ? <PhoneAndroid color="action" /> : <PhoneDisabled color="action" />}
-              tooltipTitle={pushNotificationSetting?.pushEnabled ? "Disable Push Notifications" : "Enable Push Notifications"}
-              onClick={handlePushNotificationSetting}
-              tooltipPlacement={isSmallScreen ? "top" : "right"}
-            />
-            ;
           </CustomSpeedDial>
         </Stack>
       </Stack>

@@ -13,6 +13,7 @@ import { emptyFeedAnimation, sharingContentAnimation } from "../../animation";
 import ShareCardUserListSkeleton from "../skeletons/ShareCardUserListSkeleton";
 import { useUserProfile } from "../../hooks/userProfile/userProfile";
 import { useGetFriends } from "../../hooks/friends/friends";
+import { AvatarHeader } from "./AvatarHeader";
 
 const ContentShareCardModal = ({ onClose, open, content }) => {
   const socket = useContext(SocketContext);
@@ -119,27 +120,26 @@ const ContentShareCardModal = ({ onClose, open, content }) => {
   }, [isSharingContent]);
 
   return (
-    <Dialog open={open} maxWidth="sm" fullWidth onClose={onClose}>
+    <Dialog open={open} maxWidth="sm" fullWidth onClose={onClose} fullScreen={isBelow600}>
       <DialogContent
         sx={{
           display: "flex",
           flexDirection: "column",
-          maxHeight: isBelow480 ? "60vh" : "70vh",
           position: "relative",
           p: 2,
+          maxHeight: { xs: "100vh", sm: "70vh" },
         }}
       >
         {/* Scrollable area for header and friend list */}
+        <AvatarHeader contentOwner={content?.user} onClose={onClose} />
         <Box sx={{ flex: 1, overflowY: "auto" }}>
-          <ContentHeaderAndMedia content={content} />
+          <ContentHeaderAndMedia content={content} onClose={onClose} />
           <Stack flexDirection="row" justifyContent="space-between" alignItems="center" py={2}>
             <Typography
               variant="body1"
               fontWeight="bold"
               color="#000000d1"
               sx={{
-                position: "sticky",
-                top: 0,
                 backgroundColor: "inherit",
                 zIndex: 1,
                 mb: ".4rem",
@@ -178,7 +178,7 @@ const ContentShareCardModal = ({ onClose, open, content }) => {
               </Stack>
             ) : (
               // Render the list of friends.
-              <List sx={{ maxHeight: "16rem", overflow: "auto" }}>
+              <List sx={{}}>
                 {friends.map((user) => (
                   <ListItem key={user._id}>
                     <ListItemButton onClick={() => handleButtonClick(user)} sx={{ p: "1rem", borderRadius: ".4rem", boxShadow: 3 }}>
@@ -190,6 +190,64 @@ const ContentShareCardModal = ({ onClose, open, content }) => {
                     </ListItemButton>
                   </ListItem>
                 ))}
+
+                {friends.map((user) => (
+                  <ListItem key={user._id}>
+                    <ListItemButton onClick={() => handleButtonClick(user)} sx={{ p: "1rem", borderRadius: ".4rem", boxShadow: 3 }}>
+                      <ListItemAvatar>
+                        <Avatar src={user.profileImage || ""} sx={{ height: { sm: "3rem", xs: "2.6rem" }, width: { sm: "3rem", xs: "2.6rem" }, boxShadow: 3 }} />
+                      </ListItemAvatar>
+                      <ListItemText primary={`${user.firstName} ${user.lastName}`} primaryTypographyProps={{ fontWeight: "bold", fontSize: { sm: "1rem", xs: ".9rem" } }} />
+                      <Checkbox onChange={(event) => handleCheckboxChange(event, user)} checked={selectedUsers.includes(user._id)} />
+                    </ListItemButton>
+                  </ListItem>
+                ))}
+
+                {friends.map((user) => (
+                  <ListItem key={user._id}>
+                    <ListItemButton onClick={() => handleButtonClick(user)} sx={{ p: "1rem", borderRadius: ".4rem", boxShadow: 3 }}>
+                      <ListItemAvatar>
+                        <Avatar src={user.profileImage || ""} sx={{ height: { sm: "3rem", xs: "2.6rem" }, width: { sm: "3rem", xs: "2.6rem" }, boxShadow: 3 }} />
+                      </ListItemAvatar>
+                      <ListItemText primary={`${user.firstName} ${user.lastName}`} primaryTypographyProps={{ fontWeight: "bold", fontSize: { sm: "1rem", xs: ".9rem" } }} />
+                      <Checkbox onChange={(event) => handleCheckboxChange(event, user)} checked={selectedUsers.includes(user._id)} />
+                    </ListItemButton>
+                  </ListItem>
+                ))}
+                {friends.map((user) => (
+                  <ListItem key={user._id}>
+                    <ListItemButton onClick={() => handleButtonClick(user)} sx={{ p: "1rem", borderRadius: ".4rem", boxShadow: 3 }}>
+                      <ListItemAvatar>
+                        <Avatar src={user.profileImage || ""} sx={{ height: { sm: "3rem", xs: "2.6rem" }, width: { sm: "3rem", xs: "2.6rem" }, boxShadow: 3 }} />
+                      </ListItemAvatar>
+                      <ListItemText primary={`${user.firstName} ${user.lastName}`} primaryTypographyProps={{ fontWeight: "bold", fontSize: { sm: "1rem", xs: ".9rem" } }} />
+                      <Checkbox onChange={(event) => handleCheckboxChange(event, user)} checked={selectedUsers.includes(user._id)} />
+                    </ListItemButton>
+                  </ListItem>
+                ))}
+                {friends.map((user) => (
+                  <ListItem key={user._id}>
+                    <ListItemButton onClick={() => handleButtonClick(user)} sx={{ p: "1rem", borderRadius: ".4rem", boxShadow: 3 }}>
+                      <ListItemAvatar>
+                        <Avatar src={user.profileImage || ""} sx={{ height: { sm: "3rem", xs: "2.6rem" }, width: { sm: "3rem", xs: "2.6rem" }, boxShadow: 3 }} />
+                      </ListItemAvatar>
+                      <ListItemText primary={`${user.firstName} ${user.lastName}`} primaryTypographyProps={{ fontWeight: "bold", fontSize: { sm: "1rem", xs: ".9rem" } }} />
+                      <Checkbox onChange={(event) => handleCheckboxChange(event, user)} checked={selectedUsers.includes(user._id)} />
+                    </ListItemButton>
+                  </ListItem>
+                ))}
+                {friends.map((user) => (
+                  <ListItem key={user._id}>
+                    <ListItemButton onClick={() => handleButtonClick(user)} sx={{ p: "1rem", borderRadius: ".4rem", boxShadow: 3 }}>
+                      <ListItemAvatar>
+                        <Avatar src={user.profileImage || ""} sx={{ height: { sm: "3rem", xs: "2.6rem" }, width: { sm: "3rem", xs: "2.6rem" }, boxShadow: 3 }} />
+                      </ListItemAvatar>
+                      <ListItemText primary={`${user.firstName} ${user.lastName}`} primaryTypographyProps={{ fontWeight: "bold", fontSize: { sm: "1rem", xs: ".9rem" } }} />
+                      <Checkbox onChange={(event) => handleCheckboxChange(event, user)} checked={selectedUsers.includes(user._id)} />
+                    </ListItemButton>
+                  </ListItem>
+                ))}
+
                 {/* Sentinel for Intersection Observer */}
                 <div ref={loadMoreRef} style={{ height: 1 }} />
                 {isFetchingNextPage && (

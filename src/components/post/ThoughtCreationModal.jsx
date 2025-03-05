@@ -12,9 +12,9 @@ import { v4 as uuidv4 } from "uuid";
 const MAX_IMAGES = 6;
 
 // eslint-disable-next-line react/prop-types
-const TweetCreationModal = ({ open, handleClose }) => {
+const ThoughtCreationModal = ({ open, handleClose }) => {
   const [images, setImages] = useState([]);
-  const [tweetText, setTweetText] = useState("");
+  const [thought, setThought] = useState("");
   const [error, setError] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const { mutate: createContent } = useCreateContent({ handleClose, type: "tweet" });
@@ -41,7 +41,7 @@ const TweetCreationModal = ({ open, handleClose }) => {
       setError("A post is already being uploaded. Please try again later.");
       return;
     }
-    if (!tweetText.trim()) {
+    if (!thought.trim()) {
       setError("Content text is required!");
       return;
     }
@@ -53,8 +53,8 @@ const TweetCreationModal = ({ open, handleClose }) => {
       images.forEach((image) => formData.append("media", image));
     }
 
-    formData.append("caption", tweetText);
-    formData.append("type", "tweet");
+    formData.append("caption", thought);
+    formData.append("type", "thought");
     formData.append("mediaType", "image"); // Tweets are limited to images in this case
 
     // Call createContent and update content status based on the API response
@@ -63,7 +63,7 @@ const TweetCreationModal = ({ open, handleClose }) => {
 
   // Handle emoji selection
   const handleEmojiClick = useCallback((emoji) => {
-    setTweetText((prev) => prev + emoji.emoji);
+    setThought((prev) => prev + emoji.emoji);
   }, []);
 
   // Toggle Emoji Picker visibility
@@ -73,18 +73,18 @@ const TweetCreationModal = ({ open, handleClose }) => {
 
   return (
     <Dialog open={open} maxWidth={isBelow900 ? "xs" : "sm"} fullWidth onClose={handleClose}>
-      <Stack px={3} py={2} minHeight="20vh" maxHeight="60vh">
+      <Stack minHeight="20vh" maxHeight="60vh" sx={{ overflow: "auto", px: { xs: ".6rem", sm: "1rem" }, py: "1rem" }}>
         {/* Header */}
         <Stack flexDirection="row" justifyContent="space-between" alignItems="center">
           <DialogTitle
             sx={{
               fontWeight: "bold",
               fontFamily: "Poppins",
-              fontSize: { xs: "1.1rem", md: "1.2rem" },
+              fontSize: { xs: "1rem", md: "1.2rem" },
               p: 0,
             }}
           >
-            Create Tweet
+            Your Thought
           </DialogTitle>
           <Tooltip title="Share">
             <IconButton
@@ -154,15 +154,15 @@ const TweetCreationModal = ({ open, handleClose }) => {
             msOverflowStyle: "none",
           }}
         >
-          <Typography variant="body2" sx={{ fontWeight: "bold" }}>
+          <Typography variant="body2" sx={{ fontWeight: "bold", fontSize: { xs: ".9rem", sm: "1rem" } }}>
             What's happening?
           </Typography>
           <TextField
             multiline
             placeholder="Write something..."
             variant="standard"
-            value={tweetText}
-            onChange={(e) => setTweetText(e.target.value)}
+            value={thought}
+            onChange={(e) => setThought(e.target.value)}
             error={!!error}
             helperText={error}
             fullWidth
@@ -192,7 +192,7 @@ const TweetCreationModal = ({ open, handleClose }) => {
         {/* Post Button */}
         <Stack direction="row" justifyContent="flex-end" spacing={1} mt="1.4rem">
           <Button variant="contained" color="primary" onClick={handleSubmitContent} sx={{ fontWeight: "bold" }} size={isBelow480 ? "small" : "medium"}>
-            Post Tweet
+            Share Thought
           </Button>
         </Stack>
       </Stack>
@@ -200,4 +200,4 @@ const TweetCreationModal = ({ open, handleClose }) => {
   );
 };
 
-export default TweetCreationModal;
+export default ThoughtCreationModal;

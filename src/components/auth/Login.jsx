@@ -5,14 +5,7 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import LoginIcon from "@mui/icons-material/Login";
 import { useLogin } from "../../hooks/auth/login";
-import { googleIcon } from "../../assets";
 import GoogleAuthButton from "./GoogleAuthBtn";
-
-const googleAuthLogin = (e) => {
-  e.preventDefault();
-  // window.location.href = import.meta.env.VITE_GOOGLE_AUTH_URL;
-  window.location.href = "http://localhost:3000/auth/google";
-};
 
 const Login = () => {
   const isSmallScreen = useMediaQuery("(max-width:400px)");
@@ -153,18 +146,7 @@ const Login = () => {
         </Button>
       </Stack>
       <Divider sx={{ my: "1rem" }} />
-      {/* <Button
-        variant="outlined"
-        color="secondary"
-        fullWidth
-        sx={{ padding: ".6rem", fontWeight: 500, color: "#000000b0", marginTop: ".6rem" }}
-        startIcon={<Box component="img" src={googleIcon} sx={{ width: "1.4rem" }} />}
-        onClick={googleAuthLogin}
-        disabled={isLoggingIn}
-        size={isMobileScreen ? "small" : "medium"}
-      >
-        Continue with Google
-      </Button> */}
+
       <Stack sx={{ width: "100%", alignItems: "center", justifyContent: "center" }}>
         <GoogleAuthButton />
       </Stack>

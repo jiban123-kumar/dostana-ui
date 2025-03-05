@@ -13,6 +13,7 @@ import { useCreateNotification } from "../../hooks/notification/notification";
 import { useCreateComment, useGetCommentsForContent } from "../../hooks/comment/comment";
 import { Refresh as RefreshIcon, Check, ErrorOutline, Close as CloseIcon } from "@mui/icons-material";
 import { sendIcon } from "../../assets";
+import { AvatarHeader } from "../content/AvatarHeader";
 
 // Pending (sending) comment component with constrained width and motion animation
 const SendingComment = ({ comment, onRetry, onRemove }) => (
@@ -157,27 +158,6 @@ const CommentsViewModal = ({ onClose, content }) => {
   const loadedComments = data ? data.pages.flatMap((page) => page.comments) : [];
 
   // Update the sticky header section
-  const StickyHeader = () => (
-    <Stack
-      direction="row"
-      alignItems="center"
-      gap={1}
-      sx={{
-        position: "sticky",
-        top: 0,
-        zIndex: 2,
-        mb: ".4rem",
-        pt: 1,
-        pl: 1,
-        bgcolor: "#fff",
-        transition: "all 0.3s ease",
-      }}
-    >
-      <Typography variant="body1" fontWeight="bold" color="#000000d1">
-        Comments
-      </Typography>
-    </Stack>
-  );
 
   return (
     <Dialog open={true} maxWidth="sm" fullWidth onClose={onClose} fullScreen={isBelow600}>
@@ -189,13 +169,16 @@ const CommentsViewModal = ({ onClose, content }) => {
           maxHeight: isBelow600 ? "100vh" : "70vh",
         }}
       >
+        <AvatarHeader contentOwner={contentOwner} onClose={onClose} />
         {/* Scrollable container for content card and comments */}
         <Stack sx={{ flex: 1, overflowY: "auto", mb: 2 }}>
           {/* Content card - maintains its full (provided) size */}
           <Box sx={{ mb: 2 }}>
             <ContentHeaderAndMedia content={content} mode="comment" onClose={onClose} />
           </Box>
-          <StickyHeader />
+          <Typography variant="body1" sx={{ mb: 1, fontWeight: "bold", fontSize: { sm: "1.2rem", xs: ".9rem" } }}>
+            Comments
+          </Typography>
           {/* This Box is referenced to scroll to the top when a new comment is added */}
           <Box ref={scrollContainerRef}>
             {/* Pending comments as a sticky header inside the scrollable area */}

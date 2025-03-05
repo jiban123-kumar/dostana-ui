@@ -1,5 +1,5 @@
 import { Box, Paper, Stack, useMediaQuery, useTheme } from "@mui/material";
-import { companyLogoV2, primaryCompanyLogo } from "../../../assets";
+import { companyLogoV2, primaryCompanyLogo } from "../../assets";
 
 const AuthWrapper = ({ children }) => {
   const theme = useTheme();
@@ -13,7 +13,7 @@ const AuthWrapper = ({ children }) => {
         bgcolor={{ md: "#fff" }}
         component={Paper}
         elevation={2}
-        width={{ xs: "80%", sm: "30rem", md: "55rem", lg: "60rem" }}
+        width={{ xs: "95%", sm: "30rem", md: "55rem", lg: "60rem" }}
         sx={{ py: { xs: "2rem", md: 0 }, borderRadius: { xs: "1rem", md: ".2rem" } }}
       >
         {/* Left Side with Responsive Logo */}

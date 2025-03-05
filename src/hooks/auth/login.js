@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import axiosInstance from "../../configs/axiosInstance";
-import { setLoading, showAlert } from "../../reduxSlices/alertSlice";
+import { showAlert } from "../../reduxSlices/alertSlice";
 
 // API call for user login
 const loginApi = async (data) => {
@@ -23,8 +23,6 @@ const useLogin = ({ passwordRef, emailRef }) => {
     onSuccess: async () => {
       // Login successful
       dispatch(showAlert({ message: "Login successful", type: "success", loading: false }));
-      localStorage.setItem("isLoggedIn", true);
-
       // Refresh user profile data
       queryClient.removeQueries({ queryKey: ["userProfile"] });
       navigate("/home");
@@ -49,9 +47,6 @@ const useLogin = ({ passwordRef, emailRef }) => {
       }
 
       dispatch(showAlert({ message: errorMessage, type: "error", loading: false }));
-    },
-    onSettled: () => {
-      dispatch(setLoading(false));
     },
   });
 };

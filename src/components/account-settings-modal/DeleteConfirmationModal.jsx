@@ -33,7 +33,7 @@ const DeleteConfirmationModal = ({ open, handleClose, formData }) => {
 
   const onDeleteAccount = () => {
     deleteAccount(
-      { ...formData, isAccountDelete: true },
+      { ...formData, isAccountDelete: true, recaptchaToken: import.meta.env.VITE_RECAPTCHA_TOKEN },
       {
         onSuccess: () => {
           dispatch(showAlert({ message: "Account deleted successfully!", type: "success", loading: false }));
@@ -69,7 +69,7 @@ const DeleteConfirmationModal = ({ open, handleClose, formData }) => {
 
           {/* Google reCAPTCHA */}
           <ReCAPTCHA
-            sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY} // Replace with your actual reCAPTCHA site key
+            sitekey={import.meta.env.VITE_RECAPTCHA_TOKEN} // Replace with your actual reCAPTCHA site key
             onChange={handleCaptchaChange}
             ref={recaptchaRef} // Assigning ref to access reset method
           />

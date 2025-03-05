@@ -139,7 +139,7 @@ const PostCreator = ({ open, handleClose }) => {
       <Stack sx={{ maxHeight: "60vh", paddingX: { xs: ".2rem", md: "1rem" }, pb: "1.4rem" }}>
         {/* Header */}
         <Stack flexDirection="row" justifyContent="space-between" alignItems="center">
-          <DialogTitle sx={{ fontWeight: "bold", fontFamily: "Poppins", fontSize: { xs: "1rem", md: "1.2rem" } }}>Share Post</DialogTitle>
+          <DialogTitle sx={{ fontWeight: "bold", fontFamily: "Poppins", fontSize: { xs: "1rem", md: "1.2rem" }, ml: { xs: "-1rem", sm: 0 } }}>Share Post</DialogTitle>
           <Tooltip title="Share">
             <IconButton sx={{ height: { xs: "1.6rem", md: "3rem" }, width: { xs: "1.6rem", md: "3rem" }, mr: "1rem" }} onClick={handleCreatePost}>
               <Avatar src={secondaryShareIcon} />
@@ -152,6 +152,7 @@ const PostCreator = ({ open, handleClose }) => {
           sx={{
             "&::-webkit-scrollbar": { display: "none" },
             msOverflowStyle: "none",
+            p: { xs: ".4rem", sm: "1rem" },
           }}
         >
           <Stack sx={{ height: { sm: "16rem", xs: "12rem" }, position: "relative" }}>
@@ -165,7 +166,7 @@ const PostCreator = ({ open, handleClose }) => {
                 ...uploadButtonStyles,
                 fontWeight: "bold",
                 paddingX: { xs: "1rem", md: "2rem" },
-                fontSize: { xs: ".8rem", md: "1rem" },
+                fontSize: { xs: ".7rem", md: "1rem" },
                 wordBreak: "keep-all",
                 whiteSpace: "nowrap",
               }}
@@ -180,7 +181,7 @@ const PostCreator = ({ open, handleClose }) => {
 
           {/* Description Input */}
           <Stack marginTop="1rem" gap={1}>
-            <Typography variant="body1" sx={{ fontFamily: "Poppins", fontWeight: "600" }}>
+            <Typography variant="body1" sx={{ fontFamily: "Poppins", fontWeight: "600", fontSize: { xs: ".9rem", sm: "1rem" } }}>
               About Post (Optional)
             </Typography>
             <TextField

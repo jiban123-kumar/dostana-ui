@@ -26,7 +26,7 @@ const ProfileAdditionalDetailsStep = ({ coverImage, profileImage, setCurrentStep
   const validateDateOfBirth = useCallback((value) => {
     if (!value) return "Date of birth is required";
     const date = new Date(value);
-    if (date > new Date() || date < new Date("1900-01-01")) return "Invalid date of birth";
+    if (date > new Date() || date < new Date("1930-01-01")) return "Invalid date of birth";
     if (new Date().getFullYear() - date.getFullYear() < 16) return "Age must be above 16";
     return "";
   }, []);

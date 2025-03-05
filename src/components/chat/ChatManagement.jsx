@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { List, ListItem, Stack, Typography, Box, Paper, Button, Skeleton, useMediaQuery } from "@mui/material";
 import ChatListView from "./ChatListView";
 import Lottie from "lottie-react";
@@ -40,11 +40,11 @@ const ChatManagement = () => {
   const hasNextPage = activeTab === "archived" ? hasNextPageArchived : hasNextPageNormal;
   const isFetchingNextPage = activeTab === "archived" ? isFetchingNextPageArchived : isFetchingNextPageNormal;
 
-  const isBelow500 = useMediaQuery("(max-width:500px)");
-  const isBelow460 = useMediaQuery("(max-width:460px)");
+  const isBelow500 = useMediaQuery("(max-width:460px)");
+  const isBelow460 = useMediaQuery("(max-width:410px)");
 
   // Combine all pages of chats into a single array
-  const allChats = chatsData?.pages.flatMap((page) => page.chats) || [];
+  const allChats = useMemo(() => chatsData?.pages.flatMap((page) => page.chats) || [], [chatsData]);
 
   // Skeleton loader for chat list items
   const ChatListSkeleton = () => (
@@ -63,7 +63,7 @@ const ChatManagement = () => {
 
   return (
     <>
-      <Stack alignItems="center" spacing={2} p={2} sx={{ width: { md: "40rem", sm: "35rem", xs: "90%" } }}>
+      <Stack alignItems="center" spacing={2} p={2} sx={{ width: { md: "40rem", sm: "35rem", xs: "100%" } }}>
         <Typography
           variant="h5"
           fontWeight="bold"

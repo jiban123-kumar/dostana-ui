@@ -88,7 +88,7 @@ const Message = ({ message, chatId, recipient, userProfile, onView }) => {
 
   const navigate = useNavigate();
 
-  const isMyMessage = message.sender.toString() !== recipient._id?.toString();
+  const isMyMessage = message.sender._id.toString() !== recipient._id?.toString();
   const hasOnlyOneImage = message?.media && message?.media.length === 1 && !message.text;
 
   const handleMenuOpen = (event) => {
@@ -203,7 +203,6 @@ const Message = ({ message, chatId, recipient, userProfile, onView }) => {
             display: "flex",
             flexDirection: "column",
             alignItems: "flex-start",
-            pr: "2rem",
             minWidth: "10rem",
             maxWidth: { md: "70%", sm: "80%", xs: "90%" },
           }}
@@ -356,12 +355,12 @@ const Message = ({ message, chatId, recipient, userProfile, onView }) => {
           )}
 
           <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose}>
-            <MenuItem onClick={() => handleDeleteMessage(false)} disabled={deletingForMe}>
+            <MenuItem onClick={() => handleDeleteMessage(false)} disabled={deletingForMe || deletingForEveryone}>
               {deletingForMe ? <CircularProgress size={16} sx={{ mr: 1 }} /> : <DeleteIcon fontSize="small" sx={{ mr: 1 }} />}
               Delete for Me
             </MenuItem>
             {isMyMessage && (
-              <MenuItem onClick={() => handleDeleteMessage(true)} disabled={deletingForEveryone}>
+              <MenuItem onClick={() => handleDeleteMessage(true)} disabled={deletingForEveryone || deletingForMe}>
                 {deletingForEveryone ? <CircularProgress size={16} sx={{ mr: 1 }} /> : <BlockRounded fontSize="small" sx={{ mr: 1 }} />}
                 Delete for Everyone
               </MenuItem>

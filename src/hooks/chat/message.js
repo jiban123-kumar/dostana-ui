@@ -4,10 +4,16 @@ import { useContext } from "react";
 import { SocketContext } from "../../contextProvider/SocketProvider";
 import { useUserProfile } from "../userProfile/userProfile";
 
+/* ======================
+   API Functions
+   ====================== */
 const sendMessageApi = async (data) => {
-  const response = await axiosInstance.post(`/chat/send`, data, { headers: { "Content-Type": "multipart/form-data" } });
+  const response = await axiosInstance.post(`/chat/send`, data, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
   return response.data;
 };
+
 const deleteMessageApi = async (body) => {
   const response = await axiosInstance.post(`/chat/message`, body);
   return response.data;
@@ -18,7 +24,6 @@ const markMessagesAsReadApi = async ({ chatId }) => {
   return response.data;
 };
 
-// 2. Get the total unread messages count for the logged-in user.
 const getTotalUnreadMessagesApi = async () => {
   const response = await axiosInstance.get(`/chat/unread/total`);
   return response.data.totalUnreadMessages;
@@ -33,26 +38,85 @@ export const getLastMessageByChatId = async (chatId) => {
   const response = await axiosInstance.get(`/chat/lastMessage/${chatId}`);
   return response.data;
 };
-const markMessageAsReadByIdsApi = async ({ messageIds }) => {
-  const response = await axiosInstance.post(`/chat/message/read`, { messageIds });
+
+const markMessageAsReadByChatIdApi = async ({ messageIds, chatId }) => {
+  const response = await axiosInstance.post(`/chat/message/read`, { messageIds, chatId });
   return response.data;
 };
 
-export const removeMessageFromChat = (queryClient, recipientId, deletedMessageId) => {
+/* ======================
+   Utility Functions
+   ====================== */
+export const addMessageToChat = (queryClient, recipientId, newMessage) => {
   queryClient.setQueryData(["chats", recipientId], (oldData) => {
+    console.log(oldData);
     if (!oldData || !oldData.pages) {
-      return oldData;
+      return { pages: [{ messages: [newMessage] }] };
     }
 
-    const updatedPages = oldData.pages.map((page) => ({
-      ...page,
-      messages: (page.messages || []).filter((msg) => msg._id !== deletedMessageId),
-    }));
+    const updatedPages = oldData.pages.map((page, index, pages) => {
+      if (index === pages.length - 1) {
+        return { ...page, messages: [...(page.messages || []), newMessage] };
+      }
+      return page;
+    });
 
     return { ...oldData, pages: updatedPages };
   });
 };
+export const removeMessageFromChat = (queryClient, recipientId, deletedMessageId) => {
+  queryClient.setQueryData(["chats", recipientId], (oldData) => {
+    if (!oldData || !oldData.pages) return oldData;
+    const updatedPages = oldData.pages.map((page) => ({
+      ...page,
+      messages: (page.messages || []).filter((msg) => msg._id !== deletedMessageId),
+    }));
+    return { ...oldData, pages: updatedPages };
+  });
+};
 
+/* ======================
+   React Query Hooks
+   ====================== */
+
+// Hook: Mark messages as read
+export const useMarkMessagesAsRead = () => {
+  return useMutation({
+    mutationFn: markMessagesAsReadApi,
+    onSuccess: () => {},
+    onError: (error) => {
+      console.error("Error marking messages as read:", error);
+    },
+  });
+};
+
+// Hook: Get total unread messages count for the logged-in user
+export const useGetTotalUnreadMessages = () => {
+  return useQuery({
+    queryKey: ["totalUnreadMessages"],
+    queryFn: getTotalUnreadMessagesApi,
+  });
+};
+
+// Hook: Get unread message count for a specific chat
+export const useGetUnreadCountForChat = (chatId) => {
+  return useQuery({
+    queryKey: ["unreadCount", chatId],
+    queryFn: () => getUnreadCountForChatApi(chatId),
+    enabled: Boolean(chatId), // only run if chatId is provided
+  });
+};
+
+// Hook: Get the last message by chat ID
+export const useGetLastMessageByChatId = (chatId) => {
+  return useQuery({
+    queryKey: ["lastMessage", chatId],
+    queryFn: () => getLastMessageByChatId(chatId),
+    enabled: Boolean(chatId), // only run if chatId is provided
+  });
+};
+
+// Hook: Send a message
 export const useSendMessage = () => {
   const queryClient = useQueryClient();
   const socket = useContext(SocketContext);
@@ -63,21 +127,36 @@ export const useSendMessage = () => {
     onSuccess: (data) => {
       const sender = {
         profileImage: userProfile?.profileImage,
-        name: userProfile?.firstName + " " + userProfile?.lastName,
+        name: `${userProfile?.firstName} ${userProfile?.lastName}`,
         _id: userProfile?._id,
       };
       const { recipientId, newMessage, chatId } = data;
       socket.emit("newMessage", { targetUserId: recipientId, newMessage, sender, chatId });
 
-      // Instead of manually updating the chat cache, invalidate the "chats" query:
-      queryClient.invalidateQueries({ queryKey: ["chats"], exact: true });
+      // Ensure addMessageToChat is defined or imported appropriately
+      addMessageToChat(queryClient, recipientId, newMessage);
+
+      queryClient.setQueryData(["chats"], (oldData) => {
+        if (!oldData || !oldData.pages) return oldData;
+        return {
+          ...oldData,
+          pages: oldData.pages.map((page) => {
+            if (!page.chats) return page;
+            return {
+              ...page,
+              chats: page.chats.map((chat) => (chat._id === chatId ? { ...chat, lastMessage: newMessage } : chat)),
+            };
+          }),
+        };
+      });
     },
     onError: (err) => {
-      console.log(err);
+      console.error(err);
     },
   });
 };
 
+// Hook: Delete a message
 export const useDeleteMessage = () => {
   const queryClient = useQueryClient();
   const socket = useContext(SocketContext);
@@ -88,14 +167,16 @@ export const useDeleteMessage = () => {
     onSuccess: async (data, variables) => {
       const { recipientId, messageId, deleteFor, chatId } = variables;
       if (deleteFor === "Everyone") {
-        socket.emit("messageDeleted", { targetUserId: recipientId, deletedMessageId: messageId, senderId: userProfile?._id, chatId: data.chatId });
+        socket.emit("messageDeleted", {
+          targetUserId: recipientId,
+          deletedMessageId: messageId,
+          senderId: userProfile?._id,
+          chatId: data.chatId,
+        });
       }
-
       removeMessageFromChat(queryClient, recipientId, messageId);
       try {
         const lastMessageResponse = await getLastMessageByChatId(chatId);
-
-        // Update the global "chats" query cache with the new last message.
         queryClient.setQueryData(["chats"], (oldData) => {
           if (!oldData || !oldData.pages) return oldData;
           return {
@@ -116,49 +197,23 @@ export const useDeleteMessage = () => {
   });
 };
 
-export const useMarkMessagesAsRead = () => {
-  return useMutation({
-    mutationFn: markMessagesAsReadApi,
-    onSuccess: () => {},
-    onError: (error) => {
-      console.error("Error marking messages as read:", error);
-    },
-  });
-};
-
-// Hook to fetch the total unread messages count for the logged-in user.
-export const useGetTotalUnreadMessages = () => {
-  return useQuery({
-    queryKey: ["totalUnreadMessages"],
-    queryFn: getTotalUnreadMessagesApi,
-  });
-};
-
-// Hook to fetch the unread message count for a specific chat.
-export const useGetUnreadCountForChat = (chatId) => {
-  return useQuery({
-    queryKey: ["unreadCount", chatId],
-    queryFn: () => getUnreadCountForChatApi(chatId),
-    enabled: Boolean(chatId), // only run if chatId is provided
-  });
-};
-export const useGetLastMessageByChatId = (chatId) => {
-  return useQuery({
-    queryKey: ["lastMessage", chatId],
-    queryFn: () => getLastMessageByChatId(chatId),
-    enabled: Boolean(chatId), // only run if chatId is provided
-  });
-};
-export const useMarkMessageAsReadByIds = () => {
+// Hook: Mark messages as read by message IDs
+export const useMarkMessageAsReadByChatId = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: markMessageAsReadByIdsApi,
+    mutationFn: markMessageAsReadByChatIdApi,
     onSuccess: (data, { chatId }) => {
+      const count = data.count;
       console.log(chatId);
-      // Invalidate the cache for unreadCount for this specific chat
-      queryClient.invalidateQueries({ queryKey: ["unreadCount", chatId], exact: true });
-      // Invalidate the total unread messages cache
-      queryClient.invalidateQueries({ queryKey: ["totalUnreadMessages"], exact: true });
+      queryClient.setQueryData(["unreadCount", chatId], (oldCount) => {
+        if (!oldCount) return oldCount;
+        console.log(oldCount, count);
+        return Math.max(oldCount - count, 0);
+      });
+      queryClient.setQueryData(["totalUnreadMessages"], (oldCount) => {
+        if (!oldCount) return oldCount;
+        return Math.max(oldCount - count, 0);
+      });
     },
     onError: (error) => {
       console.error("Error marking messages as read:", error);

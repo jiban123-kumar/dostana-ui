@@ -26,21 +26,10 @@ import SharedFeedViewPage from "./pages/feed/SharedFeedViewPage";
 import SavedFeedViewPage from "./pages/feed/SavedFeedViewPage";
 import AppLayout from "./components/layout/AppLayout";
 import SnackbarInstallButton from "./components/utils/SnackbarInstall";
-import OfflineIndicator from "./components/utils/OfflineIndicator";
 import SingleContentViewModal from "./components/content/SingleContentViewModal";
+import OfflineIndicator from "./components/utils/OfflineIndicator";
 
 const App = () => {
-  const [isOnline, setIsOnline] = React.useState(window.navigator.onLine);
-
-  useEffect(() => {
-    window.addEventListener("online", () => {
-      setIsOnline(true);
-    });
-    window.addEventListener("offline", () => {
-      setIsOnline(false);
-    });
-  }, []);
-
   return (
     <BrowserRouter>
       <ErrorBoundary>
@@ -48,8 +37,8 @@ const App = () => {
         <MediaPreviewModal />
         <DownloadSnackbarAlert />
         <NotistackAlert />
-        {!isOnline && <OfflineIndicator />}
         <SnackbarInstallButton />
+        <OfflineIndicator />
         <Routes>
           <Route path="/" element={<Navigate to="/home" />} />
           <Route path="login" element={<LoginPage />} />

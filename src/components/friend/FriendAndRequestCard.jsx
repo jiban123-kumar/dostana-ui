@@ -109,7 +109,7 @@ const FriendAndRequestCard = ({ mode = "pendingRequests" }) => {
 
   return (
     <Stack alignItems="center" spacing={2} width={"100%"}>
-      <Stack mt="1rem" sx={{ width: { md: "40rem", sm: "35rem", xs: "90%" } }}>
+      <Stack mt="1rem" sx={{ width: { md: "40rem", sm: "35rem", xs: "96%" } }}>
         <FriendCardHeader mode={mode}>
           {loading ? (
             <FriendAndRequestCardSkeleton />

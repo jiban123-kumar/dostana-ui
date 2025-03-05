@@ -23,11 +23,9 @@ export const useSocketFriendStatusListener = (socket) => {
         );
       }
 
-      queryClient.setQueryData(["friend-online-status", data.userId], (prevData) => ({
-        ...prevData,
-        isOnline: data.isOnline,
-        lastSeen: data.lastSeen || prevData?.lastSeen,
-      }));
+      queryClient.setQueryData(["friendOnlineStatus", data.userId], (oldData) => {
+        return oldData ? { ...oldData, isOnline: data.isOnline, lastSeen: data.lastSeen } : oldData;
+      });
     },
     [dispatch, bulletNotificationEnabled, queryClient]
   );
@@ -36,9 +34,6 @@ export const useSocketFriendStatusListener = (socket) => {
     if (!socket) return;
 
     socket.on("friend-online-status", handleFriendStatusChanged);
-
-    return () => {
-      socket.off("friend-online-status", handleFriendStatusChanged);
-    };
+    return () => socket.off("friend-online-status", handleFriendStatusChanged);
   }, [socket, handleFriendStatusChanged]);
 };

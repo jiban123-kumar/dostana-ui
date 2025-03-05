@@ -1,5 +1,5 @@
 import Signup from "../../components/auth/Signup";
-import AuthWrapper from "../../components/common/common-wrapper/AuthWrapper";
+import AuthWrapper from "../../components/auth/AuthWrapper";
 
 const SignupPage = () => {
   return (

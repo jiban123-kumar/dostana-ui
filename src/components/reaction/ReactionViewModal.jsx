@@ -10,12 +10,14 @@ import ContentHeaderAndMedia from "../content/ContentHeaderAndMedia";
 import { useUserProfile } from "../../hooks/userProfile/userProfile";
 import { useGetReactionsForContent } from "../../hooks/content/contentReaction";
 import { useNavigate } from "react-router-dom";
+import { AvatarHeader } from "../content/AvatarHeader";
 
 const ReactionViewModal = ({ onClose, open, content }) => {
   const { _id: contentId } = content || {};
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
   const isSmallScreen = useMediaQuery("(max-width:900px)");
+  const isBelow600 = useMediaQuery("(max-width:600px)");
 
   // Fetch reactions (paginated, max 10 per page)
   const { data: reactionsData, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = useGetReactionsForContent({ contentId });
@@ -28,62 +30,35 @@ const ReactionViewModal = ({ onClose, open, content }) => {
   const reactionDetails = reactionsData?.pages?.flatMap((page) => page.reactionDetails) || [];
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth={isSmallScreen ? "xs" : "sm"} fullWidth>
+    <Dialog open={open} onClose={onClose} maxWidth={isSmallScreen ? "xs" : "sm"} fullWidth fullScreen={isBelow600}>
       <DialogContent
         onScroll={(e) => setScrolled(e.target.scrollTop > 0)}
         sx={{
           display: "flex",
           flexDirection: "column",
-          maxHeight: "70vh",
+          maxHeight: { xs: "100vh", sm: "70vh" },
           p: 2,
           overflowY: "auto",
         }}
       >
         {/* Fixed media header */}
-        <ContentHeaderAndMedia content={content} />
+        <AvatarHeader contentOwner={content?.user} onClose={onClose} />
+        <ContentHeaderAndMedia content={content} onClose={onClose} />
 
         {/* Scrollable reaction list area */}
         <Box sx={{ mt: 2 }}>
-          {/* Sticky header for reaction summary */}
-          <Stack
-            direction="row"
-            justifyContent="space-between"
-            alignItems="center"
-            py={2}
-            sx={{
-              position: "sticky",
-              top: 0,
-              backgroundColor: "inherit",
-              zIndex: 1,
-              borderBottom: scrolled ? "1px solid #ccc" : "none", // optional accent border
-            }}
-          >
+          <Stack alignItems={"center"} justifyContent={"space-between"} flexDirection={"row"}>
             <Typography
               sx={{
                 fontWeight: "bold",
                 fontFamily: "poppins",
                 m: 0,
                 textDecoration: scrolled ? "line-through" : "none",
+                fontSize: { xs: ".9rem", sm: "1rem" },
               }}
             >
               Reacted
             </Typography>
-            {!isLoading && reactionDetails.length > 0 && (
-              <Typography
-                variant="body2"
-                sx={{
-                  fontSize: ".8rem",
-                  color: "text.secondary",
-                  fontWeight: 600,
-                  textDecoration: scrolled ? "line-through" : "none",
-                }}
-              >
-                {getReactedByText({
-                  userProfile,
-                  reactionDetails: reactionDetails[0],
-                })}
-              </Typography>
-            )}
           </Stack>
 
           {isLoading ? (

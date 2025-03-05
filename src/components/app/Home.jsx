@@ -5,21 +5,13 @@ import Lottie from "lottie-react";
 import { emptyFeedAnimation } from "../../animation";
 import HomePageToolBar from "../layout/HomePageToolBar";
 import ContentFeed from "../content/ContentFeed";
-import { useSearchParams } from "react-router-dom";
+import usePushNotifications from "../../hooks/notification/pushNotification";
 
 const Home = () => {
   const [firstPostOpenModal, setFirstPostOpenModal] = useState(false);
   const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useGetContents();
 
-  const [searchParams] = useSearchParams();
-  const token = searchParams.get("token");
-
-  useEffect(() => {
-    if (token) {
-      localStorage.setItem("token", token);
-    }
-    localStorage.setItem("isLoggedIn", true);
-  }, [token]);
+  usePushNotifications(import.meta.env.VITE_VAPID_PUBLIC_KEY);
 
   // Flatten the content from all pages
   const contents = useMemo(() => {

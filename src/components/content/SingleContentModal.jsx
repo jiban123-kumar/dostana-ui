@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 import React from "react";
-import { Dialog, Typography } from "@mui/material";
+import { Dialog, Typography, useMediaQuery } from "@mui/material";
 import Lottie from "lottie-react";
 import { useGetContentById } from "../../hooks/content/content";
 import ContentCardSkeleton from "../skeletons/ContentCardSkeleton";
@@ -11,11 +11,12 @@ import { noPostFoundAnimation } from "../../animation";
 const SingleContentModal = ({ contentId, open, handleClose }) => {
   const { data: content, isLoading: isFetchingContent, error } = useGetContentById({ contentId });
   const { data: userProfile } = useUserProfile();
+  const isBelow600 = useMediaQuery("(max-width:600px)");
 
   // If there's an error, check for 404 vs. other errors.
   if (error) {
     return (
-      <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm" slotProps={{ paper: { sx: { overflowX: "hidden" } } }}>
+      <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm" slotProps={{ paper: { sx: { overflowX: "hidden" } } }} fullScreen={isBelow600}>
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", minHeight: "60vh", justifyContent: "center" }}>
           <Lottie animationData={noPostFoundAnimation} style={{ width: { xs: "90%", sm: 300 }, height: 300 }} />
           <Typography variant="body2" sx={{ fontWeight: "bold", transform: "translateY(-2rem)" }}>
@@ -27,7 +28,7 @@ const SingleContentModal = ({ contentId, open, handleClose }) => {
   }
 
   return (
-    <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm" slotProps={{ paper: { sx: { overflow: "visible" } } }}>
+    <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm" slotProps={{ paper: { sx: { overflow: "visible" } } }} fullScreen={isBelow600}>
       {isFetchingContent ? <ContentCardSkeleton /> : content && <ContentCard content={content} userProfile={userProfile} handleClose={handleClose} />}
     </Dialog>
   );

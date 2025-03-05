@@ -99,7 +99,7 @@ const UserProfileFrontView = ({ userProfile }) => {
     switch (relationshipData?.relationship) {
       case "friends":
         return (
-          <Stack direction="row" spacing={1}>
+          <Stack direction="row" spacing={1} width={isBelow380 ? "100%" : "auto"}>
             <Button
               variant="outlined"
               size={buttonSize}
@@ -107,19 +107,21 @@ const UserProfileFrontView = ({ userProfile }) => {
               onClick={handleRemove}
               loading={isRemovingFriend}
               loadingPosition="start"
+              fullWidth={isBelow380}
               sx={{
                 fontWeight: "bold",
-                minWidth: "10rem",
                 textTransform: "none",
+                minWidth: { sm: "10rem", xs: "8rem" },
               }}
             >
-              Remove Friend
+              Remove
             </Button>
             <Button
               variant="outlined"
               size={buttonSize}
               startIcon={<MessageIcon />}
               onClick={() => navigate(`/chats/${routeUserId}`)}
+              fullWidth={isBelow380}
               sx={{
                 fontWeight: "bold",
                 minWidth: "10rem",
@@ -157,13 +159,14 @@ const UserProfileFrontView = ({ userProfile }) => {
 
       case "pending_received":
         return (
-          <Stack direction="row" spacing={1}>
+          <Stack direction="row" spacing={1} width={isBelow380 ? "100%" : "auto"}>
             <Button
               variant="contained"
               size={buttonSize}
               startIcon={<CheckCircleIcon />}
               onClick={handleAcceptRequest}
               loading={isAcceptingFriend}
+              fullWidth={isBelow380}
               loadingPosition="start"
               sx={{
                 fontWeight: "bold",
@@ -180,6 +183,7 @@ const UserProfileFrontView = ({ userProfile }) => {
               onClick={handleDeclineRequest}
               loading={isDecliningFriend}
               loadingPosition="start"
+              fullWidth={isBelow380}
               sx={{
                 fontWeight: "bold",
                 minWidth: "10rem",
@@ -317,7 +321,7 @@ const UserProfileFrontView = ({ userProfile }) => {
             bgcolor: "#ffffffe1",
             top: "1rem",
             left: { xs: ".4rem", sm: "1rem", md: "2rem" },
-            p: "1rem",
+            p: { xs: ".7rem", sm: "1rem", md: "1.2rem" },
             borderRadius: ".8rem",
             boxShadow: 1,
           }}
@@ -337,7 +341,7 @@ const UserProfileFrontView = ({ userProfile }) => {
               onClick={() => handleImageView(profileImage)}
             />
           </Tooltip>
-          <Typography variant="body1" sx={{ fontWeight: "bold", wordBreak: "break-word", overflowWrap: "break-word" }}>
+          <Typography variant="body1" sx={{ fontWeight: "bold", wordBreak: "break-word", overflowWrap: "break-word", fontSize: { xs: ".8rem", sm: ".9rem", md: "1rem" } }}>
             {`${firstName} ${lastName}`}
           </Typography>
         </Stack>
@@ -351,7 +355,7 @@ const UserProfileFrontView = ({ userProfile }) => {
       </Stack>
       {/* Friend action buttons: Only display if viewing another user’s profile */}
       {!isSelf && (
-        <Stack spacing={2} mb={2} alignItems={isBelow380 ? "center" : "flex-end"}>
+        <Stack spacing={2} mb={2} alignItems={"flex-end"} px=".4rem">
           {renderFriendActions()}
         </Stack>
       )}

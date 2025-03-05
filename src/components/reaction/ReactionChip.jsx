@@ -9,7 +9,7 @@ import { useToggleReaction } from "../../hooks/content/contentReaction";
 import { AnimatePresence } from "motion/react";
 import { isSameDay } from "date-fns";
 
-const ReactionChip = ({ content, userReaction }) => {
+const ReactionChip = ({ content, userReaction, setShowReactedAnimation }) => {
   // Get the content ID and the owner (target) user id.
   const { _id: contentId, type: contentType } = content || {};
 
@@ -95,9 +95,19 @@ const ReactionChip = ({ content, userReaction }) => {
       toggleReaction({ contentId, targetUserId, contentType });
     } else {
       // Add a default "like" userReaction.
-      toggleReaction({ contentId, type: "like", targetUserId, contentType });
+      toggleReaction(
+        { contentId, type: "like", targetUserId, contentType },
+        {
+          onSuccess: (data) => {
+            const isReacted = data.reactionDetails.isReacted;
+            if (isReacted) {
+              setShowReactedAnimation(true);
+            }
+          },
+        }
+      );
     }
-  }, [isTogglingReaction, userReaction, toggleReaction, contentId, targetUserId, contentType]);
+  }, [isTogglingReaction, userReaction, toggleReaction, contentId, targetUserId, contentType, setShowReactedAnimation]);
 
   return (
     <div ref={containerRef} style={{ position: "relative", display: "inline-block", width: "100%" }} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>

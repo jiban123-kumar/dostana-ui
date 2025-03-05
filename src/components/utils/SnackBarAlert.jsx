@@ -55,7 +55,7 @@ export default function SnackBarAlert() {
           minWidth: { xs: "15rem", sm: "20rem" },
           bgcolor: loading && "#e0e0e096",
           maxWidth: "100%",
-          fontSize: { xs: "0.8rem", sm: "1rem" },
+          fontSize: { xs: "0.7rem", sm: "1rem" },
           mt: { xs: "2rem", sm: ".6rem" },
         }}
         icon={renderIcon()}

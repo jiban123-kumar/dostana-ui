@@ -2,11 +2,11 @@ import { Avatar, IconButton, Skeleton, Stack, Tooltip, Typography, useMediaQuery
 import React, { useEffect, useState } from "react";
 import SearchPeople from "../common/PeopleSearch";
 import PostCreator from "../post/PostCreationModal";
-import TweetPost from "../tweet/TweetCreationModal";
-import { galleryIcon, tweetIcon } from "../../assets";
+import { galleryIcon, thinkingIcon, tweetIcon } from "../../assets";
 import { useUserProfile } from "../../hooks/userProfile/userProfile";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import ThoughtCreationModal from "../post/ThoughtCreationModal";
 
 const TOOLTIP_OFFSET = {
   popper: {
@@ -23,7 +23,7 @@ const TOOLTIP_OFFSET = {
 
 const HomePageToolBar = ({ setFirstPostOpenModal, firstPostOpenModal }) => {
   const [openPostModal, setOpenPostModal] = useState(false);
-  const [openTweetModal, setOpenTweetModal] = useState(false);
+  const [openThoughtModal, setOpenThoughtModal] = useState(false);
   // This state will be updated by PeopleSearch via onActiveChange
   const [searchActive, setSearchActive] = useState(false);
   const navigate = useNavigate();
@@ -40,8 +40,8 @@ const HomePageToolBar = ({ setFirstPostOpenModal, firstPostOpenModal }) => {
     }
   }, [firstPostOpenModal]);
 
-  const handleCloseTweetModal = () => {
-    setOpenTweetModal(false);
+  const handleCloseThoughtModal = () => {
+    setOpenThoughtModal(false);
   };
 
   const handleClosePostModal = () => {
@@ -50,7 +50,7 @@ const HomePageToolBar = ({ setFirstPostOpenModal, firstPostOpenModal }) => {
   };
 
   const truncateName = (name) => {
-    return name.length > 16 ? `${name.slice(0, 16)}...` : name;
+    return name.length > 20 && isSmallScreen ? `${name.slice(0, 16)}...` : name;
   };
 
   // Determine avatar visibility:
@@ -77,7 +77,7 @@ const HomePageToolBar = ({ setFirstPostOpenModal, firstPostOpenModal }) => {
           alignItems: "center",
           flexDirection: "row",
           justifyContent: "space-between",
-          paddingX: "1rem",
+          paddingX: { xs: ".3rem", md: "1rem" },
           paddingY: "0.8rem",
           gap: isSmallScreen ? 0 : 3,
         }}
@@ -137,14 +137,14 @@ const HomePageToolBar = ({ setFirstPostOpenModal, firstPostOpenModal }) => {
             </IconButton>
           </Tooltip>
           <Tooltip title="Create Tweet" slotProps={TOOLTIP_OFFSET}>
-            <IconButton sx={{ height: { xs: "2.8rem", sm: "3.2rem" }, width: { xs: "2.8rem", sm: "3.2rem" } }} onClick={() => setOpenTweetModal(true)}>
-              <Avatar src={tweetIcon} alt="Create Tweet" />
+            <IconButton sx={{ height: { xs: "2.8rem", sm: "3.2rem" }, width: { xs: "2.8rem", sm: "3.2rem" } }} onClick={() => setOpenThoughtModal(true)}>
+              <Avatar src={thinkingIcon} alt="Your Thought" />
             </IconButton>
           </Tooltip>
         </Stack>
 
         {openPostModal && <PostCreator open={openPostModal} handleClose={handleClosePostModal} />}
-        {openTweetModal && <TweetPost open={openTweetModal} handleClose={handleCloseTweetModal} />}
+        {openThoughtModal && <ThoughtCreationModal open={openThoughtModal} handleClose={handleCloseThoughtModal} />}
       </Stack>
     </Stack>
   );

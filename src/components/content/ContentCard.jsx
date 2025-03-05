@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 import React, { useState } from "react";
-import { Avatar, AvatarGroup, Box, Chip, CircularProgress, IconButton, List, ListItemIcon, ListItemText, SpeedDial, SpeedDialAction, Stack, Tooltip, Typography, useMediaQuery } from "@mui/material";
+import { Avatar, AvatarGroup, Box, Chip, CircularProgress, IconButton, List, ListItemText, SpeedDial, SpeedDialAction, Stack, Tooltip, Typography, useMediaQuery } from "@mui/material";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import DownloadIcon from "@mui/icons-material/Download";
 import SaveIcon from "@mui/icons-material/Save";
@@ -11,6 +11,7 @@ import FileSaver from "file-saver";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 
 // Helpers & Utils
 import { formatDate } from "../../utilsFunction/dateFn.js";
@@ -29,6 +30,7 @@ import ReactionChip from "../reaction/ReactionChip";
 import ReactionViewModal from "../reaction/ReactionViewModal";
 import CommentsViewModal from "../comment/CommentsViewModal";
 import ContentShareCardModal from "./ContentShareCardModal.jsx";
+import Reacted from "../utils/Reacted.jsx";
 
 const cardVariants = {
   hidden: { y: 20, opacity: 0 },
@@ -36,10 +38,12 @@ const cardVariants = {
   exit: { y: 20, opacity: 0, transition: { duration: 0.3 } },
 };
 
-const ContentCard = ({ content, userProfile, handleClose = () => {} }) => {
+const ContentCard = ({ content, userProfile, handleClose }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [isDownloading, setIsDownloading] = useState(false);
+  const [showReactedAnimation, setShowReactedAnimation] = useState(true);
+  console.log(showReactedAnimation);
 
   // Destructure common properties from content object.
   // Note: reactionDetails is now attached directly to the content.
@@ -56,6 +60,7 @@ const ContentCard = ({ content, userProfile, handleClose = () => {} }) => {
   } = content || {};
 
   const isSmallScreen = useMediaQuery("(max-width:480px)");
+  const isBelow600 = useMediaQuery("(max-width:600px)");
 
   // Destructure reaction details.
   const { totalReactions, reactions } = reactionDetails || { totalReactions: 0, reactions: [] };
@@ -79,7 +84,7 @@ const ContentCard = ({ content, userProfile, handleClose = () => {} }) => {
 
   // Preview media (open media dialog).
   const previewMedia = () => {
-    dispatch(openMediaDialog({ mediaSources: mediaUrl, mediaType, showDownload: true }));
+    dispatch(openMediaDialog({ mediaSources: mediaUrl, mediaType, showDownload: true, onClose }));
   };
 
   // Navigate to the content owner's profile.
@@ -108,7 +113,7 @@ const ContentCard = ({ content, userProfile, handleClose = () => {} }) => {
       setIsDownloading(false);
     }
   };
-  const truncateName = (name) => (name.length > 24 && isSmallScreen ? `${name.substring(0, 16)}...` : name);
+  const truncateName = (name) => (name.length > 30 && isSmallScreen ? `${name.substring(0, 16)}...` : name);
 
   // Handler for deleting content.
   const handleDeleteClick = () => {
@@ -163,7 +168,7 @@ const ContentCard = ({ content, userProfile, handleClose = () => {} }) => {
           ))}
         </Stack>
       );
-    } else if (type === "tweet") {
+    } else if (type === "thought") {
       // Tweet media: horizontally scrollable row.
       return (
         <Stack
@@ -211,12 +216,12 @@ const ContentCard = ({ content, userProfile, handleClose = () => {} }) => {
     if (type === "post") {
       return (
         <Stack flexDirection="row" gap={1} sx={{ width: "100%" }}>
-          <ReactionChip content={content} userProfile={userProfile} userReaction={userReaction} />
+          <ReactionChip content={content} userProfile={userProfile} userReaction={userReaction} setShowReactedAnimation={setShowReactedAnimation} />
           <Chip icon={<CommentRoundedIcon />} label="Comment" onClick={() => setOpenCommentViewModal(true)} variant="outlined" sx={{ width: "100%" }} />
           <Chip icon={<ShareRoundedIcon />} label="Share" onClick={() => setOpenShareModal(true)} variant="outlined" sx={{ width: "100%" }} />
         </Stack>
       );
-    } else if (type === "tweet") {
+    } else if (type === "thought") {
       return (
         <Stack flexDirection="row" gap={1} sx={{ width: "100%" }}>
           <ReactionChip content={content} userProfile={userProfile} userReaction={userReaction} />
@@ -240,30 +245,45 @@ const ContentCard = ({ content, userProfile, handleClose = () => {} }) => {
       >
         {/* Header Section */}
         <Stack flexDirection="row" justifyContent="space-between" alignItems="center" pr={0} py={".4rem"} pl={{ md: ".8rem", sm: ".2rem" }}>
-          <List>
-            <ListItemIcon sx={{ display: "flex", alignItems: "center" }}>
+          <List sx={{ mr: "1.8rem" }}>
+            <Box sx={{ display: "flex", alignItems: "center" }}>
+              {isBelow600 && handleClose && (
+                <IconButton onClick={handleClose}>
+                  <ArrowBackIcon sx={{ ml: ".4rem" }} />
+                </IconButton>
+              )}
               <Tooltip title="View Profile">
                 <IconButton onClick={navigateToProfile}>
-                  <Avatar sx={{ height: { xs: "2.8rem", sm: "3.2rem" }, width: { xs: "2.8rem", sm: "3.2rem" }, boxShadow: 3 }} src={profileImage || ""} />
+                  <Avatar
+                    sx={{
+                      height: { xs: "2.8rem", sm: "3.2rem" },
+                      width: { xs: "2.8rem", sm: "3.2rem" },
+                      boxShadow: 3,
+                    }}
+                    src={profileImage || ""}
+                  />
                 </IconButton>
               </Tooltip>
               <ListItemText
                 primary={truncateName(firstName + " " + lastName)}
                 secondary={`${formatDate(createdAt)}`}
-                sx={{ marginLeft: "1rem" }}
+                sx={{ marginLeft: { sx: ".2rem", sm: ".5rem" } }} // Reduce margin
                 slotProps={{
-                  primary: { sx: { fontWeight: "bold", color: "#0000008d" } },
+                  primary: {
+                    sx: { fontWeight: "bold", color: "#0000008d", fontSize: { xs: ".9rem", sm: "1rem" } },
+                  },
                 }}
               />
-            </ListItemIcon>
+            </Box>
           </List>
+
           <SpeedDial
             ariaLabel="SpeedDial"
             direction="left"
             sx={{
               zIndex: 1,
               position: "absolute",
-              right: { xs: "1rem", sm: ".2rem" },
+              right: { xs: "-.2rem", sm: ".2rem" },
               "& .MuiSpeedDial-fab": {
                 boxShadow: "none",
                 backgroundColor: "transparent",
@@ -282,7 +302,7 @@ const ContentCard = ({ content, userProfile, handleClose = () => {} }) => {
               sx={{ bgcolor: isSavedByUser ? "#006400" : "transparent" }}
               onClick={handleSaveOrUnsave}
             />
-            {type === "tweet" && <SpeedDialAction icon={<ShareRoundedIcon />} tooltipTitle="Share" onClick={() => setOpenShareModal(true)} />}
+            {type === "thought" && <SpeedDialAction icon={<ShareRoundedIcon />} tooltipTitle="Share" onClick={() => setOpenShareModal(true)} />}
           </SpeedDial>
         </Stack>
 
@@ -301,7 +321,7 @@ const ContentCard = ({ content, userProfile, handleClose = () => {} }) => {
         {/* Reaction and Action Buttons */}
         <Stack p={".8rem"}>
           {totalReactions > 0 && (
-            <Stack px={".8rem"} sx={{ mb: ".4rem" }} flexDirection="row" alignItems="center" gap={".2rem"}>
+            <Stack px={".2rem"} sx={{ mb: ".4rem" }} flexDirection="row" alignItems="center" gap={".2rem"}>
               <AvatarGroup max={3} onClick={() => setOpenReactionViewModal(true)} sx={{ cursor: "pointer" }}>
                 {reactions.map((reaction, index) => (
                   <Avatar key={index} sx={{ width: "1.6rem", height: "1.6rem", boxShadow: 3 }} src={reaction.user.profileImage || ""} />

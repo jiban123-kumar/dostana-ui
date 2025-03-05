@@ -47,7 +47,6 @@ const StyledBadge = styled(Badge)(({ theme }) => ({
 
 const ChatListView = ({ chat }) => {
   const navigate = useNavigate();
-  console.log(chat);
   const { _id: chatId, participants, archived, lastMessage } = chat;
   // Destructure text and media from lastMessage
   const { text, media } = lastMessage || {};
@@ -169,7 +168,7 @@ const ChatListView = ({ chat }) => {
         }}
       >
         <Tooltip title="Open Chat">
-          <div onClick={() => navigate(`/chats/${participant._id}?name=${firstName} ${lastName}&profileImage=${profileImage}`)} style={{ cursor: "pointer" }}>
+          <div onClick={() => navigate(`/chats/${participant._id}?name=${firstName} ${lastName}&profileImage=${profileImage}&chatId=${chatId}`)} style={{ cursor: "pointer" }}>
             {isOnline ? (
               <StyledBadge overlap="circular" anchorOrigin={{ vertical: "bottom", horizontal: "right" }} variant="dot">
                 <Avatar src={profileImage} sx={{ height: "3rem", width: "3rem", boxShadow: 3 }} />
@@ -246,4 +245,4 @@ const ChatListView = ({ chat }) => {
   );
 };
 
-export default ChatListView;
+export default React.memo(ChatListView);

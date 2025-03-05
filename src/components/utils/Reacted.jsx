@@ -1,8 +1,8 @@
 /* eslint-disable react/prop-types */
 import Lottie from "lottie-react";
 import React from "react";
-import { reactedAnimation } from "../animation";
 import { Stack } from "@mui/material";
+import { reactedAnimation } from "../../animation";
 
 const Reacted = ({ onAnimationEnd }) => {
   return (
@@ -15,12 +15,7 @@ const Reacted = ({ onAnimationEnd }) => {
         pointerEvents: "none",
       }}
     >
-      <Lottie
-        animationData={reactedAnimation}
-        loop={false}
-        style={{ height: "100%", width: "100%" }}
-        onComplete={onAnimationEnd} // Call this function when the animation ends
-      />
+      <Lottie animationData={reactedAnimation} loop={false} style={{ height: "100%", width: "100%" }} onLoopComplete={onAnimationEnd} />
     </Stack>
   );
 };

@@ -63,7 +63,6 @@ export const useGetAllChats = () => {
   });
 };
 export const useGetArchivedChats = (archived) => {
-  console.log(archived);
   return useInfiniteQuery({
     queryKey: ["archived-chats"],
     queryFn: async ({ pageParam = 1 }) => {

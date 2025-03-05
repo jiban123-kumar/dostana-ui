@@ -28,7 +28,7 @@ const NotificationList = ({ notification, onView, hideNotificationModal }) => {
 
   const handleDelete = (event) => {
     event.stopPropagation();
-    deleteNotification(notification._id, {
+    deleteNotification(notification?._id, {
       onSuccess: () => {
         handleMenuClose();
       },
@@ -41,11 +41,11 @@ const NotificationList = ({ notification, onView, hideNotificationModal }) => {
       handleMenuClose();
       return;
     }
-    if (notification.type === "friend_request_sent" || notification.type === "friend_request_accepted") {
-      navigate(`/user-profile/${notification.referenceId}`);
-      hideNotificationModal();
-    } else if (notification.type === "content-comment" || notification.type === "content-reaction" || notification.type === "content-share") {
-      setSelectedContentId(notification.referenceId);
+    if (notification?.type === "friend_request_sent" || notification?.type === "friend_request_accepted") {
+      navigate(`/user-profile/${notification?.referenceId}`);
+      hideNotificationModal && hideNotificationModal();
+    } else if (notification?.type === "content-comment" || notification?.type === "content-reaction" || notification?.type === "content-share") {
+      setSelectedContentId(notification?.referenceId);
     }
   };
 
@@ -55,7 +55,7 @@ const NotificationList = ({ notification, onView, hideNotificationModal }) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             if (onView) {
-              onView(notification._id);
+              onView(notification?._id);
             }
             observerInstance.unobserve(entry.target);
           }
@@ -71,7 +71,7 @@ const NotificationList = ({ notification, onView, hideNotificationModal }) => {
         observer.unobserve(containerRef.current);
       }
     };
-  }, [notification._id, onView]);
+  }, [notification?._id, onView, notification]);
 
   return (
     <>
@@ -95,13 +95,13 @@ const NotificationList = ({ notification, onView, hideNotificationModal }) => {
           disableRipple
           onClick={handleNavigate}
         >
-          <Avatar src={notification.sender.profileImage} sx={{ width: { xs: 40, sm: 48 }, height: { xs: 40, sm: 48 } }} />
+          <Avatar src={notification?.sender?.profileImage} sx={{ width: { xs: 40, sm: 48 }, height: { xs: 40, sm: 48 } }} />
           <Box sx={{ display: "flex", flexDirection: "column" }}>
-            <Typography variant="body1" fontWeight={600} sx={{ fontSize: { xs: ".9rem", sm: "1rem" } }}>
-              {notification.sender.firstName} {notification.sender.lastName}
+            <Typography variant="body1" fontWeight={600} sx={{ fontSize: { xs: ".8rem", sm: "1rem" } }}>
+              {notification?.sender?.firstName || ""} {notification?.sender?.lastName || ""}
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: ".8rem", sm: ".9rem" } }}>
-              {notification.action}
+              {notification?.action}
             </Typography>
           </Box>
           <Box
@@ -111,6 +111,7 @@ const NotificationList = ({ notification, onView, hideNotificationModal }) => {
               display: "flex",
               flexDirection: "column",
               alignItems: "flex-end",
+              mr: { xs: "-.5rem", sm: 0 },
             }}
           >
             <IconButton
@@ -139,7 +140,7 @@ const NotificationList = ({ notification, onView, hideNotificationModal }) => {
             </Menu>
           </Box>
           <Typography variant="caption" color="text.secondary" sx={{ position: "absolute", bottom: -2, right: 12 }}>
-            {formatDate(notification.createdAt)}
+            {formatDate(notification?.createdAt)}
           </Typography>
         </Paper>
 

@@ -190,7 +190,7 @@ const UsersListView = ({ user, mode }) => {
             <IconButton onClick={() => navigate(`/user-profile/${userId}`)}>
               {mode === "friends" && isOnline && !isLoadingUserStatus ? (
                 <StyledBadge overlap="circular" anchorOrigin={{ vertical: "bottom", horizontal: "right" }} variant="dot">
-                  <Avatar src={profileImage} sx={{ height: isBelow400 ? "5rem" : "3rem", width: isBelow400 ? "5rem" : "3rem", boxShadow: 3 }} />
+                  <Avatar src={profileImage} sx={{ height: isBelow600 ? "5rem" : "3rem", width: isBelow600 ? "5rem" : "3rem", boxShadow: 3 }} />
                 </StyledBadge>
               ) : (
                 <Avatar src={profileImage} sx={{ height: isBelow400 || isBelow600 ? "5rem" : "3rem", width: isBelow400 || isBelow600 ? "5rem" : "3rem", boxShadow: 3 }} />
@@ -203,7 +203,7 @@ const UsersListView = ({ user, mode }) => {
               sx={{
                 fontWeight: "bold",
                 color: "#000",
-                fontSize: isBelow400 || isBelow600 ? ".9rem" : "1.1rem",
+                fontSize: isBelow400 || isBelow600 ? ".9rem" : "1rem",
                 wordBreak: "break-all",
                 overflowWrap: "break-word",
                 textAlign: isBelow400 || isBelow600 ? "center" : "left",
@@ -212,9 +212,11 @@ const UsersListView = ({ user, mode }) => {
               {firstName} {lastName}
             </Typography>
             {mode === "friends" && (
-              <Typography variant="caption" color="text.secondary">
-                {getStatusText()}
-              </Typography>
+              <Stack>
+                <Typography variant="caption" color="text.secondary" sx={{ textAlign: `${isBelow400 || isBelow600 ? "center" : "left"}` }}>
+                  {getStatusText()}
+                </Typography>
+              </Stack>
             )}
           </Box>
           <Stack direction={isBelow300 ? "column" : "row"} spacing={1} alignItems="center" sx={{ ml: { sm: "1rem", xs: ".4rem" } }}>

@@ -50,6 +50,8 @@ const ProfileUpdationModal = ({ open, handleClose }) => {
   const genderRef = useRef(null);
   const dobRef = useRef(null);
 
+  const isBelow600 = useMediaQuery("(max-width:600px)");
+
   // Assume useUserProfile returns { data, ... }.
   const { data: userProfile } = useUserProfile();
   const { mutate: updateProfile, isPending: isUpdatingProfile } = useUpdateProfile();
@@ -245,7 +247,7 @@ const ProfileUpdationModal = ({ open, handleClose }) => {
       genderRef.current && genderRef.current.focus();
     }
 
-    if (!formData.dob || new Date(formData.dob) > new Date() || new Date(formData.dob) < new Date("1900-01-01")) {
+    if (!formData.dob || new Date(formData.dob) > new Date() || new Date(formData.dob) < new Date("1930-01-01")) {
       newErrors.dob = !formData.dob ? "Date of birth is required" : "Date of birth is not valid";
       dobRef.current && dobRef.current.focus();
     }
@@ -291,7 +293,7 @@ const ProfileUpdationModal = ({ open, handleClose }) => {
   );
 
   return (
-    <Dialog open={open} maxWidth="sm" fullWidth PaperProps={{ sx: { maxHeight: "75vh", overflow: "hidden" } }} onClose={handleClose}>
+    <Dialog open={open} maxWidth="sm" fullWidth PaperProps={{ sx: { maxHeight: "75vh", overflow: "hidden" } }} onClose={handleClose} fullScreen={isBelow600}>
       <Box sx={{ overflowY: "auto", width: "100%" }}>
         <form onSubmit={handleSubmit}>
           {/* Profile Image Section */}

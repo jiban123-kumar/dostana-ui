@@ -12,11 +12,12 @@ import groupedMessagesByDate from "../../utilsFunction/groupedMessagesByDate";
 import { useUserProfile } from "../../hooks/userProfile/userProfile";
 import { useDeleteChat, useGetChatByUserId } from "../../hooks/chat/chat";
 import { useGetFriendOnlineStatus } from "../../hooks/friends/friends";
-import { useMarkMessageAsReadByIds, useSendMessage } from "../../hooks/chat/message";
+import { useMarkMessageAsReadByChatId, useSendMessage } from "../../hooks/chat/message";
 import { useToggleArchive } from "../../hooks/chat/chatSetting";
 import { chatSecondaryAnimation, chatPrimaryAnimation } from "../../animation";
 import MessageInput from "./MessageInput"; // New input component
-import ArrowCircleLeftIcon from "@mui/icons-material/ArrowCircleLeft";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import { messageSound } from "../../assets";
 
 const StyledBadge = styled(Badge)(({ theme }) => ({
   "& .MuiBadge-badge": {
@@ -52,15 +53,16 @@ const ChatDialog = ({ open, handleClose }) => {
 
   const name = searchParams.get("name");
   const profileImage = searchParams.get("profileImage");
+  const chatId = searchParams.get("chatId");
 
   // ─── FETCH DATA (CONVERSATION & USER STATUS) ───────────────────────────
   const { data: chatData, isLoading: isLoadingConversation, fetchNextPage, hasNextPage, isFetchingNextPage } = useGetChatByUserId(userId);
-  const { mutate: markMessagesAsReadByIds } = useMarkMessageAsReadByIds();
+  const { mutate: markMessagesAsReadByChatId } = useMarkMessageAsReadByChatId();
 
   const isBelow600 = useMediaQuery("(max-width:600px)");
 
   const isArchived = useMemo(() => {
-    return chatData?.pages[0]?.archived;
+    return chatData?.pages?.[0]?.archived ?? false;
   }, [chatData]);
 
   const viewedMessageIdsRef = useRef(new Set());
@@ -69,28 +71,23 @@ const ChatDialog = ({ open, handleClose }) => {
     viewedMessageIdsRef.current.add(messageId);
   }, []);
 
-  // Optionally, capture the chatId at mount time
-  const chatIdRef = useRef(chatData?.pages[0]?.chatId);
-
+  // Optionally, capture the chatId at mount time safely
   useEffect(() => {
-    // The empty dependency array ensures this effect only runs once (on mount)
     return () => {
-      // This cleanup function will only run on unmount
       const viewedIds = Array.from(viewedMessageIdsRef.current);
       if (viewedIds.length > 0) {
-        markMessagesAsReadByIds({ messageIds: viewedIds, chatId: chatIdRef.current });
+        markMessagesAsReadByChatId({ messageIds: viewedIds, chatId });
       }
     };
-  }, []);
+  }, [chatId, markMessagesAsReadByChatId]);
 
   // Flatten messages from infinite query (oldest messages at the top)
   const allPages = chatData?.pages || [];
-  const recipient = allPages?.length !== 0 && allPages[0]?.participants[0];
+  const recipient = allPages.length ? allPages[0]?.participants?.[0] : null;
 
-  const chatId = allPages[0]?.chatId;
   const messages = useMemo(() => {
-    const allPages = chatData?.pages || [];
-    return allPages
+    const pages = chatData?.pages || [];
+    return pages
       .slice()
       .reverse()
       .flatMap((page) => page.messages);
@@ -119,29 +116,28 @@ const ChatDialog = ({ open, handleClose }) => {
   const { mutate: toggleArchive, isPending: isTogglingArchive } = useToggleArchive();
   const { mutate: deleteConversation, isPending: isDeleting } = useDeleteChat();
 
-  // Auto-scroll to bottom when messages update
-  useEffect(() => {
-    const id = setTimeout(() => {
-      if (messagesEndRef.current) {
-        messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
-      }
-    }, 100);
-    return () => clearTimeout(id);
-  }, [messages]);
+  // Track previous messages length for scrolling condition
+  const prevMessagesLengthRef = useRef(0);
 
-  // Initial scroll after mount
   useEffect(() => {
-    const id = setTimeout(() => {
-      if (messagesEndRef.current) messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
-    }, 100);
-    return () => clearTimeout(id);
-  }, []);
+    const sound = new Audio(messageSound);
+    // If it's the initial mount and there are messages, scroll into view.
+    if (prevMessagesLengthRef.current === 0 && messages.length > 0) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+    // If exactly one new message has been added, scroll into view.
+    else if (prevMessagesLengthRef.current + 1 === messages.length) {
+      sound.play().catch((error) => console.error("Error playing sound:", error));
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+    prevMessagesLengthRef.current = messages.length;
+  }, [messages]);
 
   // ─── HANDLERS ──────────────────────────────────────────────────────────
 
   const performSendMessage = (formData, clientId, pendingMsgUpdater) => {
     sendMessage(formData, {
-      onSuccess: (data) => {
+      onSuccess: () => {
         pendingMsgUpdater("sent");
         setTimeout(() => {
           setPendingMessages((prev) => prev.filter((msg) => msg.clientId !== clientId));
@@ -173,14 +169,9 @@ const ChatDialog = ({ open, handleClose }) => {
     formData.append("recipientId", userId);
     attachedImages.forEach((file) => formData.append("media", file));
 
-    performSendMessage(
-      formData,
-      clientId,
-      (newStatus) => {
-        setPendingMessages((prev) => prev.map((msg) => (msg.clientId === clientId ? { ...msg, status: newStatus } : msg)));
-      },
-      mediaPreviews
-    );
+    performSendMessage(formData, clientId, (newStatus) => {
+      setPendingMessages((prev) => prev.map((msg) => (msg.clientId === clientId ? { ...msg, status: newStatus } : msg)));
+    });
   };
 
   const handleRetry = (message) => {
@@ -189,10 +180,8 @@ const ChatDialog = ({ open, handleClose }) => {
     formData.append("recipientId", userId);
     message.mediaFiles.forEach((file) => formData.append("media", file));
 
-    // Update the existing pending message to "sending"
     setPendingMessages((prev) => prev.map((msg) => (msg.clientId === message.clientId ? { ...msg, status: "sending" } : msg)));
 
-    // Use the same clientId for retrying
     performSendMessage(formData, message.clientId, (newStatus) => {
       setPendingMessages((prev) => prev.map((msg) => (msg.clientId === message.clientId ? { ...msg, status: newStatus } : msg)));
     });
@@ -204,12 +193,7 @@ const ChatDialog = ({ open, handleClose }) => {
 
   const handleArchiveToggle = () => {
     if (!chatId) return;
-    toggleArchive(
-      { chatId, recipientId: userId },
-      {
-        onSuccess: () => {},
-      }
-    );
+    toggleArchive({ chatId, recipientId: userId });
   };
 
   const handleConversationDelete = () => {
@@ -228,13 +212,26 @@ const ChatDialog = ({ open, handleClose }) => {
 
   const handleInputFocus = () => {
     console.log("Input focused");
-    if (inputRef?.current) inputRef.current.focus();
+    inputRef.current?.focus();
   };
+
+  const truncateName = (name) => (name.length > 20 || isBelow600 ? name.substring(0, 15) + "..." : name);
 
   return (
     <Dialog open={Boolean(userId)} maxWidth="sm" fullWidth onClose={() => navigate(-1)} fullScreen={isBelow600}>
       {/* Pending messages with animation */}
-      <Box sx={{ position: "absolute", top: "1rem", left: "1rem", zIndex: 1400, maxHeight: "70vh", overflowY: "auto", overflowX: "hidden", width: "80%" }}>
+      <Box
+        sx={{
+          position: "absolute",
+          top: "1rem",
+          left: "1rem",
+          zIndex: 1400,
+          maxHeight: "70vh",
+          overflowY: "auto",
+          overflowX: "hidden",
+          width: "80%",
+        }}
+      >
         <AnimatePresence>
           {pendingMessages.map((message) => (
             <SendingMessages key={message.clientId} message={message} onRetry={handleRetry} onRemove={handleRemovePending} />
@@ -244,14 +241,20 @@ const ChatDialog = ({ open, handleClose }) => {
 
       <DialogContent sx={{ display: "flex", flexDirection: "column", height: { md: "70vh", xs: "80vh" }, p: { xs: ".4rem", sm: "1rem" } }}>
         {/* Header with user info and actions */}
-        <Stack direction="row" alignItems="center" spacing={2} p={isBelow600 ? 0.6 : 2} sx={{ position: "relative", borderRadius: "1rem", boxShadow: 3, mb: 2 }} justifyContent="space-between">
+        <Stack
+          direction="row"
+          alignItems="center"
+          spacing={2}
+          sx={{ position: "relative", borderRadius: "1rem", boxShadow: 3, mb: 2, py: { xs: ".4rem", sm: ".6rem" } }}
+          justifyContent="space-between"
+        >
           <Stack direction="row" spacing={isBelow600 ? 0 : 2} alignItems="center">
             {isBelow600 && (
               <IconButton onClick={() => navigate(-1)}>
-                <ArrowCircleLeftIcon sx={{ height: "2rem", width: "2rem" }} />
+                <ArrowBackIcon />
               </IconButton>
             )}
-            <Stack flexDirection={"row"} alignItems={"center"} ml="-.8rem">
+            <Stack flexDirection={"row"} alignItems={"center"} ml="-.8rem" mr="2rem">
               <IconButton onClick={() => navigate(`/user-profile/${userId}`)}>
                 {statusData?.isOnline ? (
                   <StyledBadge overlap="circular" anchorOrigin={{ vertical: "bottom", horizontal: "right" }} variant="dot">
@@ -263,8 +266,8 @@ const ChatDialog = ({ open, handleClose }) => {
               </IconButton>
               <Stack>
                 {(name || recipient?.firstName || recipient?.lastName) && (
-                  <Typography variant="subtitle1" fontWeight="bold" sx={{ fontSize: { xs: "0.9rem", sm: "1rem", md: "1.1rem" } }}>
-                    {name || `${recipient?.firstName} ${recipient?.lastName}`}
+                  <Typography variant="subtitle1" fontWeight="bold" sx={{ fontSize: { xs: "0.8rem", sm: "1rem", md: "1.1rem" } }}>
+                    {name || truncateName(`${recipient?.firstName} ${recipient?.lastName}`)}
                   </Typography>
                 )}
                 <Typography variant="caption" color="textSecondary" sx={{ fontSize: { xs: "0.7rem", sm: "0.8rem", md: "0.9rem" } }}>
@@ -280,7 +283,7 @@ const ChatDialog = ({ open, handleClose }) => {
             FabProps={{ size: "small" }}
             sx={{
               position: "absolute",
-              right: "1rem",
+              right: { xs: ".4rem", sm: "1rem" },
               top: "50%",
               transform: "translateY(-50%)",
             }}
@@ -289,14 +292,6 @@ const ChatDialog = ({ open, handleClose }) => {
               icon={isTogglingArchive ? <CircularProgress size={24} color="inherit" /> : isArchived ? <UnarchiveIcon fontSize="small" /> : <ArchiveIcon fontSize="small" />}
               tooltipTitle={isArchived ? "Unarchive" : "Archive"}
               onClick={handleArchiveToggle}
-              FabProps={{
-                sx: {
-                  bgcolor: isArchived ? "green" : "inherit", // Green if archived
-                  "&:hover": {
-                    bgcolor: isArchived ? "darkgreen" : "gray", // Dark green on hover if archived
-                  },
-                },
-              }}
             />
             <SpeedDialAction
               icon={isDeleting ? <CircularProgress size={24} color="inherit" /> : <DeleteIcon fontSize="small" />}
@@ -307,17 +302,9 @@ const ChatDialog = ({ open, handleClose }) => {
         </Stack>
 
         {/* Chat messages */}
-        <Box ref={messagesContainerRef} onScroll={handleScroll} sx={{ flex: 1, overflowY: "auto", mb: 2, p: 1, overflowX: "hidden" }}>
+        <Box ref={messagesContainerRef} onScroll={handleScroll} sx={{ flex: 1, overflowY: "auto", mb: 2, p: { xs: 0, sm: 1 }, overflowX: "hidden" }}>
           {isLoadingConversation ? (
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                height: "100%",
-              }}
-            >
+            <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%" }}>
               <Lottie animationData={chatPrimaryAnimation} style={{ height: "60%", width: "60%" }} />
               <Typography variant="caption">getting messages</Typography>
             </Box>
@@ -329,29 +316,14 @@ const ChatDialog = ({ open, handleClose }) => {
               <Typography variant="h6" sx={{ fontWeight: "bold", fontSize: { md: ".9rem", xs: ".8rem" }, transform: "translateY(-2rem)" }}>
                 No conversation yet
               </Typography>
-              <Button
-                variant="contained"
-                onClick={handleInputFocus}
-                sx={{
-                  fontSize: { transform: "translateY(-2rem)", fontWeight: "bold" },
-                }}
-                size={"small"}
-              >
+              <Button variant="contained" onClick={handleInputFocus} sx={{ fontSize: { transform: "translateY(-2rem)", fontWeight: "bold" } }} size={"small"}>
                 Start Messaging
               </Button>
             </Stack>
           ) : (
             <>
               {isFetchingNextPage && (
-                <Box
-                  sx={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    my: 2,
-                  }}
-                >
+                <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", my: 2 }}>
                   <Typography variant="caption">getting messages</Typography>
                 </Box>
               )}
@@ -375,7 +347,7 @@ const ChatDialog = ({ open, handleClose }) => {
                   </Typography>
                   <AnimatePresence>
                     {messagesForDate.map((message, index) => (
-                      <Message key={message._id + index} message={message} chatId={chatId} userProfile={userProfile} recipient={recipient} onView={handleMessageViewed} />
+                      <Message key={message._id} message={message} chatId={chatId} userProfile={userProfile} recipient={recipient} onView={handleMessageViewed} />
                     ))}
                   </AnimatePresence>
                 </React.Fragment>
