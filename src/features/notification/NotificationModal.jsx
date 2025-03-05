@@ -11,6 +11,7 @@ import { useDeleteAllNotifications, useGetNotifications } from "../../hooks/noti
 import NotificationList from "./NotificationList";
 import { AnimatePresence } from "motion/react";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import { useGetNotificationSetting, useToggleNotificationSetting } from "../../hooks/notification/notificationSetting";
 
 // Custom styled SpeedDial component
 const CustomSpeedDial = styled(SpeedDial)(({ theme }) => ({
