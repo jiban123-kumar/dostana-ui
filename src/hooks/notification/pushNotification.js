@@ -2,6 +2,7 @@
 import { useEffect } from "react";
 import axiosInstance from "../../configs/axiosInstance";
 const usePushNotifications = (vapidPublicKey) => {
+  console.log(vapidPublicKey);
   useEffect(() => {
     // Check if browser supports notifications and service workers
     if (!("Notification" in window) || !("serviceWorker" in navigator)) {
