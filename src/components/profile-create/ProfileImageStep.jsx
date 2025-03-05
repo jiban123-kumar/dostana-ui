@@ -20,7 +20,6 @@ const ProfileImageStep = ({ coverImage, profileImage, updateCoverImage, updatePr
   const profileImageRef = useRef(null);
   const coverImageRef = useRef(null);
   const { data: userProfile } = useUserProfile();
-  console.log(userProfile);
 
   const isBelow380 = useMediaQuery("(max-width:380px)");
 

@@ -1,6 +1,5 @@
 import { useState /* useEffect */ } from "react";
 import { Box, Dialog, DialogContent, Stack } from "@mui/material";
-import { useDispatch, useSelector } from "react-redux";
 import ProfileImageStep from "./ProfileImageStep";
 import ProfileDetailsStep from "./ProfileDetailsStep";
 import ProfileAdditionalDetailsStep from "./ProfileAdditionalDetailsStep";

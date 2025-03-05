@@ -10,7 +10,6 @@ const ProfileAdditionalDetailsStep = ({ coverImage, profileImage, setCurrentStep
   const isBelow420 = useMediaQuery("(max-width: 420px)");
 
   const { data: userProfile } = useUserProfile();
-  console.log(userProfile);
 
   const [formValues, setFormValues] = useState({
     gender: userProfile.gender || "male",
