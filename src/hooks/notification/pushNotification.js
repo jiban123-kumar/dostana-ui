@@ -11,9 +11,13 @@ const usePushNotifications = (vapidPublicKey) => {
 
     // Utility function: Converts a base64 string to a Uint8Array (needed for VAPID keys)
     const urlBase64ToUint8Array = (base64String) => {
+      // Add padding if necessary
       const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+      // Convert URL-safe base64 to standard base64
       const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+      // Decode the base64 string
       const rawData = window.atob(base64);
+      // Convert to Uint8Array
       const outputArray = new Uint8Array(rawData.length);
       for (let i = 0; i < rawData.length; ++i) {
         outputArray[i] = rawData.charCodeAt(i);
