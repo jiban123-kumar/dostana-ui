@@ -61,8 +61,9 @@ const ChatDialog = ({ open, handleClose }) => {
 
   const isBelow600 = useMediaQuery("(max-width:600px)");
 
+  // Using optional chaining with an additional check for pages length and participants length
   const isArchived = useMemo(() => {
-    return chatData?.pages?.[0]?.archived ?? false;
+    return chatData?.pages?.length > 0 ? chatData.pages[0]?.archived ?? false : false;
   }, [chatData]);
 
   const viewedMessageIdsRef = useRef(new Set());
@@ -83,14 +84,15 @@ const ChatDialog = ({ open, handleClose }) => {
 
   // Flatten messages from infinite query (oldest messages at the top)
   const allPages = chatData?.pages || [];
-  const recipient = allPages.length ? allPages[0]?.participants?.[0] : null;
+  // Added condition to check for participants array length
+  const recipient = allPages.length > 0 && allPages[0]?.participants?.length > 0 ? allPages[0].participants[0] : null;
 
   const messages = useMemo(() => {
     const pages = chatData?.pages || [];
     return pages
       .slice()
       .reverse()
-      .flatMap((page) => page.messages);
+      .flatMap((page) => page.messages || []); // Ensure page.messages is at least an empty array
   }, [chatData]);
 
   const { data: statusData } = useGetFriendOnlineStatus({ userId, mode: "chats" });

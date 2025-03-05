@@ -3,7 +3,7 @@ function groupedMessagesByDate(messages) {
   const grouped = {};
 
   messages.forEach((msg) => {
-    const msgDate = moment(msg.createdAt);
+    const msgDate = moment(msg?.createdAt);
     let dateKey;
 
     if (msgDate.isSame(moment(), "day")) {
