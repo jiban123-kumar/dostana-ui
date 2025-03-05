@@ -1,4 +1,4 @@
-import { Box, Button, Stack, Typography } from "@mui/material";
+import { Box, Button, Stack, Typography, useMediaQuery } from "@mui/material";
 import Lottie from "lottie-react";
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -7,7 +7,7 @@ import { secondaryCompanyLogo } from "../../assets";
 
 const ProfileCreationBanner = () => {
   const navigate = useNavigate();
-  const [isLoaded, setIsLoaded] = useState(false);
+  const isBelowSm = useMediaQuery("(max-width: 600px)");
 
   // Memoizing the animation to prevent re-renders
   const animationOptions = useMemo(
@@ -17,12 +17,6 @@ const ProfileCreationBanner = () => {
     }),
     []
   );
-
-  // Preload animation
-  useEffect(() => {
-    const timeout = setTimeout(() => setIsLoaded(true), 100); // Adjust delay if needed
-    return () => clearTimeout(timeout);
-  }, []);
 
   return (
     <Stack height="100vh" width="100vw" justifyContent="center" alignItems="center">
@@ -36,8 +30,10 @@ const ProfileCreationBanner = () => {
         alignItems="center"
         justifyContent="center"
       >
-        {isLoaded && <Lottie {...animationOptions} style={{ height: "60%", width: "60%" }} />}
-        <Stack sx={{ transform: "translateY(-5rem)" }}>
+        <Stack sx={{ height: { xs: "15rem", sm: "50%" }, width: { xs: "15rem", sm: "50%" } }}>
+          <Lottie {...animationOptions} style={{ height: "100%", width: "100%" }} />
+        </Stack>
+        <Stack sx={{ transform: "translateY(-3rem)" }}>
           <Stack flexDirection="row" alignItems="center" justifyContent="center" gap={2}>
             <Typography variant="h4" sx={{ fontSize: { md: "2rem", xs: "1.2rem", sm: "1.5rem" } }}>
               Welcome To
@@ -47,8 +43,7 @@ const ProfileCreationBanner = () => {
 
           <Button
             sx={{
-              fontSize: ".8rem",
-              marginTop: "2rem",
+              marginTop: "1rem",
               fontWeight: "bold",
               borderRadius: ".4rem",
               alignSelf: "center",
@@ -59,6 +54,7 @@ const ProfileCreationBanner = () => {
             variant="contained"
             color="secondary"
             onClick={() => navigate("/profile-setup")}
+            size={isBelowSm ? "small" : "large"}
           >
             Create Your Profile
           </Button>
