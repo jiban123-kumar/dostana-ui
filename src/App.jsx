@@ -30,6 +30,7 @@ import SingleContentViewModal from "./components/content/SingleContentViewModal"
 import OfflineIndicator from "./components/utils/OfflineIndicator";
 
 const App = () => {
+  const isLoggedIn = localStorage.getItem("isLoggedIn");
   return (
     <BrowserRouter>
       <ErrorBoundary>
@@ -40,7 +41,7 @@ const App = () => {
         <SnackbarInstallButton />
         <OfflineIndicator />
         <Routes>
-          <Route path="/" element={<Navigate to="/home" />} />
+          <Route path="/" element={<Navigate to={isLoggedIn ? "/home" : "/login"} />} />
           <Route path="login" element={<LoginPage />} />
           <Route path="signup" element={<SignupPage />} />
           <Route path="profile-setup" element={<UserProfileCreationPage />} />

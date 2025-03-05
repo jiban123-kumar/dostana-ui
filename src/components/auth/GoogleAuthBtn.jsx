@@ -22,6 +22,7 @@ const GoogleAuthButton = () => {
           console.log("Logged in successfully!");
           dispatch(showAlert({ message: "Login successful", type: "success", loading: false }));
           dispatch(setLoading(false));
+          localStorage.setItem("isLoggedIn", true);
           navigate("/home");
         }
       })

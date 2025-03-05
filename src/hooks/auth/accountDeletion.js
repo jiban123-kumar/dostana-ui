@@ -31,6 +31,7 @@ const useDeleteAccount = () => {
         errorMessage = "Network error. Please check your connection.";
       }
       dispatch(showAlert({ message: errorMessage, type: "error", loading: false }));
+      localStorage.clear();
     },
     onSettled: () => {
       dispatch(setLoading(false));

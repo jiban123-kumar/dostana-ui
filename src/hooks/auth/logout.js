@@ -15,8 +15,7 @@ const useLogout = () => {
     onSuccess: (data) => {
       navigate("/login", { replace: true });
       queryClient.removeQueries();
-      localStorage.removeItem("isLoggedIn");
-      localStorage.removeItem("token");
+      localStorage.clear();
     },
     onError: (error) => {
       if (error.code === "ERR_NETWORK") {

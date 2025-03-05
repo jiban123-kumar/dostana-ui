@@ -25,6 +25,7 @@ const useLogin = ({ passwordRef, emailRef }) => {
       dispatch(showAlert({ message: "Login successful", type: "success", loading: false }));
       // Refresh user profile data
       queryClient.removeQueries({ queryKey: ["userProfile"] });
+      localStorage.setItem("isLoggedIn", true);
       navigate("/home");
     },
     onError: (error) => {

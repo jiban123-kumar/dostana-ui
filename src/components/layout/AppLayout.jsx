@@ -38,6 +38,7 @@ const AppLayout = () => {
   useEffect(() => {
     if (isProfileFetching) return;
     if (isProfileError || !userProfile) {
+      localStorage.clear();
       dispatch(
         showAlert({
           message: "Something went wrong. Please login again.",
