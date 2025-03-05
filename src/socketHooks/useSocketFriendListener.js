@@ -1,16 +1,12 @@
 import { useEffect, useCallback } from "react";
-import { useDispatch } from "react-redux";
 import { useQueryClient } from "@tanstack/react-query";
-import { showNotistackAlert } from "../reduxSlices/notistackAlertSlice";
 
 export const useSocketFriendListener = (socket) => {
-  const dispatch = useDispatch();
   const queryClient = useQueryClient();
 
   const handleReceiveFriendRequest = useCallback(
     (data) => {
       const requester = data.requesterProfile;
-      console.log(data.requesterProfile);
 
       // Remove requester from suggestedUsers cache
       queryClient.setQueryData(["suggestedUsers"], (oldData) => {

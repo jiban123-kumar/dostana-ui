@@ -30,7 +30,6 @@ import ReactionChip from "../reaction/ReactionChip";
 import ReactionViewModal from "../reaction/ReactionViewModal";
 import CommentsViewModal from "../comment/CommentsViewModal";
 import ContentShareCardModal from "./ContentShareCardModal.jsx";
-import Reacted from "../utils/Reacted.jsx";
 
 const cardVariants = {
   hidden: { y: 20, opacity: 0 },
@@ -43,6 +42,8 @@ const ContentCard = ({ content, userProfile, handleClose }) => {
   const navigate = useNavigate();
   const [isDownloading, setIsDownloading] = useState(false);
   const [showReactedAnimation, setShowReactedAnimation] = useState(true);
+  // State for toggling full caption display
+  const [expandedCaption, setExpandedCaption] = useState(false);
   console.log(showReactedAnimation);
 
   // Destructure common properties from content object.
@@ -113,6 +114,7 @@ const ContentCard = ({ content, userProfile, handleClose }) => {
       setIsDownloading(false);
     }
   };
+
   const truncateName = (name) => (name.length > 30 && isSmallScreen ? `${name.substring(0, 16)}...` : name);
 
   // Handler for deleting content.
@@ -142,7 +144,7 @@ const ContentCard = ({ content, userProfile, handleClose }) => {
             height: "26rem",
             width: "100%",
             overflow: "hidden",
-            mt: "1rem",
+            mt: { xs: ".4rem", sm: "1rem" },
             display: "flex",
             flexDirection: "row",
             gap: "0.5rem",
@@ -310,7 +312,12 @@ const ContentCard = ({ content, userProfile, handleClose }) => {
         {caption.trim().length > 0 && (
           <Stack sx={{ px: "1rem" }}>
             <Typography variant="body2" sx={{ color: "#000000" }}>
-              {caption}
+              {expandedCaption || caption.length <= 100 ? caption : `${caption.substring(0, 100)}... `}
+              {!expandedCaption && caption.length > 100 && (
+                <span style={{ color: "#1976d2", cursor: "pointer" }} onClick={() => setExpandedCaption(true)}>
+                  Read More
+                </span>
+              )}
             </Typography>
           </Stack>
         )}

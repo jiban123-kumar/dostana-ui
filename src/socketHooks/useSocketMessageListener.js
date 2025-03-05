@@ -16,11 +16,9 @@ export const useSocketMessageListener = (socket) => {
   const handleNewMessage = useCallback(
     async (data) => {
       const { sender, chatId, newMessage } = data;
-      console.log("New message:", data);
       const { _id: senderId, name: senderName, profileImage: senderProfileImage } = sender || {};
 
       addMessageToChat(queryClient, senderId, newMessage);
-      console.log(senderId);
 
       // Instead of manually updating the messages in the chat, invalidate the query for messages of this chat.
 

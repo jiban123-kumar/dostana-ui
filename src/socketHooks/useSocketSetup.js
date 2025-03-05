@@ -17,13 +17,9 @@ export const useSocketSetup = (socket, userProfile) => {
     // Set the auth data on the socket before it connects.
     socket.auth = authData;
 
-    const handleConnect = () => {
-      console.log("Connected:", socket.id);
-    };
+    const handleConnect = () => {};
 
-    const handleDisconnect = () => {
-      console.log("Disconnected:", authData);
-    };
+    const handleDisconnect = () => {};
 
     socket.on("connect", handleConnect);
     socket.on("disconnect", handleDisconnect);
