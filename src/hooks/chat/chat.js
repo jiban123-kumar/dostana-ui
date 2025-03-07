@@ -6,29 +6,40 @@ const deleteChatApi = async (conversationId) => {
   return response.data;
 };
 
+// Updates a chat in both "chats" and "archived-chats" caches
+
+// Removes a chat from both caches
+const removeChatFromCache = (queryClient, chatId) => {
+  const keys = ["chats", "archived-chats"];
+  keys.forEach((key) => {
+    queryClient.setQueryData([key], (oldData) => {
+      if (!oldData || !oldData.pages) return oldData;
+      return {
+        ...oldData,
+        pages: oldData.pages.map((page) => ({
+          ...page,
+          chats: page.chats.filter((chat) => chat._id !== chatId),
+        })),
+      };
+    });
+  });
+};
+
 export const useDeleteChat = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: deleteChatApi,
     onSuccess: (data) => {
-      // Instead of invalidating queries, update the cache to remove the deleted chat
-      queryClient.setQueryData(["chats"], (oldData) => {
-        if (!oldData) return oldData;
-        return {
-          ...oldData,
-          pages: oldData.pages.map((page) => ({
-            ...page,
-            chats: page.chats.filter((chat) => chat._id !== data.chatId),
-          })),
-        };
-      });
+      // Remove chat from both caches
+      removeChatFromCache(queryClient, data.chatId);
     },
     onError: (err) => {
       console.log(err);
     },
   });
 };
+
 export const useGetChatByUserId = (userId) => {
   return useInfiniteQuery({
     queryKey: ["chats", userId],

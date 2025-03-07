@@ -50,6 +50,8 @@ export const useSocketContentListener = (socket, userProfile) => {
       } = reactionData;
 
       const updateDataForKey = (queryKey) => {
+        const getValue = queryClient.getQueryData(queryKey);
+        if (!getValue) return;
         queryClient.setQueryData(queryKey, (oldData) => {
           if (!oldData || !oldData.pages) return oldData;
           return updatePages(oldData, (page) => ({
@@ -67,26 +69,33 @@ export const useSocketContentListener = (socket, userProfile) => {
 
   const handleContentShare = useCallback(
     async (data) => {
-      const { requesterProfile } = data;
       // Instead of manually prepending, we invalidate the query to fetch updated data
       queryClient.invalidateQueries({ queryKey: ["shared-contents"], exact: true });
-
-      dispatch(
-        showNotistackAlert({
-          message: "Shared a content with you",
-          avatarSrc: requesterProfile.profileImage,
-          notificationType: "content-share",
-          senderName: `${requesterProfile.firstName} ${requesterProfile.lastName}`,
-        })
-      );
     },
-    [dispatch, queryClient]
+    [queryClient]
   );
 
   const handleNewComment = useCallback(
     (data) => {
-      const { contentId } = data;
-      queryClient.invalidateQueries({ queryKey: ["content-comments", contentId], exact: true });
+      // Expecting both contentId and newComment in the socket data
+      const { contentId, newComment } = data;
+      // Get current comments data for this content
+      const oldData = queryClient.getQueryData(["content-comments", contentId]);
+      if (!oldData) return;
+
+      // Update the cache by prepending the new comment to the first page
+      queryClient.setQueryData(["content-comments", contentId], (oldData) => {
+        if (!oldData || !oldData.pages) return oldData;
+        return {
+          ...oldData,
+          pages: oldData.pages.map((page, index) => {
+            if (index === 0) {
+              return { ...page, comments: [newComment, ...page.comments] };
+            }
+            return page;
+          }),
+        };
+      });
     },
     [queryClient]
   );

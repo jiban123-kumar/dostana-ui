@@ -18,11 +18,10 @@ export const useSocketMessageListener = (socket) => {
       const { sender, chatId, newMessage } = data;
       const { _id: senderId, name: senderName, profileImage: senderProfileImage } = sender || {};
 
+      // Update the chat's message list (for the sender's chat view)
       addMessageToChat(queryClient, senderId, newMessage);
 
-      // Instead of manually updating the messages in the chat, invalidate the query for messages of this chat.
-
-      // Dispatch a notification for the new message if the sender is not the current user and notifications are enabled.
+      // Dispatch a notification if the sender is not the current user and notifications are enabled.
       if (userId !== senderId && bulletNotificationEnabled) {
         console.log("called");
         dispatch(
@@ -33,13 +32,27 @@ export const useSocketMessageListener = (socket) => {
             senderName,
           })
         );
-        // Invalidate queries to update unread counts
+        // Update unread counts in cache
         queryClient.setQueryData(["totalUnreadMessages"], (oldCount) => Math.max(oldCount + 1, 0));
         queryClient.setQueryData(["unreadCount", chatId], (oldCount) => Math.max(oldCount + 1, 0));
       }
 
-      // Invalidate the global chats query to update the chat list with the latest last message.
-      queryClient.invalidateQueries({ queryKey: ["chats"], exact: true });
+      // Check if the chat already exists in the global "chats" cache.
+      const chatsData = queryClient.getQueryData(["chats"]);
+      let chatExists = false;
+      if (chatsData && chatsData.pages) {
+        for (const page of chatsData.pages) {
+          if (page.chats && page.chats.some((chat) => chat._id === chatId)) {
+            chatExists = true;
+            break;
+          }
+        }
+      }
+
+      // If the chat is not present, invalidate the global "chats" query to refetch the list.
+      if (!chatExists) {
+        queryClient.invalidateQueries({ queryKey: ["chats"], exact: true });
+      }
     },
     [dispatch, queryClient, userId, bulletNotificationEnabled]
   );
@@ -48,10 +61,10 @@ export const useSocketMessageListener = (socket) => {
     async (data) => {
       const { senderId, deletedMessageId, chatId } = data;
 
-      // Remove the deleted message from the chat messages cache
+      // Remove the deleted message from the chat messages cache.
       removeMessageFromChat(queryClient, senderId, deletedMessageId);
 
-      // Fetch and update the last message for this chat after deletion
+      // Fetch and update the last message for this chat after deletion.
       try {
         const lastMessageResponse = await getLastMessageByChatId(chatId);
         queryClient.setQueryData(["chats"], (oldData) => {

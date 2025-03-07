@@ -199,6 +199,7 @@ const Message = ({ message, chatId, recipient, userProfile, onView }) => {
             color: isMyMessage ? "white" : "#1f2937",
             p: hasOnlyOneImage ? 0 : 2,
             pb: hasOnlyOneImage ? 0 : 1.5,
+            pr: hasOnlyOneImage ? 0 : "2.2rem",
             border: !isMyMessage && !hasOnlyOneImage ? "1px solid #e5e7eb" : "none",
             display: "flex",
             flexDirection: "column",
@@ -239,10 +240,9 @@ const Message = ({ message, chatId, recipient, userProfile, onView }) => {
                 sx={{
                   position: "absolute",
                   top: 8,
-                  right: 8,
+                  right: { xs: ".4rem", sm: "1rem" },
                   backgroundColor: "rgba(0, 0, 0, 0.5)",
                   color: "white",
-                  padding: "4px",
                   "&:hover": {
                     backgroundColor: "rgba(0, 0, 0, 0.7)",
                   },

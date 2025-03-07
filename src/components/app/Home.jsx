@@ -5,19 +5,19 @@ import Lottie from "lottie-react";
 import { emptyFeedAnimation } from "../../animation";
 import HomePageToolBar from "../layout/HomePageToolBar";
 import ContentFeed from "../content/ContentFeed";
-import usePushNotifications from "../../hooks/notification/pushNotification";
+import usePushNotifications from "../../utilsFunction/pushNotification";
 
 const Home = () => {
   const [firstPostOpenModal, setFirstPostOpenModal] = useState(false);
   const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useGetContents();
-
-  usePushNotifications(import.meta.env.VITE_VAPID_PUBLIC_KEY);
 
   // Flatten the content from all pages
   const contents = useMemo(() => {
     if (!data || !data.pages) return [];
     return data.pages.flatMap((page) => page.contents || []);
   }, [data]);
+
+  usePushNotifications();
 
   return (
     <Stack alignItems={"center"}>

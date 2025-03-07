@@ -49,8 +49,9 @@ const markMessageAsReadByChatIdApi = async ({ messageIds, chatId }) => {
    Utility Functions
    ====================== */
 export const addMessageToChat = (queryClient, recipientId, newMessage) => {
+  const getChats = queryClient.getQueryData(["chats", recipientId]);
+  if (!getChats) return;
   queryClient.setQueryData(["chats", recipientId], (oldData) => {
-    console.log(oldData);
     if (!oldData || !oldData.pages) {
       return { pages: [{ messages: [newMessage] }] };
     }
@@ -65,6 +66,7 @@ export const addMessageToChat = (queryClient, recipientId, newMessage) => {
     return { ...oldData, pages: updatedPages };
   });
 };
+
 export const removeMessageFromChat = (queryClient, recipientId, deletedMessageId) => {
   queryClient.setQueryData(["chats", recipientId], (oldData) => {
     if (!oldData || !oldData.pages) return oldData;
@@ -73,6 +75,26 @@ export const removeMessageFromChat = (queryClient, recipientId, deletedMessageId
       messages: (page.messages || []).filter((msg) => msg._id !== deletedMessageId),
     }));
     return { ...oldData, pages: updatedPages };
+  });
+};
+
+// Common function to update a chat in both "chats" and "archived-chats" caches
+const updateChatInCache = (queryClient, chatId, updater) => {
+  const keys = ["chats", "archived-chats"];
+  keys.forEach((key) => {
+    queryClient.setQueryData([key], (oldData) => {
+      if (!oldData || !oldData.pages) return oldData;
+      return {
+        ...oldData,
+        pages: oldData.pages.map((page) => {
+          if (!page.chats) return page;
+          return {
+            ...page,
+            chats: page.chats.map((chat) => (chat._id === chatId ? updater(chat) : chat)),
+          };
+        }),
+      };
+    });
   });
 };
 
@@ -134,22 +156,14 @@ export const useSendMessage = () => {
       const { recipientId, newMessage, chatId } = data;
       socket.emit("newMessage", { targetUserId: recipientId, newMessage, sender, chatId });
 
-      // Ensure addMessageToChat is defined or imported appropriately
+      // Add new message to the chat view cache for "chats"
       addMessageToChat(queryClient, recipientId, newMessage);
 
-      queryClient.setQueryData(["chats"], (oldData) => {
-        if (!oldData || !oldData.pages) return oldData;
-        return {
-          ...oldData,
-          pages: oldData.pages.map((page) => {
-            if (!page.chats) return page;
-            return {
-              ...page,
-              chats: page.chats.map((chat) => (chat._id === chatId ? { ...chat, lastMessage: newMessage } : chat)),
-            };
-          }),
-        };
-      });
+      // Update the chat's lastMessage in both caches using common updater
+      updateChatInCache(queryClient, chatId, (chat) => ({
+        ...chat,
+        lastMessage: newMessage,
+      }));
     },
     onError: (err) => {
       console.error(err);
@@ -178,19 +192,10 @@ export const useDeleteMessage = () => {
       removeMessageFromChat(queryClient, recipientId, messageId);
       try {
         const lastMessageResponse = await getLastMessageByChatId(chatId);
-        queryClient.setQueryData(["chats"], (oldData) => {
-          if (!oldData || !oldData.pages) return oldData;
-          return {
-            ...oldData,
-            pages: oldData.pages.map((page) => {
-              if (!page.chats) return page;
-              return {
-                ...page,
-                chats: page.chats.map((chat) => (chat._id === chatId ? { ...chat, lastMessage: lastMessageResponse.lastMessage } : chat)),
-              };
-            }),
-          };
-        });
+        updateChatInCache(queryClient, chatId, (chat) => ({
+          ...chat,
+          lastMessage: lastMessageResponse.lastMessage,
+        }));
       } catch (error) {
         console.error("Error updating last message after deletion:", error);
       }
@@ -205,11 +210,16 @@ export const useMarkMessageAsReadByChatId = () => {
     mutationFn: markMessageAsReadByChatIdApi,
     onSuccess: (data, { chatId }) => {
       const count = data.count;
+
+      const getUnreadCount = queryClient.getQueryData(["unreadCount", chatId]);
+      if (!getUnreadCount) return;
+
       queryClient.setQueryData(["unreadCount", chatId], (oldCount) => {
         if (!oldCount) return oldCount;
-        console.log(oldCount, count);
         return Math.max(oldCount - count, 0);
       });
+      const getTotalUnreadMessagesCount = queryClient.getQueryData(["totalUnreadMessages"]);
+      if (!getTotalUnreadMessagesCount) return;
       queryClient.setQueryData(["totalUnreadMessages"], (oldCount) => {
         if (!oldCount) return oldCount;
         return Math.max(oldCount - count, 0);

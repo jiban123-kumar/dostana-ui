@@ -13,7 +13,7 @@ import { useSocketNotificationListener } from "../../socketHooks/useSocketNotifi
 import { useDispatch } from "react-redux";
 import { showAlert } from "../../reduxSlices/alertSlice";
 import { useUserProfile } from "../../hooks/userProfile/userProfile";
-import usePushNotifications from "../../hooks/notification/pushNotification";
+import usePushNotifications from "../../utilsFunction/pushNotification";
 const AppLayout = () => {
   const { isLoading: isProfileFetching, data: userProfile, isError: isProfileError, isFetched: isProfileFetched } = useUserProfile();
   const [isReady, setIsReady] = useState(false);
@@ -31,9 +31,10 @@ const AppLayout = () => {
   useSocketMessageListener(socket);
   useSocketNotificationListener(socket);
 
+  usePushNotifications();
+
   // Initialize push notifications only when the user profile is complete.
   // The hook's effect will run only if the passed parameter is truthy.
-  usePushNotifications(isProfileFetched && userProfile?.isProfileComplete);
 
   useEffect(() => {
     if (isProfileFetching) return;

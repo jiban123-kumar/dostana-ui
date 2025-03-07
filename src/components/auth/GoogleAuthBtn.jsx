@@ -10,7 +10,6 @@ const GoogleAuthButton = () => {
   const dispatch = useDispatch();
 
   const onSuccess = (credentialResponse) => {
-    console.log(credentialResponse);
     // Show a loading alert while fetching data from the backend
     dispatch(showAlert({ message: "Logging in...", type: "info", loading: true }));
     dispatch(setLoading(true));

@@ -7,12 +7,13 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: "autoUpdate",
+      injectRegister: "auto",
       includeAssets: ["favicon.ico", "companyFavicon.png", "src/assets/*.png", "src/assets/sounds/*.mp3", "src/animation/offline.json"],
       manifest: {
         name: "Dostana - Making Friends Together",
         short_name: "Dostana",
         description: "Dostana - A social media app",
-        start_url: "/login",
+        start_url: "/home",
         display: "standalone",
         background_color: "#ffffff",
         theme_color: "#1976d2",
@@ -35,11 +36,15 @@ export default defineConfig({
         ],
       },
       injectManifest: {
-        swSrc: "src/sw.js", // Path to your custom SW file
-        swDest: "sw.js", // Output location for the built SW
+        swSrc: "src/firebase-messaging-sw.js", // Path to your custom SW file
+        swDest: "firebase-messaging-sw.js", // Output location for the built SW
       },
       workbox: {
-        maximumFileSizeToCacheInBytes: 10 * 1024 * 1024, // Increase to 10 MiB (for example)
+        maximumFileSizeToCacheInBytes: 10 * 1024 * 1024, // Increase to 10 MiB
+      },
+      devOptions: {
+        enabled: true, // Enable service worker in development
+        type: "module", // Use 'module' or 'classic' based on your setup
       },
     }),
   ],
