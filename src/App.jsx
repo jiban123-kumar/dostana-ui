@@ -76,7 +76,7 @@ const App = () => {
             <Route path="shared-feed" element={<SharedFeedViewPage />} />
             <Route path="saved-feed" element={<SavedFeedViewPage />} />
           </Route>
-          <Route path="*" element={<Navigate to="/auth" />} />
+          <Route path="*" element={<Navigate to="/login" />} />
         </Routes>
       </ErrorBoundary>
     </BrowserRouter>
