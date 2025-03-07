@@ -37,7 +37,7 @@ export default defineConfig({
         ],
       },
       injectManifest: {
-        swSrc: "src/firebase-messaging-sw.js", // custom SW file
+        swSrc: "public/firebase-messaging-sw.js", // custom SW file
         swDest: "firebase-messaging-sw.js", // output location at the root
       },
       workbox: {
