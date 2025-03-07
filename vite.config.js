@@ -7,7 +7,7 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      // registerType: "autoUpdate",
+      registerType: "autoUpdate",
       injectRegister: "auto",
       includeAssets: ["favicon.ico", "companyFavicon.png", "src/assets/*.png", "src/assets/sounds/*.mp3", "src/animation/offline.json"],
       manifest: {
