@@ -28,12 +28,8 @@ import AppLayout from "./components/layout/AppLayout";
 import SnackbarInstallButton from "./components/utils/SnackbarInstall";
 import SingleContentViewModal from "./components/content/SingleContentViewModal";
 import OfflineIndicator from "./components/utils/OfflineIndicator";
-import usePushNotifications from "./utilsFunction/usePushNotification";
-// import usePushNotifications from "./hooks/usePushNotification";
 const App = () => {
   const isLoggedIn = localStorage.getItem("isLoggedIn");
-  // usePushNotifications();
-  usePushNotifications();
   return (
     <BrowserRouter>
       <ErrorBoundary>
