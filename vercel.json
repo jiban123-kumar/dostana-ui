@@ -8,6 +8,5 @@
       "source": "/(.*)",
       "destination": "/index.html"
     }
-  ],
-  "routes": [{ "src": "/firebase-messaging-sw.js", "dest": "/public/firebase-messaging-sw.js" }]
+  ]
 }
