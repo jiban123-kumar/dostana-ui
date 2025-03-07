@@ -5,7 +5,6 @@ import Lottie from "lottie-react";
 import { emptyFeedAnimation } from "../../animation";
 import HomePageToolBar from "../layout/HomePageToolBar";
 import ContentFeed from "../content/ContentFeed";
-import usePushNotifications from "../../utilsFunction/pushNotification";
 
 const Home = () => {
   const [firstPostOpenModal, setFirstPostOpenModal] = useState(false);
@@ -17,8 +16,7 @@ const Home = () => {
     return data.pages.flatMap((page) => page.contents || []);
   }, [data]);
 
-  usePushNotifications();
-
+  s;
   return (
     <Stack alignItems={"center"}>
       <HomePageToolBar firstPostOpenModal={firstPostOpenModal} setFirstPostOpenModal={setFirstPostOpenModal} />

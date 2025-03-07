@@ -1,11 +1,9 @@
-importScripts("https://storage.googleapis.com/workbox-cdn/releases/6.4.1/workbox-sw.js");
-importScripts("https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js");
-importScripts("https://www.gstatic.com/firebasejs/9.0.0/firebase-messaging-compat.js");
+// src/firebase-messaging-sw.js
+/* eslint-disable no-undef */
+import { initializeApp } from "firebase/app";
+import { getMessaging, onBackgroundMessage } from "firebase/messaging/sw";
 
-// Initialize Workbox
-workbox.precaching.precacheAndRoute(self.__WB_MANIFEST);
-
-// Your Firebase configuration
+// Initialize the Firebase app in the service worker using the same config
 const firebaseConfig = {
   apiKey: "AIzaSyD8Qzm03splCGEaKFXn2rrkjbftITU6H9U",
   authDomain: "dostana-452011.firebaseapp.com",
@@ -15,41 +13,17 @@ const firebaseConfig = {
   appId: "1:19932708049:web:0325d4f2bf59f56ae259f0",
 };
 
-// Initialize Firebase
-firebase.initializeApp(firebaseConfig);
-const messaging = firebase.messaging();
+const app = initializeApp(firebaseConfig);
+const messaging = getMessaging(app);
 
-// Background message handler
-messaging.onBackgroundMessage((payload) => {
-  console.log("Received background message:", payload);
-
-  const notificationTitle = payload.notification.title;
+// Handle background messages
+onBackgroundMessage(messaging, (payload) => {
+  console.log("[firebase-messaging-sw.js] Received background message ", payload);
+  const { title, body } = payload.notification;
   const notificationOptions = {
-    body: payload.notification.body,
-    icon: "/companyFaviIcon.png",
-    data: { url: payload.data.url }, // Preserve URL from payload
+    body,
+    icon: "/companyFaviIcon.png", // Ensure this path points to your icon in production
   };
 
-  self.registration.showNotification(notificationTitle, notificationOptions);
+  self.registration.showNotification(title, notificationOptions);
 });
-
-// Click handler for notifications
-self.addEventListener("notificationclick", (event) => {
-  event.notification.close();
-  const urlToOpen = event.notification.data.url || "/home";
-
-  event.waitUntil(
-    clients.matchAll({ type: "window" }).then((windowClients) => {
-      const matchingClient = windowClients.find((client) => client.url === urlToOpen);
-
-      if (matchingClient) {
-        return matchingClient.focus();
-      } else {
-        return clients.openWindow(urlToOpen);
-      }
-    })
-  );
-});
-
-// Workbox runtime caching rules
-workbox.routing.registerRoute(({ request }) => request.destination === "image", new workbox.strategies.CacheFirst());

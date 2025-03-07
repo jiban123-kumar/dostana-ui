@@ -88,7 +88,7 @@ const Message = ({ message, chatId, recipient, userProfile, onView }) => {
 
   const navigate = useNavigate();
 
-  const isMyMessage = message.sender._id.toString() !== recipient._id?.toString();
+  const isMyMessage = message?.sender?.toString() !== recipient._id?.toString();
   const hasOnlyOneImage = message?.media && message?.media.length === 1 && !message.text;
 
   const handleMenuOpen = (event) => {

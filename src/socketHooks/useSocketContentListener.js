@@ -1,7 +1,6 @@
 import { useEffect, useCallback } from "react";
 import { useDispatch } from "react-redux";
 import { useQueryClient } from "@tanstack/react-query";
-import { showNotistackAlert } from "../reduxSlices/notistackAlertSlice";
 
 export const useSocketContentListener = (socket, userProfile) => {
   const dispatch = useDispatch();

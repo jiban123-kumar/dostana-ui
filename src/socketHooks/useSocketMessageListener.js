@@ -6,6 +6,26 @@ import { showNotistackAlert } from "../reduxSlices/notistackAlertSlice";
 import { useParams } from "react-router-dom";
 import { useGetNotificationSetting } from "../hooks/notification/notificationSetting";
 
+// Common updater function to update a chat in both "chats" and "archived-chats" caches.
+const updateChatInCache = (queryClient, chatId, updater) => {
+  const keys = ["chats", "archived-chats"];
+  keys.forEach((key) => {
+    queryClient.setQueryData([key], (oldData) => {
+      if (!oldData || !oldData.pages) return oldData;
+      return {
+        ...oldData,
+        pages: oldData.pages.map((page) => {
+          if (!page.chats) return page;
+          return {
+            ...page,
+            chats: page.chats.map((chat) => (chat._id === chatId ? updater(chat) : chat)),
+          };
+        }),
+      };
+    });
+  });
+};
+
 export const useSocketMessageListener = (socket) => {
   const dispatch = useDispatch();
   const { userId } = useParams();
@@ -23,7 +43,6 @@ export const useSocketMessageListener = (socket) => {
 
       // Dispatch a notification if the sender is not the current user and notifications are enabled.
       if (userId !== senderId && bulletNotificationEnabled) {
-        console.log("called");
         dispatch(
           showNotistackAlert({
             message: "sent you a message",
@@ -67,19 +86,11 @@ export const useSocketMessageListener = (socket) => {
       // Fetch and update the last message for this chat after deletion.
       try {
         const lastMessageResponse = await getLastMessageByChatId(chatId);
-        queryClient.setQueryData(["chats"], (oldData) => {
-          if (!oldData || !oldData.pages) return oldData;
-          return {
-            ...oldData,
-            pages: oldData.pages.map((page) => {
-              if (!page.chats) return page;
-              return {
-                ...page,
-                chats: page.chats.map((chat) => (chat._id === chatId ? { ...chat, lastMessage: lastMessageResponse.lastMessage } : chat)),
-              };
-            }),
-          };
-        });
+        // Use the common updater to update both the sender and receiver caches.
+        updateChatInCache(queryClient, chatId, (chat) => ({
+          ...chat,
+          lastMessage: lastMessageResponse.lastMessage,
+        }));
       } catch (error) {
         console.error("Error updating last message after deletion:", error);
       }

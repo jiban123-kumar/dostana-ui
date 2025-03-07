@@ -192,6 +192,7 @@ export const useDeleteMessage = () => {
       removeMessageFromChat(queryClient, recipientId, messageId);
       try {
         const lastMessageResponse = await getLastMessageByChatId(chatId);
+        console.log(lastMessageResponse);
         updateChatInCache(queryClient, chatId, (chat) => ({
           ...chat,
           lastMessage: lastMessageResponse.lastMessage,
