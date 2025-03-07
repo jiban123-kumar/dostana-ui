@@ -36,10 +36,10 @@ export default defineConfig({
           },
         ],
       },
-      // injectManifest: {
-      //   swSrc: "src/sw.js", // custom SW file
-      //   swDest: "sw.js", // output location at the root
-      // },
+      injectManifest: {
+        swSrc: "src/sw.js", // custom SW file
+        swDest: "sw.js", // output location at the root
+      },
       workbox: {
         maximumFileSizeToCacheInBytes: 10 * 1024 * 1024, // Increase to 10 MiB if needed
       },
