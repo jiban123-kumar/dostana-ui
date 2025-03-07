@@ -8,7 +8,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: "autoUpdate",
-      injectRegister: "auto",
+      injectRegister: null,
       includeAssets: ["favicon.ico", "companyFavicon.png", "src/assets/*.png", "src/assets/sounds/*.mp3", "src/animation/offline.json"],
       manifest: {
         name: "Dostana - Making Friends Together",
