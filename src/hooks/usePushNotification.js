@@ -1,16 +1,19 @@
-// src/hooks/usePushNotifications.js
 import { useEffect } from "react";
+import axios from "axios";
 import { messaging, requestForToken, onMessage } from "../firebase";
+import axiosInstance from "../configs/axiosInstance";
 
 const usePushNotifications = () => {
   useEffect(() => {
-    // Function to request permission and fetch the FCM token
     const initFCM = async () => {
       try {
         const token = await requestForToken();
         if (token) {
-          // Optionally, send the token to your backend server here
           console.log("Successfully obtained FCM token:", token);
+
+          // Send the token to the backend for storage
+          await axiosInstance.post("notification/push-subscription", { subscription: token });
+          console.log("FCM token sent to backend.");
         }
       } catch (error) {
         console.error("Error during FCM initialization:", error);
@@ -18,18 +21,6 @@ const usePushNotifications = () => {
     };
 
     initFCM();
-
-    // Listen for foreground messages
-    const unsubscribe = onMessage(messaging, (payload) => {
-      console.log("Foreground message received:", payload);
-      // Optionally, display a notification using the browser Notification API
-      new Notification(payload.notification.title, {
-        body: payload.notification.body,
-        icon: "/companyFaviIcon.png",
-      });
-    });
-
-    return () => unsubscribe();
   }, []);
 
   return null;

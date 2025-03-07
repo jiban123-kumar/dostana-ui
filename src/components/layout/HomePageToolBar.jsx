@@ -136,7 +136,7 @@ const HomePageToolBar = ({ setFirstPostOpenModal, firstPostOpenModal }) => {
               <Avatar src={galleryIcon} alt="Create Post" />
             </IconButton>
           </Tooltip>
-          <Tooltip title="Create Tweet" slotProps={TOOLTIP_OFFSET}>
+          <Tooltip title="Your Thought" slotProps={TOOLTIP_OFFSET}>
             <IconButton sx={{ height: { xs: "2.8rem", sm: "3.2rem" }, width: { xs: "2.8rem", sm: "3.2rem" } }} onClick={() => setOpenThoughtModal(true)}>
               <Avatar src={thinkingIcon} alt="Your Thought" />
             </IconButton>

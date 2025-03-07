@@ -1,4 +1,3 @@
-// src/firebase-messaging-sw.js
 /* eslint-disable no-undef */
 import { initializeApp } from "firebase/app";
 import { getMessaging, onBackgroundMessage } from "firebase/messaging/sw";
@@ -20,10 +19,24 @@ const messaging = getMessaging(app);
 onBackgroundMessage(messaging, (payload) => {
   console.log("[firebase-messaging-sw.js] Received background message ", payload);
   const { title, body } = payload.notification;
+  // Use payload.data (which includes url) for the click action.
   const notificationOptions = {
     body,
-    icon: "/companyFaviIcon.png", // Ensure this path points to your icon in production
+    icon: "/companyFaviIcon.png",
+    data: {
+      url: payload.data?.url, // The dynamic URL from your backend
+    },
   };
 
   self.registration.showNotification(title, notificationOptions);
+});
+
+// Listen to notification click events
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  // Retrieve the URL from the notification's data.
+  const clickUrl = event.notification.data?.url;
+  if (clickUrl) {
+    event.waitUntil(clients.openWindow(clickUrl));
+  }
 });
