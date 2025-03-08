@@ -141,6 +141,7 @@ const ChatDialog = ({ open, handleClose }) => {
   const performSendMessage = (formData, clientId, pendingMsgUpdater) => {
     sendMessage(formData, {
       onSuccess: (data) => {
+        console.log(data);
         pendingMsgUpdater("sent");
         setTimeout(() => {
           setPendingMessages((prev) => prev.filter((msg) => msg.clientId !== data.clientId));
