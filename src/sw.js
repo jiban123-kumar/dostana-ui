@@ -3,6 +3,7 @@
 self.addEventListener("push", (event) => {
   let data = {};
   if (event.data) {
+    console.log(event.data);
     try {
       data = event.data.json();
     } catch (e) {
