@@ -155,7 +155,7 @@ const ChatDialog = ({ open, handleClose }) => {
 
   // This function is passed to MessageInput to trigger sending
   const handleSendMessage = (messageText, attachedImages) => {
-    const clientId = Date.now().toString();
+    const clientId = uuidv4();
     const mediaPreviews = attachedImages.map((file) => URL.createObjectURL(file));
     const newPendingMessage = {
       clientId,
