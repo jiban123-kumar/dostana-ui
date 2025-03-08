@@ -18,6 +18,7 @@ import { chatSecondaryAnimation, chatPrimaryAnimation } from "../../animation";
 import MessageInput from "./MessageInput"; // New input component
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { messageSound } from "../../assets";
+import { v4 as uuidv4 } from "uuid";
 
 const StyledBadge = styled(Badge)(({ theme }) => ({
   "& .MuiBadge-badge": {
@@ -139,10 +140,10 @@ const ChatDialog = ({ open, handleClose }) => {
 
   const performSendMessage = (formData, clientId, pendingMsgUpdater) => {
     sendMessage(formData, {
-      onSuccess: () => {
+      onSuccess: (data) => {
         pendingMsgUpdater("sent");
         setTimeout(() => {
-          setPendingMessages((prev) => prev.filter((msg) => msg.clientId !== clientId));
+          setPendingMessages((prev) => prev.filter((msg) => msg.clientId !== data.clientId));
         }, 2000);
       },
       onError: () => {
@@ -169,6 +170,7 @@ const ChatDialog = ({ open, handleClose }) => {
     const formData = new FormData();
     formData.append("text", messageText);
     formData.append("recipientId", userId);
+    formData.append("clientId", clientId);
     attachedImages.forEach((file) => formData.append("media", file));
 
     performSendMessage(formData, clientId, (newStatus) => {
@@ -180,6 +182,7 @@ const ChatDialog = ({ open, handleClose }) => {
     const formData = new FormData();
     formData.append("text", message.text);
     formData.append("recipientId", userId);
+    formData.append("clientId", message.clientId);
     message.mediaFiles.forEach((file) => formData.append("media", file));
 
     setPendingMessages((prev) => prev.map((msg) => (msg.clientId === message.clientId ? { ...msg, status: "sending" } : msg)));
