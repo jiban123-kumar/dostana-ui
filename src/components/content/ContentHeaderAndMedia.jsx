@@ -1,16 +1,16 @@
 /* eslint-disable react/prop-types */
 import React from "react";
-import { Avatar, Box, IconButton, Stack, Tooltip, Typography, useMediaQuery } from "@mui/material";
+import { Box, Stack, Typography } from "@mui/material";
 
 const ContentHeaderAndMedia = ({ children, content }) => {
-  const { mediaUrl, mediaType, caption, type } = content || {};
+  const { media, caption, type } = content || {};
 
   return (
     <Box sx={{ overflowY: "auto", maxHeight: "calc(100vh - 4rem)" }}>
       {type === "thought" ? (
         // For Tweets: media (attachment) is rendered first then caption.
         <>
-          {mediaUrl.length > 0 && (
+          {media.length > 0 && (
             <Stack
               direction="row"
               gap={2}
@@ -22,7 +22,7 @@ const ContentHeaderAndMedia = ({ children, content }) => {
                 mt: 1,
               }}
             >
-              {mediaUrl.map((url, index) => (
+              {media.map(({ url, type: mediaType }, index) => (
                 <Box
                   key={index}
                   component={mediaType === "image" ? "img" : "video"}
@@ -62,7 +62,7 @@ const ContentHeaderAndMedia = ({ children, content }) => {
               {caption}
             </Typography>
           )}
-          {mediaUrl.length > 0 && (
+          {media.length > 0 && (
             <Stack
               sx={{
                 height: { md: "26rem", sm: "18rem", xs: "14rem" }, // fixed container height
@@ -74,13 +74,13 @@ const ContentHeaderAndMedia = ({ children, content }) => {
                 gap: "0.5rem",
               }}
             >
-              {mediaUrl.map((url, index) => (
+              {media.map(({ url, type: mediaType }, index) => (
                 <Box
                   key={index}
                   component={mediaType === "video" ? "video" : "img"}
                   src={url}
                   height="100%"
-                  width={mediaUrl.length > 1 ? "calc(100% / 2)" : "100%"}
+                  width={media.length > 1 ? "calc(100% / 2)" : "100%"}
                   sx={{ objectFit: "contain", bgcolor: "#000" }}
                   controls={mediaType === "video"}
                 />

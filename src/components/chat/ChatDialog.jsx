@@ -1,11 +1,12 @@
 /* eslint-disable react/prop-types */
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
-import { Avatar, Box, Dialog, DialogContent, Stack, Typography, CircularProgress, SpeedDial, SpeedDialAction, styled, Badge, Button, useMediaQuery, IconButton } from "@mui/material";
+import { Avatar, Box, Dialog, DialogContent, Stack, Typography, CircularProgress, SpeedDial, SpeedDialAction, styled, Badge, Button, useMediaQuery, IconButton, Tooltip } from "@mui/material";
 import { Archive as ArchiveIcon, Unarchive as UnarchiveIcon, Delete as DeleteIcon, MoreVert as MoreVertIcon } from "@mui/icons-material";
 import { AnimatePresence } from "framer-motion";
 import { formatDate } from "../../utilsFunction/dateFn";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import Message from "./Message";
+import MessageInput from "./MessageInput";
 import SendingMessages from "./SendingMessages";
 import Lottie from "lottie-react";
 import groupedMessagesByDate from "../../utilsFunction/groupedMessagesByDate";
@@ -15,7 +16,6 @@ import { useGetFriendOnlineStatus } from "../../hooks/friends/friends";
 import { useMarkMessageAsReadByChatId, useSendMessage } from "../../hooks/chat/message";
 import { useToggleArchive } from "../../hooks/chat/chatSetting";
 import { chatSecondaryAnimation, chatPrimaryAnimation } from "../../animation";
-import MessageInput from "./MessageInput"; // New input component
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { messageSound } from "../../assets";
 import { v4 as uuidv4 } from "uuid";
@@ -48,10 +48,8 @@ const ChatDialog = ({ open, handleClose }) => {
   const { userId } = useParams();
   const navigate = useNavigate();
   const { data: userProfile } = useUserProfile();
-
   const inputRef = useRef(null);
   const [searchParams] = useSearchParams();
-
   const name = searchParams.get("name");
   const profileImage = searchParams.get("profileImage");
   const chatId = searchParams.get("chatId");
@@ -59,21 +57,18 @@ const ChatDialog = ({ open, handleClose }) => {
   // ─── FETCH DATA (CONVERSATION & USER STATUS) ───────────────────────────
   const { data: chatData, isLoading: isLoadingConversation, fetchNextPage, hasNextPage, isFetchingNextPage } = useGetChatByUserId(userId);
   const { mutate: markMessagesAsReadByChatId } = useMarkMessageAsReadByChatId();
-
   const isBelow600 = useMediaQuery("(max-width:600px)");
 
-  // Using optional chaining with an additional check for pages length and participants length
+  // Determine if chat is archived
   const isArchived = useMemo(() => {
     return chatData?.pages?.length > 0 ? chatData.pages[0]?.archived ?? false : false;
   }, [chatData]);
 
   const viewedMessageIdsRef = useRef(new Set());
-
   const handleMessageViewed = useCallback((messageId) => {
     viewedMessageIdsRef.current.add(messageId);
   }, []);
 
-  // Optionally, capture the chatId at mount time safely
   useEffect(() => {
     return () => {
       const viewedIds = Array.from(viewedMessageIdsRef.current);
@@ -83,9 +78,7 @@ const ChatDialog = ({ open, handleClose }) => {
     };
   }, [chatId, markMessagesAsReadByChatId]);
 
-  // Flatten messages from infinite query (oldest messages at the top)
   const allPages = chatData?.pages || [];
-  // Added condition to check for participants array length
   const recipient = allPages.length > 0 && allPages[0]?.participants?.length > 0 ? allPages[0].participants[0] : null;
 
   const messages = useMemo(() => {
@@ -93,67 +86,39 @@ const ChatDialog = ({ open, handleClose }) => {
     return pages
       .slice()
       .reverse()
-      .flatMap((page) => page.messages || []); // Ensure page.messages is at least an empty array
+      .flatMap((page) => page.messages || []);
   }, [chatData]);
 
   const { data: statusData } = useGetFriendOnlineStatus({ userId, mode: "chats" });
 
-  // ─── LOCAL STATE ──────────────────────────────────────────────────────
+  // ─── PENDING MESSAGES STATE AND HELPER FUNCTIONS ─────────────────────────────
   const [pendingMessages, setPendingMessages] = useState([]);
 
-  // ─── REFS ──────────────────────────────────────────────────────────────
-  const messagesEndRef = useRef(null);
-  const messagesContainerRef = useRef(null);
+  const addPendingMessage = (message) => setPendingMessages((prev) => [...prev, message]);
 
-  // ─── INFINITE SCROLL HANDLER ──────────────────────────────────────────────
-  const handleScroll = () => {
-    if (messagesContainerRef.current && messagesContainerRef.current.scrollTop === 0) {
-      if (hasNextPage && !isFetchingNextPage) {
-        fetchNextPage();
-      }
-    }
+  const updatePendingMessage = (clientId, status) => {
+    setPendingMessages((prev) => prev.map((msg) => (msg.clientId === clientId ? { ...msg, status } : msg)));
   };
 
-  // ─── MUTATION HOOKS ─────────────────────────────────────────────────────
-  const { mutate: sendMessage } = useSendMessage();
-  const { mutate: toggleArchive, isPending: isTogglingArchive } = useToggleArchive();
-  const { mutate: deleteConversation, isPending: isDeleting } = useDeleteChat();
-
-  // Track previous messages length for scrolling condition
-  const prevMessagesLengthRef = useRef(0);
-
-  useEffect(() => {
-    const sound = new Audio(messageSound);
-    // If it's the initial mount and there are messages, scroll into view.
-    if (prevMessagesLengthRef.current === 0 && messages.length > 0) {
-      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    }
-    // If exactly one new message has been added, scroll into view.
-    else if (prevMessagesLengthRef.current + 1 === messages.length) {
-      sound.play().catch((error) => console.error("Error playing sound:", error));
-      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    }
-    prevMessagesLengthRef.current = messages.length;
-  }, [messages]);
-
-  // ─── HANDLERS ──────────────────────────────────────────────────────────
-
-  const performSendMessage = (formData, clientId, pendingMsgUpdater) => {
-    sendMessage(formData, {
-      onSuccess: (data) => {
-        console.log(data);
-        pendingMsgUpdater("sent");
-        setTimeout(() => {
-          setPendingMessages((prev) => prev.filter((msg) => msg.clientId !== data.clientId));
-        }, 2000);
-      },
-      onError: () => {
-        pendingMsgUpdater("failed");
-      },
-    });
+  const removePendingMessage = (clientId) => {
+    setPendingMessages((prev) => prev.filter((msg) => msg.clientId !== clientId));
   };
 
-  // This function is passed to MessageInput to trigger sending
+  // ─── SENDING MESSAGE HANDLERS ─────────────────────────────────────────────
+  const { mutate: sendMessage } = useSendMessage((clientId, status) => {
+    if (status === "sent") {
+      updatePendingMessage(clientId, "sent");
+      setTimeout(() => removePendingMessage(clientId), 2000);
+    } else if (status === "failed") {
+      updatePendingMessage(clientId, "failed");
+    }
+  });
+
+  const performSendMessage = (formData) => {
+    sendMessage(formData);
+  };
+
+  // Triggered by the MessageInput component
   const handleSendMessage = (messageText, attachedImages) => {
     const clientId = uuidv4();
     const mediaPreviews = attachedImages.map((file) => URL.createObjectURL(file));
@@ -166,7 +131,7 @@ const ChatDialog = ({ open, handleClose }) => {
       sentAt: new Date(),
     };
 
-    setPendingMessages((prev) => [...prev, newPendingMessage]);
+    addPendingMessage(newPendingMessage);
 
     const formData = new FormData();
     formData.append("text", messageText);
@@ -174,28 +139,29 @@ const ChatDialog = ({ open, handleClose }) => {
     formData.append("clientId", clientId);
     attachedImages.forEach((file) => formData.append("media", file));
 
-    performSendMessage(formData, clientId, (newStatus) => {
-      setPendingMessages((prev) => prev.map((msg) => (msg.clientId === clientId ? { ...msg, status: newStatus } : msg)));
-    });
+    performSendMessage(formData, clientId);
   };
 
   const handleRetry = (message) => {
+    const { clientId, text, mediaFiles } = message;
     const formData = new FormData();
-    formData.append("text", message.text);
+    formData.append("text", text);
     formData.append("recipientId", userId);
-    formData.append("clientId", message.clientId);
-    message.mediaFiles.forEach((file) => formData.append("media", file));
+    formData.append("clientId", clientId);
+    mediaFiles.forEach((file) => formData.append("media", file));
 
-    setPendingMessages((prev) => prev.map((msg) => (msg.clientId === message.clientId ? { ...msg, status: "sending" } : msg)));
-
-    performSendMessage(formData, message.clientId, (newStatus) => {
-      setPendingMessages((prev) => prev.map((msg) => (msg.clientId === message.clientId ? { ...msg, status: newStatus } : msg)));
-    });
+    // Reset status to sending and try again
+    updatePendingMessage(clientId, "sending");
+    performSendMessage(formData, clientId);
   };
 
   const handleRemovePending = (message) => {
-    setPendingMessages((prev) => prev.filter((msg) => msg.clientId !== message.clientId));
+    removePendingMessage(message.clientId);
   };
+
+  // ─── OTHER MUTATION HANDLERS ─────────────────────────────────────────────
+  const { mutate: toggleArchive, isPending: isTogglingArchive } = useToggleArchive();
+  const { mutate: deleteConversation, isPending: isDeleting } = useDeleteChat();
 
   const handleArchiveToggle = () => {
     if (!chatId) return;
@@ -217,11 +183,32 @@ const ChatDialog = ({ open, handleClose }) => {
   };
 
   const handleInputFocus = () => {
-    console.log("Input focused");
     inputRef.current?.focus();
   };
 
   const truncateName = (name) => (name.length > 20 || isBelow600 ? name.substring(0, 15) + "..." : name);
+
+  // ─── SCROLL HANDLER ─────────────────────────────────────────────
+  const messagesEndRef = useRef(null);
+  const messagesContainerRef = useRef(null);
+  const handleScroll = () => {
+    if (messagesContainerRef.current && messagesContainerRef.current.scrollTop === 0 && hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  };
+
+  // Sound notification and scroll to bottom when a new message is added
+  const prevMessagesLengthRef = useRef(0);
+  useEffect(() => {
+    const sound = new Audio(messageSound);
+    if (prevMessagesLengthRef.current === 0 && messages.length > 0) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    } else if (prevMessagesLengthRef.current + 1 === messages.length) {
+      sound.play().catch((error) => console.error("Error playing sound:", error));
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+    prevMessagesLengthRef.current = messages.length;
+  }, [messages]);
 
   return (
     <Dialog open={Boolean(userId)} maxWidth="sm" fullWidth onClose={() => navigate(-1)} fullScreen={isBelow600}>
@@ -245,13 +232,26 @@ const ChatDialog = ({ open, handleClose }) => {
         </AnimatePresence>
       </Box>
 
-      <DialogContent sx={{ display: "flex", flexDirection: "column", height: { md: "70vh", xs: "80vh" }, p: { xs: ".4rem", sm: "1rem" } }}>
+      <DialogContent
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          height: { md: "70vh", xs: "80vh" },
+          p: { xs: ".4rem", sm: "1rem" },
+        }}
+      >
         {/* Header with user info and actions */}
         <Stack
           direction="row"
           alignItems="center"
           spacing={2}
-          sx={{ position: "relative", borderRadius: "1rem", boxShadow: 3, mb: 2, py: { xs: ".4rem", sm: ".6rem" } }}
+          sx={{
+            position: "relative",
+            borderRadius: "1rem",
+            boxShadow: 3,
+            mb: 2,
+            py: { xs: ".4rem", sm: ".6rem" },
+          }}
           justifyContent="space-between"
         >
           <Stack direction="row" spacing={isBelow600 ? 0 : 2} alignItems="center">
@@ -267,7 +267,14 @@ const ChatDialog = ({ open, handleClose }) => {
                     <Avatar src={profileImage || recipient?.profileImage} sx={{ height: "3rem", width: "3rem", boxShadow: 3 }} />
                   </StyledBadge>
                 ) : (
-                  <Avatar src={recipient?.profileImage} sx={{ height: { xs: "2.5rem", sm: "3rem" }, width: { xs: "2.5rem", sm: "3rem" }, boxShadow: 3 }} />
+                  <Avatar
+                    src={recipient?.profileImage}
+                    sx={{
+                      height: { xs: "2.5rem", sm: "3rem" },
+                      width: { xs: "2.5rem", sm: "3rem" },
+                      boxShadow: 3,
+                    }}
+                  />
                 )}
               </IconButton>
               <Stack>
@@ -308,28 +315,73 @@ const ChatDialog = ({ open, handleClose }) => {
         </Stack>
 
         {/* Chat messages */}
-        <Box ref={messagesContainerRef} onScroll={handleScroll} sx={{ flex: 1, overflowY: "auto", mb: 2, p: { xs: 0, sm: 1 }, overflowX: "hidden" }}>
+        <Box
+          ref={messagesContainerRef}
+          onScroll={handleScroll}
+          sx={{
+            flex: 1,
+            overflowY: "auto",
+            mb: 2,
+            p: { xs: 0, sm: 1 },
+            overflowX: "hidden",
+          }}
+        >
           {isLoadingConversation ? (
-            <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%" }}>
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                height: "100%",
+              }}
+            >
               <Lottie animationData={chatPrimaryAnimation} style={{ height: "60%", width: "60%" }} />
               <Typography variant="caption">getting messages</Typography>
             </Box>
           ) : Object.keys(groupedMessagesByDate(messages) || {}).length === 0 ? (
             <Stack alignItems="center" justifyContent="center" height="100%" spacing={2} sx={{ textAlign: "center" }}>
-              <Stack sx={{ width: { md: "15rem", xs: "10rem" }, height: { md: "15rem", xs: "10rem" } }}>
+              <Stack
+                sx={{
+                  width: { md: "15rem", xs: "10rem" },
+                  height: { md: "15rem", xs: "10rem" },
+                }}
+              >
                 <Lottie animationData={chatSecondaryAnimation} style={{ height: "100%", width: "100%" }} />
               </Stack>
-              <Typography variant="h6" sx={{ fontWeight: "bold", fontSize: { md: ".9rem", xs: ".8rem" }, transform: "translateY(-2rem)" }}>
+              <Typography
+                variant="h6"
+                sx={{
+                  fontWeight: "bold",
+                  fontSize: { md: ".9rem", xs: ".8rem" },
+                  transform: "translateY(-2rem)",
+                }}
+              >
                 No conversation yet
               </Typography>
-              <Button variant="contained" onClick={handleInputFocus} sx={{ fontSize: { transform: "translateY(-2rem)", fontWeight: "bold" } }} size={"small"}>
+              <Button
+                variant="contained"
+                onClick={handleInputFocus}
+                sx={{
+                  fontSize: { transform: "translateY(-2rem)", fontWeight: "bold" },
+                }}
+                size={"small"}
+              >
                 Start Messaging
               </Button>
             </Stack>
           ) : (
             <>
               {isFetchingNextPage && (
-                <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", my: 2 }}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    my: 2,
+                  }}
+                >
                   <Typography variant="caption">getting messages</Typography>
                 </Box>
               )}
@@ -352,7 +404,7 @@ const ChatDialog = ({ open, handleClose }) => {
                     {dateKey}
                   </Typography>
                   <AnimatePresence>
-                    {messagesForDate.map((message, index) => (
+                    {messagesForDate.map((message) => (
                       <Message key={message._id} message={message} chatId={chatId} userProfile={userProfile} recipient={recipient} onView={handleMessageViewed} />
                     ))}
                   </AnimatePresence>
@@ -363,7 +415,7 @@ const ChatDialog = ({ open, handleClose }) => {
           )}
         </Box>
 
-        {/* Message input area using the new MessageInput component */}
+        {/* Message input area */}
         <MessageInput onSend={handleSendMessage} inputRef={inputRef} />
       </DialogContent>
     </Dialog>

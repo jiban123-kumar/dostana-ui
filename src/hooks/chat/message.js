@@ -140,33 +140,40 @@ export const useGetLastMessageByChatId = (chatId) => {
 };
 
 // Hook: Send a message
-export const useSendMessage = () => {
+export const useSendMessage = (onPendingMessageStatusChange) => {
   const queryClient = useQueryClient();
   const socket = useContext(SocketContext);
   const { data: userProfile } = useUserProfile();
 
   return useMutation({
     mutationFn: sendMessageApi,
-    onSuccess: (data) => {
+    onSuccess: (data, variables) => {
+      // Extract clientId from the FormData instance
+      const clientId = variables?.get("clientId");
+      if (clientId && typeof onPendingMessageStatusChange === "function") {
+        onPendingMessageStatusChange(clientId, "sent");
+      }
+
       const sender = {
         profileImage: userProfile?.profileImage,
         name: `${userProfile?.firstName} ${userProfile?.lastName}`,
         _id: userProfile?._id,
       };
+
       const { recipientId, newMessage, chatId } = data;
       socket.emit("newMessage", { targetUserId: recipientId, newMessage, sender, chatId });
-
-      // Add new message to the chat view cache for "chats"
       addMessageToChat(queryClient, recipientId, newMessage);
-
-      // Update the chat's lastMessage in both caches using common updater
       updateChatInCache(queryClient, chatId, (chat) => ({
         ...chat,
         lastMessage: newMessage,
       }));
     },
-    onError: (err) => {
-      console.error(err);
+    onError: (error, variables) => {
+      const clientId = variables?.get("clientId");
+      if (clientId && typeof onPendingMessageStatusChange === "function") {
+        onPendingMessageStatusChange(clientId, "failed");
+      }
+      console.error("Error sending message:", error);
     },
   });
 };

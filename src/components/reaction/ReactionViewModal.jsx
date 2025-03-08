@@ -5,9 +5,7 @@ import { ThumbUpAlt } from "@mui/icons-material";
 import Lottie from "lottie-react";
 import ReactionViewModalSkeleton from "../skeletons/ReactionViewModalSkeleton";
 import reactionAnimations from "../../constants/reactionAnimationList";
-import getReactedByText from "../../utilsFunction/getReactedByText";
 import ContentHeaderAndMedia from "../content/ContentHeaderAndMedia";
-import { useUserProfile } from "../../hooks/userProfile/userProfile";
 import { useGetReactionsForContent } from "../../hooks/content/contentReaction";
 import { useNavigate } from "react-router-dom";
 import { AvatarHeader } from "../content/AvatarHeader";
@@ -23,11 +21,9 @@ const ReactionViewModal = ({ onClose, open, content }) => {
   const { data: reactionsData, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = useGetReactionsForContent({ contentId });
 
   // Get the logged-in user's profile
-  const { data: userProfile } = useUserProfile();
 
   // Flatten the paginated data
   const reactionsList = reactionsData?.pages?.flatMap((page) => page.reactionDetails.reactions) || [];
-  const reactionDetails = reactionsData?.pages?.flatMap((page) => page.reactionDetails) || [];
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth={isSmallScreen ? "xs" : "sm"} fullWidth fullScreen={isBelow600}>

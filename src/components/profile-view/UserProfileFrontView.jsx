@@ -61,9 +61,8 @@ const UserProfileFrontView = ({ userProfile }) => {
     if (!img) return;
     dispatch(
       openMediaDialog({
-        type: "image",
-        mediaSources: [img],
         showDownload: true,
+        mediaSources: [{ url: img, type: "image" }],
       })
     );
   };

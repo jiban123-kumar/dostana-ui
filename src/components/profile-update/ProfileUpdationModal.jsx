@@ -7,6 +7,7 @@ import { showAlert } from "../../reduxSlices/alertSlice";
 import { useDispatch } from "react-redux";
 import { useUserProfile } from "../../hooks/userProfile/userProfile";
 import { useUpdateProfile } from "../../hooks/userProfile/userProfileUpdation";
+import { openMediaDialog } from "../../reduxSlices/mediaPreviewSlice";
 
 // A styled input to hide the default file input
 const HiddenInput = styled("input")({
@@ -140,6 +141,11 @@ const ProfileUpdationModal = ({ open, handleClose }) => {
     newFormData.append(type, true);
 
     updateProfile(newFormData);
+  };
+
+  const handleImagePreview = (url) => {
+    if (!url) return;
+    dispatch(openMediaDialog({ mediaSources: [{ url, type: "image" }], showDownload: true }));
   };
 
   // Field validation on blur
@@ -313,7 +319,7 @@ const ProfileUpdationModal = ({ open, handleClose }) => {
               </Button>
             </Stack>
             <Stack alignItems="center">
-              <Tooltip title={(userProfile?.profileImage || profilePreview) && "View Profile Picture"}>
+              <Tooltip title={(userProfile?.profileImage || profilePreview) && "View Profile Picture"} onClick={() => handleImagePreview(profilePreview || userProfile?.profileImage)}>
                 <Badge
                   overlap="circular"
                   anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
@@ -327,7 +333,9 @@ const ProfileUpdationModal = ({ open, handleClose }) => {
                           boxShadow: "0px 2px 10px rgba(0, 0, 0, 0.2)",
                           "&:hover": { bgcolor: "#fff" },
                         }}
-                        onClick={() => profileImageRef.current && profileImageRef.current.click()}
+                        onClick={() => {
+                          profileImageRef.current && profileImageRef.current.click();
+                        }}
                       >
                         <AddIcon />
                         <HiddenInput type="file" ref={profileImageRef} onChange={handleProfileImageChange} accept="image/*" />
@@ -361,7 +369,7 @@ const ProfileUpdationModal = ({ open, handleClose }) => {
             </Stack>
             <Stack position="relative" alignItems="center" justifyContent="center">
               {coverPreview || userProfile?.coverImage ? (
-                <Tooltip title="View Cover Image">
+                <Tooltip title={coverPreview || (userProfile?.coverImage && "View Cover Image")} onClick={() => handleImagePreview(coverPreview || userProfile?.coverImage)}>
                   <img
                     src={coverPreview || userProfile?.coverImage}
                     alt="Cover Preview"

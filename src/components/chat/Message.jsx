@@ -147,12 +147,10 @@ const Message = ({ message, chatId, recipient, userProfile, onView }) => {
   };
 
   const onMediaClick = () => {
+    console.log(message);
     dispatch(
       openMediaDialog({
         mediaSources: message.media,
-        // If you have a separate mediaType stored, you can pass it along;
-        // otherwise, the modal can decide based on the media objects.
-        mediaType: message.mediaType,
         showDownload: true,
       })
     );
@@ -199,7 +197,7 @@ const Message = ({ message, chatId, recipient, userProfile, onView }) => {
             color: isMyMessage ? "white" : "#1f2937",
             p: hasOnlyOneImage ? 0 : 2,
             pb: hasOnlyOneImage ? 0 : 1.5,
-            pr: hasOnlyOneImage ? 0 : "2.2rem",
+            pr: hasOnlyOneImage ? 0 : "1.8rem",
             border: !isMyMessage && !hasOnlyOneImage ? "1px solid #e5e7eb" : "none",
             display: "flex",
             flexDirection: "column",
@@ -275,7 +273,7 @@ const Message = ({ message, chatId, recipient, userProfile, onView }) => {
                 sx={{
                   position: "absolute",
                   top: 8,
-                  right: 8,
+                  right: 4,
                   color: isMyMessage ? "rgba(255,255,255,0.8)" : "rgba(0,0,0,0.6)",
                 }}
               >

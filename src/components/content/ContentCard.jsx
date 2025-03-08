@@ -41,24 +41,24 @@ const ContentCard = ({ content, userProfile, handleClose }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [isDownloading, setIsDownloading] = useState(false);
-  const [showReactedAnimation, setShowReactedAnimation] = useState(true);
   // State for toggling full caption display
   const [expandedCaption, setExpandedCaption] = useState(false);
-  console.log(showReactedAnimation);
 
   // Destructure common properties from content object.
   // Note: reactionDetails is now attached directly to the content.
   const {
-    mediaUrl = [],
+    media = [], // New media array: each item has { url, type }
     caption = "",
     user: contentOwner = {},
     createdAt = "",
     _id: contentId,
-    mediaType = "image",
     type = "post", // defaults to "post" if not provided
     isSavedByUser,
     reactionDetails,
   } = content || {};
+  console.log(content);
+
+  console.log(media);
 
   const isSmallScreen = useMediaQuery("(max-width:480px)");
   const isBelow600 = useMediaQuery("(max-width:600px)");
@@ -83,9 +83,9 @@ const ContentCard = ({ content, userProfile, handleClose }) => {
   const [openCommentViewModal, setOpenCommentViewModal] = useState(false);
   const [openShareModal, setOpenShareModal] = useState(false);
 
-  // Preview media (open media dialog).
+  // Preview media (open media dialog) using the new media structure.
   const previewMedia = () => {
-    dispatch(openMediaDialog({ mediaSources: mediaUrl, mediaType, showDownload: true, onClose }));
+    dispatch(openMediaDialog({ mediaSources: media, showDownload: true }));
   };
 
   // Navigate to the content owner's profile.
@@ -102,9 +102,9 @@ const ContentCard = ({ content, userProfile, handleClose }) => {
     try {
       setIsDownloading(true);
       await Promise.all(
-        mediaUrl.map(async (url) => {
-          const filename = url.split("/").pop();
-          FileSaver.saveAs(url, filename);
+        media.map(async (item) => {
+          const filename = item.url.split("/").pop();
+          FileSaver.saveAs(item.url, filename);
         })
       );
       console.log("Media downloaded successfully");
@@ -126,13 +126,14 @@ const ContentCard = ({ content, userProfile, handleClose }) => {
   const handleSaveOrUnsave = () => {
     toggleSaveContent(contentId);
   };
+
   const handleOpenReactionViewModal = async () => {
     setOpenReactionViewModal(true);
   };
 
   // Render the media section based on content type.
   const renderMediaSection = () => {
-    if (mediaUrl.length === 0) {
+    if (media.length === 0) {
       return <Stack sx={{ height: "100%", width: "100%", bgcolor: "#000" }} />;
     }
 
@@ -150,17 +151,17 @@ const ContentCard = ({ content, userProfile, handleClose }) => {
             gap: "0.5rem",
           }}
         >
-          {mediaUrl.map((url, index) => (
+          {media.map((item, index) => (
             <Box
               key={index}
-              component={mediaType === "video" ? "video" : "img"}
-              src={url}
+              component={item.type === "video" ? "video" : "img"}
+              src={item.url}
               height="100%"
-              width={mediaUrl.length > 1 ? "calc(100% / 2)" : "100%"}
+              width={media.length > 1 ? "calc(100% / 2)" : "100%"}
               sx={{ objectFit: "contain", bgcolor: "#000" }}
-              controls={mediaType === "video"}
+              controls={item.type === "video"}
               onClick={(event) => {
-                if (mediaType === "video") {
+                if (item.type === "video") {
                   event.preventDefault();
                   event.stopPropagation();
                 }
@@ -190,11 +191,11 @@ const ContentCard = ({ content, userProfile, handleClose }) => {
               width: "95%",
             }}
           >
-            {mediaUrl.map((url, index) => (
+            {media.map((item, index) => (
               <Box
                 key={index}
-                component={mediaType === "image" ? "img" : "video"}
-                src={url}
+                component={item.type === "image" ? "img" : "video"}
+                src={item.url}
                 sx={{
                   height: "8rem",
                   width: "8rem",
@@ -203,7 +204,7 @@ const ContentCard = ({ content, userProfile, handleClose }) => {
                   bgcolor: "#000",
                   borderRadius: ".4rem",
                 }}
-                controls={mediaType === "video"}
+                controls={item.type === "video"}
                 onClick={previewMedia}
               />
             ))}
@@ -218,7 +219,7 @@ const ContentCard = ({ content, userProfile, handleClose }) => {
     if (type === "post") {
       return (
         <Stack flexDirection="row" gap={1} sx={{ width: "100%" }}>
-          <ReactionChip content={content} userProfile={userProfile} userReaction={userReaction} setShowReactedAnimation={setShowReactedAnimation} />
+          <ReactionChip content={content} userProfile={userProfile} userReaction={userReaction} />
           <Chip icon={<CommentRoundedIcon />} label="Comment" onClick={() => setOpenCommentViewModal(true)} variant="outlined" sx={{ width: "100%" }} />
           <Chip icon={<ShareRoundedIcon />} label="Share" onClick={() => setOpenShareModal(true)} variant="outlined" sx={{ width: "100%" }} />
         </Stack>
@@ -269,7 +270,7 @@ const ContentCard = ({ content, userProfile, handleClose }) => {
               <ListItemText
                 primary={truncateName(firstName + " " + lastName)}
                 secondary={`${formatDate(createdAt)}`}
-                sx={{ marginLeft: { sx: ".2rem", sm: ".5rem" } }} // Reduce margin
+                sx={{ marginLeft: { sx: ".2rem", sm: ".5rem" } }}
                 slotProps={{
                   primary: {
                     sx: { fontWeight: "bold", color: "#0000008d", fontSize: { xs: ".9rem", sm: "1rem" } },
@@ -297,7 +298,7 @@ const ContentCard = ({ content, userProfile, handleClose }) => {
             {isSelf && (
               <SpeedDialAction icon={isDeletingContent ? <CircularProgress size={24} /> : <Delete />} tooltipTitle={isDeletingContent ? "Deleting..." : "Delete"} onClick={handleDeleteClick} />
             )}
-            {mediaUrl.length > 0 && <SpeedDialAction icon={<DownloadIcon />} tooltipTitle={isDownloading ? "Downloading..." : "Download"} onClick={handleDownload} />}
+            {media.length > 0 && <SpeedDialAction icon={<DownloadIcon />} tooltipTitle={isDownloading ? "Downloading..." : "Download"} onClick={handleDownload} />}
             <SpeedDialAction
               icon={isTogglingSave ? <CircularProgress size={24} /> : <SaveIcon sx={{ color: isSavedByUser ? "#ffffff" : "#000000" }} />}
               tooltipTitle={isSavedByUser ? "Unsave" : "Save"}
@@ -334,20 +335,8 @@ const ContentCard = ({ content, userProfile, handleClose }) => {
                   <Avatar key={index} sx={{ width: "1.6rem", height: "1.6rem", boxShadow: 3 }} src={reaction.user.profileImage || ""} />
                 ))}
               </AvatarGroup>
-              <Typography
-                variant="body2"
-                sx={{
-                  ml: ".4rem",
-                  fontFamily: "poppins",
-                  fontSize: ".7rem",
-                  cursor: "pointer",
-                }}
-                onClick={handleOpenReactionViewModal}
-              >
-                {getReactedByText({
-                  reactionDetails, // Pass the attached reactionDetails
-                  userProfile,
-                })}
+              <Typography variant="body2" sx={{ ml: ".4rem", fontFamily: "poppins", fontSize: ".7rem", cursor: "pointer" }} onClick={handleOpenReactionViewModal}>
+                {getReactedByText({ reactionDetails, userProfile })}
               </Typography>
             </Stack>
           )}
