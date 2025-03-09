@@ -32,9 +32,8 @@ const usePushNotifications = () => {
         });
 
         // Log and send the subscription (token) to your backend
-        console.log("Successfully obtained FCM token:", JSON.stringify(subscription));
+        console.log("Successfully obtained subscription", JSON.stringify(subscription));
         await axiosInstance.post("notification/push-subscription", { subscription });
-        console.log("FCM token sent to backend.");
       } catch (error) {
         console.error("Error during push initialization:", error);
       }

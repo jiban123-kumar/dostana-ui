@@ -1,4 +1,3 @@
-// vite.config.js
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
@@ -7,14 +6,18 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
+      strategies: "injectManifest", // Use your custom service worker
       registerType: "autoUpdate",
-      injectRegister: "auto",
+      injectRegister: false,
+      includeManifestIcons: false,
+      filename: "sw.js",
+
       includeAssets: ["favicon.ico", "companyFavicon.png", "src/assets/*.png", "src/assets/sounds/*.mp3", "src/animation/offline.json"],
       manifest: {
         name: "Dostana - Making Friends Together",
         short_name: "Dostana",
         description: "Dostana - A social media app",
-        start_url: "/home",
+        start_url: "/",
         display: "standalone",
         background_color: "#ffffff",
         theme_color: "#1976d2",
@@ -29,24 +32,34 @@ export default defineConfig({
             sizes: "512x512",
             type: "image/png",
           },
-          {
-            src: "/companyFaviIcon.ico",
-            sizes: "64x64 32x32 24x24 16x16",
-            type: "image/x-icon",
-          },
         ],
       },
+      srcDir: "src/service-worker",
       injectManifest: {
-        swSrc: "src/sw.js", // custom SW file
-        swDest: "sw.js", // output location at the root
+        maximumFileSizeToCacheInBytes: 10 * 1024 * 1024,
       },
       workbox: {
-        maximumFileSizeToCacheInBytes: 10 * 1024 * 1024, // Increase to 10 MiB if needed
+        maximumFileSizeToCacheInBytes: 10 * 1024 * 1024,
+        runtimeCaching: [
+          {
+            urlPattern: /^https:\/\/fonts\.(?:googleapis|gstatic)\.com\/.*/i,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "google-fonts-cache",
+              expiration: {
+                maxEntries: 10,
+                maxAgeSeconds: 60 * 60 * 24 * 365,
+              },
+            },
+          },
+        ],
       },
       devOptions: {
         enabled: true,
         type: "module",
+        navigateFallback: "/",
       },
     }),
   ],
+  build: {},
 });

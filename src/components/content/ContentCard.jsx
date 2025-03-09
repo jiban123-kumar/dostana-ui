@@ -56,9 +56,6 @@ const ContentCard = ({ content, userProfile, handleClose }) => {
     isSavedByUser,
     reactionDetails,
   } = content || {};
-  console.log(content);
-
-  console.log(media);
 
   const isSmallScreen = useMediaQuery("(max-width:480px)");
   const isBelow600 = useMediaQuery("(max-width:600px)");
