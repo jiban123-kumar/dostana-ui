@@ -16,7 +16,7 @@ const SingleContentModal = ({ contentId, open, handleClose }) => {
   // If there's an error, check for 404 vs. other errors.
   if (error) {
     return (
-      <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm" slotProps={{ paper: { sx: { overflowX: "hidden" } } }} fullScreen={isBelow600}>
+      <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm" slotProps={{ paper: { sx: { overflowX: "hidden" } } }}>
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", minHeight: "60vh", justifyContent: "center" }}>
           <Lottie animationData={noPostFoundAnimation} style={{ width: { xs: "90%", sm: 300 }, height: 300 }} />
           <Typography variant="body2" sx={{ fontWeight: "bold", transform: "translateY(-2rem)" }}>
@@ -28,7 +28,7 @@ const SingleContentModal = ({ contentId, open, handleClose }) => {
   }
 
   return (
-    <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm" slotProps={{ paper: { sx: { overflow: "visible" } } }} fullScreen={isBelow600}>
+    <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm" slotProps={{ paper: { sx: { overflow: "visible" } } }}>
       {isFetchingContent ? <ContentCardSkeleton /> : content && <ContentCard content={content} userProfile={userProfile} handleClose={handleClose} />}
     </Dialog>
   );
