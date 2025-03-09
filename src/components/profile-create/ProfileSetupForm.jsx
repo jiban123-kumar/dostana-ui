@@ -36,7 +36,7 @@ const ProfileSetupForm = () => {
         },
       }}
     >
-      <DialogContent dividers>
+      <DialogContent dividers sx={{ px: { md: "1rem", sm: ".6rem", xs: ".3rem" } }}>
         {/* Logo */}
         <Stack alignItems="center">
           <Box component="img" src={secondaryCompanyLogo} alt="Logo" sx={{ width: { md: "12rem", sm: "10rem", xs: "8rem" } }} />

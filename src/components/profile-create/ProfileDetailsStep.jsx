@@ -100,7 +100,7 @@ const ProfileDetailsStep = ({ setCurrentStep }) => {
         <Stack gap={2}>
           {/* Profile Name Section */}
           <Stack>
-            <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: "bold", fontSize: { md: "1.2rem", sm: "1rem", xs: ".9rem" } }}>
               Profile Name
             </Typography>
             <Stack spacing={1}>
@@ -133,7 +133,7 @@ const ProfileDetailsStep = ({ setCurrentStep }) => {
 
           {/* Mobile Number Section */}
           <Stack>
-            <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: "bold", fontSize: { md: "1.2rem", sm: "1rem", xs: ".9rem" } }}>
               Mobile Number
             </Typography>
             <Stack direction="row" spacing={2} mt={1}>

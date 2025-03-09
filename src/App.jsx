@@ -45,7 +45,6 @@ const App = () => {
           <Route path="signup" element={<SignupPage />} />
           <Route path="profile-setup" element={<UserProfileCreationPage />} />
           <Route path="forget-password" element={<ForgetPasswordPage />} />
-          <Route path="welcome" element={<UserProfileCreationBannerPage />} />
           <Route
             path="/"
             element={
@@ -54,6 +53,7 @@ const App = () => {
               </SocketProvider>
             }
           >
+            <Route path="welcome" element={<UserProfileCreationBannerPage />} />
             <Route path="home" element={<HomePage />}>
               <Route path="content/:contentId" element={<SingleContentViewModal />} />
             </Route>

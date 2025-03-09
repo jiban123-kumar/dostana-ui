@@ -182,7 +182,7 @@ const NotificationModal = ({ open, handleClose }) => {
       <DialogContent
         ref={dialogContentRef}
         sx={{
-          maxHeight: "60vh",
+          maxHeight: { xs: "100vh", sm: "60vh" },
           overflowY: "auto",
           padding: isSmallScreen ? "0.5rem" : "1rem",
         }}

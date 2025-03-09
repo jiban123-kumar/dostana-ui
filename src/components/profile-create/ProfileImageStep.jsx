@@ -47,7 +47,7 @@ const ProfileImageStep = ({ coverImage, profileImage, updateCoverImage, updatePr
         <Stack gap={2}>
           {/* Profile Picture Section */}
           <Stack spacing={1}>
-            <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: "bold", fontSize: { md: "1.2rem", sm: "1rem", xs: ".9rem" } }}>
               Profile Picture
             </Typography>
             <Stack alignItems="center">
@@ -79,13 +79,13 @@ const ProfileImageStep = ({ coverImage, profileImage, updateCoverImage, updatePr
 
           {/* Cover Picture Section */}
           <Stack spacing={1} py={1}>
-            <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: "bold", fontSize: { md: "1.2rem", sm: "1rem", xs: ".9rem" } }}>
               Cover Picture
             </Typography>
             <Stack alignItems="center">
               <Stack position="relative" width={"90%"}>
                 {getPreviewUrl(coverImage, null) ? (
-                  <Box component={"img"} src={getPreviewUrl(coverImage, null)} alt="Cover Preview" sx={{ width: "100%", height: { md: "14rem", sm: "12rem", xs: "10rem" }, objectFit: "cover" }} />
+                  <Box component={"img"} src={getPreviewUrl(coverImage, null)} alt="Cover Preview" sx={{ width: "100%", height: { md: "14rem", sm: "12rem", xs: "8rem" }, objectFit: "cover" }} />
                 ) : (
                   <Skeleton variant="rounded" width="100%" height="14rem" animation="wave" />
                 )}

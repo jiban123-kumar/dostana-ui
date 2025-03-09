@@ -1,6 +1,6 @@
 import React, { useContext, memo, useEffect, useState } from "react";
 import { Stack, useMediaQuery } from "@mui/material";
-import { Outlet, useNavigate, useSearchParams } from "react-router-dom";
+import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import TopNav from "./top-nav-bar/TopNav";
 import SideNav from "./SideNav";
 import { SocketContext } from "../../contextProvider/SocketProvider";
@@ -13,6 +13,7 @@ import { useSocketNotificationListener } from "../../socketHooks/useSocketNotifi
 import { useDispatch } from "react-redux";
 import { showAlert } from "../../reduxSlices/alertSlice";
 import { useUserProfile } from "../../hooks/userProfile/userProfile";
+
 const AppLayout = () => {
   const { isLoading: isProfileFetching, data: userProfile, isError: isProfileError, isFetched: isProfileFetched } = useUserProfile();
   const [isReady, setIsReady] = useState(false);
@@ -20,6 +21,10 @@ const AppLayout = () => {
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Determine if we should hide the navigation (for example on the welcome page)
+  const hideNav = location.pathname === "/welcome";
 
   const socket = useContext(SocketContext);
 
@@ -29,9 +34,6 @@ const AppLayout = () => {
   useSocketFriendStatusListener(socket);
   useSocketMessageListener(socket);
   useSocketNotificationListener(socket);
-
-  // Initialize push notifications only when the user profile is complete.
-  // The hook's effect will run only if the passed parameter is truthy.
 
   useEffect(() => {
     if (isProfileFetching) return;
@@ -49,7 +51,9 @@ const AppLayout = () => {
       if (!userProfile?.isProfileComplete) {
         navigate("/welcome");
       }
-
+      if (userProfile?.isProfileComplete) {
+        navigate("/home");
+      }
       setIsReady(true);
     }
   }, [isProfileError, isProfileFetched, userProfile, navigate, dispatch, isProfileFetching]);
@@ -60,7 +64,8 @@ const AppLayout = () => {
 
   return (
     <Stack height="100vh" overflow="hidden">
-      <TopNav />
+      {/* Conditionally render TopNav only if not on /welcome */}
+      {!hideNav && <TopNav />}
       <Stack
         flex={1}
         sx={{
@@ -69,7 +74,8 @@ const AppLayout = () => {
           flexDirection: "row",
         }}
       >
-        {!bellow1300px && <SideNav />}
+        {/* Conditionally render SideNav only if not on /welcome and screen is wide enough */}
+        {!hideNav && !bellow1300px && <SideNav />}
         <Stack
           alignItems="center"
           sx={{

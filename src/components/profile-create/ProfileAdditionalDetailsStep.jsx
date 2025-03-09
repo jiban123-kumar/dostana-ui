@@ -84,7 +84,7 @@ const ProfileAdditionalDetailsStep = ({ coverImage, profileImage, setCurrentStep
         <Stack gap={2}>
           {/* Gender Selection */}
           <Stack>
-            <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: "bold", fontSize: { md: "1.2rem", sm: "1rem", xs: ".9rem" } }}>
               Gender
             </Typography>
             <Select
@@ -103,7 +103,7 @@ const ProfileAdditionalDetailsStep = ({ coverImage, profileImage, setCurrentStep
 
           {/* Date of Birth Input */}
           <Stack>
-            <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: "bold", fontSize: { md: "1.2rem", sm: "1rem", xs: ".9rem" } }}>
               Date of Birth
             </Typography>
             <TextField
@@ -123,7 +123,7 @@ const ProfileAdditionalDetailsStep = ({ coverImage, profileImage, setCurrentStep
 
           {/* About Me Input */}
           <Stack>
-            <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: "bold", fontSize: { md: "1.2rem", sm: "1rem", xs: ".9rem" } }}>
               About Me
             </Typography>
             <TextField
