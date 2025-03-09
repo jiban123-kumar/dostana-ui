@@ -51,9 +51,6 @@ const AppLayout = () => {
       if (!userProfile?.isProfileComplete) {
         navigate("/welcome");
       }
-      if (userProfile?.isProfileComplete) {
-        navigate("/home");
-      }
       setIsReady(true);
     }
   }, [isProfileError, isProfileFetched, userProfile, navigate, dispatch, isProfileFetching]);
