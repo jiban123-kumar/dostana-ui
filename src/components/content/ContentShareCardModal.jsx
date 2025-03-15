@@ -190,64 +190,7 @@ const ContentShareCardModal = ({ onClose, open, content }) => {
                     </ListItemButton>
                   </ListItem>
                 ))}
-
-                {friends.map((user) => (
-                  <ListItem key={user._id}>
-                    <ListItemButton onClick={() => handleButtonClick(user)} sx={{ p: "1rem", borderRadius: ".4rem", boxShadow: 3 }}>
-                      <ListItemAvatar>
-                        <Avatar src={user.profileImage || ""} sx={{ height: { sm: "3rem", xs: "2.6rem" }, width: { sm: "3rem", xs: "2.6rem" }, boxShadow: 3 }} />
-                      </ListItemAvatar>
-                      <ListItemText primary={`${user.firstName} ${user.lastName}`} primaryTypographyProps={{ fontWeight: "bold", fontSize: { sm: "1rem", xs: ".9rem" } }} />
-                      <Checkbox onChange={(event) => handleCheckboxChange(event, user)} checked={selectedUsers.includes(user._id)} />
-                    </ListItemButton>
-                  </ListItem>
                 ))}
-
-                {friends.map((user) => (
-                  <ListItem key={user._id}>
-                    <ListItemButton onClick={() => handleButtonClick(user)} sx={{ p: "1rem", borderRadius: ".4rem", boxShadow: 3 }}>
-                      <ListItemAvatar>
-                        <Avatar src={user.profileImage || ""} sx={{ height: { sm: "3rem", xs: "2.6rem" }, width: { sm: "3rem", xs: "2.6rem" }, boxShadow: 3 }} />
-                      </ListItemAvatar>
-                      <ListItemText primary={`${user.firstName} ${user.lastName}`} primaryTypographyProps={{ fontWeight: "bold", fontSize: { sm: "1rem", xs: ".9rem" } }} />
-                      <Checkbox onChange={(event) => handleCheckboxChange(event, user)} checked={selectedUsers.includes(user._id)} />
-                    </ListItemButton>
-                  </ListItem>
-                ))}
-                {friends.map((user) => (
-                  <ListItem key={user._id}>
-                    <ListItemButton onClick={() => handleButtonClick(user)} sx={{ p: "1rem", borderRadius: ".4rem", boxShadow: 3 }}>
-                      <ListItemAvatar>
-                        <Avatar src={user.profileImage || ""} sx={{ height: { sm: "3rem", xs: "2.6rem" }, width: { sm: "3rem", xs: "2.6rem" }, boxShadow: 3 }} />
-                      </ListItemAvatar>
-                      <ListItemText primary={`${user.firstName} ${user.lastName}`} primaryTypographyProps={{ fontWeight: "bold", fontSize: { sm: "1rem", xs: ".9rem" } }} />
-                      <Checkbox onChange={(event) => handleCheckboxChange(event, user)} checked={selectedUsers.includes(user._id)} />
-                    </ListItemButton>
-                  </ListItem>
-                ))}
-                {friends.map((user) => (
-                  <ListItem key={user._id}>
-                    <ListItemButton onClick={() => handleButtonClick(user)} sx={{ p: "1rem", borderRadius: ".4rem", boxShadow: 3 }}>
-                      <ListItemAvatar>
-                        <Avatar src={user.profileImage || ""} sx={{ height: { sm: "3rem", xs: "2.6rem" }, width: { sm: "3rem", xs: "2.6rem" }, boxShadow: 3 }} />
-                      </ListItemAvatar>
-                      <ListItemText primary={`${user.firstName} ${user.lastName}`} primaryTypographyProps={{ fontWeight: "bold", fontSize: { sm: "1rem", xs: ".9rem" } }} />
-                      <Checkbox onChange={(event) => handleCheckboxChange(event, user)} checked={selectedUsers.includes(user._id)} />
-                    </ListItemButton>
-                  </ListItem>
-                ))}
-                {friends.map((user) => (
-                  <ListItem key={user._id}>
-                    <ListItemButton onClick={() => handleButtonClick(user)} sx={{ p: "1rem", borderRadius: ".4rem", boxShadow: 3 }}>
-                      <ListItemAvatar>
-                        <Avatar src={user.profileImage || ""} sx={{ height: { sm: "3rem", xs: "2.6rem" }, width: { sm: "3rem", xs: "2.6rem" }, boxShadow: 3 }} />
-                      </ListItemAvatar>
-                      <ListItemText primary={`${user.firstName} ${user.lastName}`} primaryTypographyProps={{ fontWeight: "bold", fontSize: { sm: "1rem", xs: ".9rem" } }} />
-                      <Checkbox onChange={(event) => handleCheckboxChange(event, user)} checked={selectedUsers.includes(user._id)} />
-                    </ListItemButton>
-                  </ListItem>
-                ))}
-
                 {/* Sentinel for Intersection Observer */}
                 <div ref={loadMoreRef} style={{ height: 1 }} />
                 {isFetchingNextPage && (
