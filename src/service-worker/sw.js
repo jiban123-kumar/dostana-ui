@@ -33,7 +33,6 @@ self.addEventListener("push", (event) => {
   const options = {
     body: data.body || "You have a new message.",
     icon: "/companyFaviIcon.png",
-    badge: "/companyFaviIcon.png",
     data: {
       url: data.data?.url || "https://dostana-ui.vercel.app",
     },
