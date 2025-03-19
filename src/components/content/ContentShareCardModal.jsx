@@ -190,7 +190,6 @@ const ContentShareCardModal = ({ onClose, open, content }) => {
                     </ListItemButton>
                   </ListItem>
                 ))}
-                ))}
                 {/* Sentinel for Intersection Observer */}
                 <div ref={loadMoreRef} style={{ height: 1 }} />
                 {isFetchingNextPage && (
