@@ -58,7 +58,8 @@ const ContentFeed = ({ contents = [], fetchNextPage, hasNextPage, isFetchingNext
 
   return (
     <List sx={{ display: "flex", flexDirection: "column", gap: "2rem", maxWidth: "95%", width: { xs: "95%", sm: "28rem", md: "38rem" } }}>
-      <AnimatePresence initial={false}>{renderedContents}</AnimatePresence>
+      {/* <AnimatePresence initial={false}>{renderedContents}</AnimatePresence> */}
+      {renderedContents}
       {showFeedLogo && !contents.length && <NoFeedMsg textMsg="No more content" />}
       {isFetchingNextPage && (
         <Stack mt={2} alignItems="center">

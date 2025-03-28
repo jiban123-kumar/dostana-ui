@@ -12,6 +12,7 @@ import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import ReactPlayer from "react-player";
 
 // Helpers & Utils
 import { formatDate } from "../../utilsFunction/dateFn.js";
@@ -151,20 +152,32 @@ const ContentCard = ({ content, userProfile, handleClose }) => {
           {media.map((item, index) => (
             <Box
               key={index}
-              component={item.type === "video" ? "video" : "img"}
-              src={item.url}
-              height="100%"
-              width={media.length > 1 ? "calc(100% / 2)" : "100%"}
-              sx={{ objectFit: "contain", bgcolor: "#000" }}
-              controls={item.type === "video"}
+              sx={{
+                height: "100%",
+                width: media.length > 1 ? "calc(100% / 2)" : "100%",
+                bgcolor: "#000",
+                position: "relative",
+              }}
               onClick={(event) => {
-                if (item.type === "video") {
-                  event.preventDefault();
-                  event.stopPropagation();
-                }
+                event.preventDefault();
+                event.stopPropagation();
                 previewMedia();
               }}
-            />
+            >
+              {item.type === "video" ? (
+                <ReactPlayer url={item.url} width="100%" height="100%" controls style={{ objectFit: "contain" }} />
+              ) : (
+                <Box
+                  component="img"
+                  src={item.url}
+                  sx={{
+                    objectFit: "contain",
+                    width: "100%",
+                    height: "100%",
+                  }}
+                />
+              )}
+            </Box>
           ))}
         </Stack>
       );
@@ -192,6 +205,7 @@ const ContentCard = ({ content, userProfile, handleClose }) => {
               <Box
                 key={index}
                 component={item.type === "image" ? "img" : "video"}
+                loading="lazy"
                 src={item.url}
                 sx={{
                   height: "8rem",
@@ -232,121 +246,119 @@ const ContentCard = ({ content, userProfile, handleClose }) => {
   };
 
   return (
-    <motion.div variants={cardVariants} initial="hidden" animate="visible" exit="exit" style={{ width: "100%" }}>
-      <Stack
-        sx={{
-          minHeight: type === "post" ? "20rem" : "10rem",
-          width: "100%",
-          borderRadius: ".8rem",
-          boxShadow: 3,
-          bgcolor: "#fff",
-          position: "relative",
-        }}
-      >
-        {/* Header Section */}
-        <Stack flexDirection="row" justifyContent="space-between" alignItems="center" pr={0} py={".4rem"} pl={{ md: ".8rem", sm: ".2rem" }}>
-          <List sx={{ mr: "1.8rem" }}>
-            <Box sx={{ display: "flex", alignItems: "center" }}>
-              {isBelow600 && handleClose && (
-                <IconButton onClick={handleClose}>
-                  <ArrowBackIcon sx={{ ml: ".4rem" }} />
-                </IconButton>
-              )}
-              <Tooltip title="View Profile">
-                <IconButton onClick={navigateToProfile}>
-                  <Avatar
-                    sx={{
-                      height: { xs: "2.8rem", sm: "3.2rem" },
-                      width: { xs: "2.8rem", sm: "3.2rem" },
-                      boxShadow: 3,
-                    }}
-                    src={profileImage || ""}
-                  />
-                </IconButton>
-              </Tooltip>
-              <ListItemText
-                primary={truncateName(firstName + " " + lastName)}
-                secondary={`${formatDate(createdAt)}`}
-                sx={{ marginLeft: { sx: ".2rem", sm: ".5rem" } }}
-                slotProps={{
-                  primary: {
-                    sx: { fontWeight: "bold", color: "#0000008d", fontSize: { xs: ".9rem", sm: "1rem" } },
-                  },
-                }}
-              />
-            </Box>
-          </List>
-
-          <SpeedDial
-            ariaLabel="SpeedDial"
-            direction="left"
-            sx={{
-              zIndex: 1,
-              position: "absolute",
-              right: { xs: "-.2rem", sm: ".2rem" },
-              "& .MuiSpeedDial-fab": {
-                boxShadow: "none",
-                backgroundColor: "transparent",
-                "&:hover": { backgroundColor: "transparent" },
-              },
-            }}
-            icon={<MoreVertIcon sx={{ color: "#0000007f" }} />}
-          >
-            {isSelf && (
-              <SpeedDialAction icon={isDeletingContent ? <CircularProgress size={24} /> : <Delete />} tooltipTitle={isDeletingContent ? "Deleting..." : "Delete"} onClick={handleDeleteClick} />
+    // <motion.div variants={cardVariants} initial="hidden" animate="visible" exit="exit" style={{ width: "100%" }}>
+    <Stack
+      sx={{
+        minHeight: type === "post" ? "20rem" : "10rem",
+        width: "100%",
+        borderRadius: ".8rem",
+        boxShadow: 3,
+        bgcolor: "#fff",
+        position: "relative",
+      }}
+    >
+      {/* Header Section */}
+      <Stack flexDirection="row" justifyContent="space-between" alignItems="center" pr={0} py={".4rem"} pl={{ md: ".8rem", sm: ".2rem" }}>
+        <List sx={{ mr: "1.8rem" }}>
+          <Box sx={{ display: "flex", alignItems: "center" }}>
+            {isBelow600 && handleClose && (
+              <IconButton onClick={handleClose}>
+                <ArrowBackIcon sx={{ ml: ".4rem" }} />
+              </IconButton>
             )}
-            {media.length > 0 && <SpeedDialAction icon={<DownloadIcon />} tooltipTitle={isDownloading ? "Downloading..." : "Download"} onClick={handleDownload} />}
-            <SpeedDialAction
-              icon={isTogglingSave ? <CircularProgress size={24} /> : <SaveIcon sx={{ color: isSavedByUser ? "#ffffff" : "#000000" }} />}
-              tooltipTitle={isSavedByUser ? "Unsave" : "Save"}
-              sx={{ bgcolor: isSavedByUser ? "#006400" : "transparent" }}
-              onClick={handleSaveOrUnsave}
+            <Tooltip title="View Profile">
+              <IconButton onClick={navigateToProfile}>
+                <Avatar
+                  sx={{
+                    height: { xs: "2.8rem", sm: "3.2rem" },
+                    width: { xs: "2.8rem", sm: "3.2rem" },
+                    boxShadow: 3,
+                  }}
+                  src={profileImage || ""}
+                />
+              </IconButton>
+            </Tooltip>
+            <ListItemText
+              primary={truncateName(firstName + " " + lastName)}
+              secondary={`${formatDate(createdAt)}`}
+              sx={{ marginLeft: { sx: ".2rem", sm: ".5rem" } }}
+              slotProps={{
+                primary: {
+                  sx: { fontWeight: "bold", color: "#0000008d", fontSize: { xs: ".9rem", sm: "1rem" } },
+                },
+              }}
             />
-            {type === "thought" && <SpeedDialAction icon={<ShareRoundedIcon />} tooltipTitle="Share" onClick={() => setOpenShareModal(true)} />}
-          </SpeedDial>
-        </Stack>
+          </Box>
+        </List>
 
-        {/* Caption Section (if any) */}
-        {caption.trim().length > 0 && (
-          <Stack sx={{ px: "1rem" }}>
-            <Typography variant="body2" sx={{ color: "#000000" }}>
-              {expandedCaption || caption.length <= 100 ? caption : `${caption.substring(0, 100)}... `}
-              {!expandedCaption && caption.length > 100 && (
-                <span style={{ color: "#1976d2", cursor: "pointer" }} onClick={() => setExpandedCaption(true)}>
-                  Read More
-                </span>
-              )}
+        <SpeedDial
+          ariaLabel="SpeedDial"
+          direction="left"
+          sx={{
+            zIndex: 1,
+            position: "absolute",
+            right: { xs: "-.2rem", sm: ".2rem" },
+            "& .MuiSpeedDial-fab": {
+              boxShadow: "none",
+              backgroundColor: "transparent",
+              "&:hover": { backgroundColor: "transparent" },
+            },
+          }}
+          icon={<MoreVertIcon sx={{ color: "#0000007f" }} />}
+        >
+          {isSelf && <SpeedDialAction icon={isDeletingContent ? <CircularProgress size={24} /> : <Delete />} tooltipTitle={isDeletingContent ? "Deleting..." : "Delete"} onClick={handleDeleteClick} />}
+          {media.length > 0 && <SpeedDialAction icon={<DownloadIcon />} tooltipTitle={isDownloading ? "Downloading..." : "Download"} onClick={handleDownload} />}
+          <SpeedDialAction
+            icon={isTogglingSave ? <CircularProgress size={24} /> : <SaveIcon sx={{ color: isSavedByUser ? "#ffffff" : "#000000" }} />}
+            tooltipTitle={isSavedByUser ? "Unsave" : "Save"}
+            sx={{ bgcolor: isSavedByUser ? "#006400" : "transparent" }}
+            onClick={handleSaveOrUnsave}
+          />
+          {type === "thought" && <SpeedDialAction icon={<ShareRoundedIcon />} tooltipTitle="Share" onClick={() => setOpenShareModal(true)} />}
+        </SpeedDial>
+      </Stack>
+
+      {/* Caption Section (if any) */}
+      {caption.trim().length > 0 && (
+        <Stack sx={{ px: "1rem" }}>
+          <Typography variant="body2" sx={{ color: "#000000" }}>
+            {expandedCaption || caption.length <= 100 ? caption : `${caption.substring(0, 100)}... `}
+            {!expandedCaption && caption.length > 100 && (
+              <span style={{ color: "#1976d2", cursor: "pointer" }} onClick={() => setExpandedCaption(true)}>
+                Read More
+              </span>
+            )}
+          </Typography>
+        </Stack>
+      )}
+
+      {/* Media Section */}
+      {renderMediaSection()}
+
+      {/* Reaction and Action Buttons */}
+      <Stack p={".8rem"}>
+        {totalReactions > 0 && (
+          <Stack px={".2rem"} sx={{ mb: ".4rem" }} flexDirection="row" alignItems="center" gap={".2rem"}>
+            <AvatarGroup max={3} onClick={() => setOpenReactionViewModal(true)} sx={{ cursor: "pointer" }}>
+              {reactions.map((reaction, index) => (
+                <Avatar key={index} sx={{ width: "1.6rem", height: "1.6rem", boxShadow: 3 }} src={reaction.user.profileImage || ""} />
+              ))}
+            </AvatarGroup>
+            <Typography variant="body2" sx={{ ml: ".4rem", fontFamily: "poppins", fontSize: ".7rem", cursor: "pointer" }} onClick={handleOpenReactionViewModal}>
+              {getReactedByText({ reactionDetails, userProfile })}
             </Typography>
           </Stack>
         )}
 
-        {/* Media Section */}
-        {renderMediaSection()}
-
-        {/* Reaction and Action Buttons */}
-        <Stack p={".8rem"}>
-          {totalReactions > 0 && (
-            <Stack px={".2rem"} sx={{ mb: ".4rem" }} flexDirection="row" alignItems="center" gap={".2rem"}>
-              <AvatarGroup max={3} onClick={() => setOpenReactionViewModal(true)} sx={{ cursor: "pointer" }}>
-                {reactions.map((reaction, index) => (
-                  <Avatar key={index} sx={{ width: "1.6rem", height: "1.6rem", boxShadow: 3 }} src={reaction.user.profileImage || ""} />
-                ))}
-              </AvatarGroup>
-              <Typography variant="body2" sx={{ ml: ".4rem", fontFamily: "poppins", fontSize: ".7rem", cursor: "pointer" }} onClick={handleOpenReactionViewModal}>
-                {getReactedByText({ reactionDetails, userProfile })}
-              </Typography>
-            </Stack>
-          )}
-
-          {renderActionButtons()}
-        </Stack>
-
-        {/* Modals */}
-        {openReactionViewModal && <ReactionViewModal contentOwner={contentOwner} open={openReactionViewModal} onClose={() => setOpenReactionViewModal(false)} content={content} />}
-        {openCommentViewModal && <CommentsViewModal open={openCommentViewModal} onClose={() => setOpenCommentViewModal(false)} contentOwner={contentOwner} content={content} />}
-        {openShareModal && <ContentShareCardModal open={openShareModal} onClose={() => setOpenShareModal(false)} content={content} contentOwner={contentOwner} />}
+        {renderActionButtons()}
       </Stack>
-    </motion.div>
+
+      {/* Modals */}
+      {openReactionViewModal && <ReactionViewModal contentOwner={contentOwner} open={openReactionViewModal} onClose={() => setOpenReactionViewModal(false)} content={content} />}
+      {openCommentViewModal && <CommentsViewModal open={openCommentViewModal} onClose={() => setOpenCommentViewModal(false)} contentOwner={contentOwner} content={content} />}
+      {openShareModal && <ContentShareCardModal open={openShareModal} onClose={() => setOpenShareModal(false)} content={content} contentOwner={contentOwner} />}
+    </Stack>
+    // </motion.div>
   );
 };
 
