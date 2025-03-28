@@ -89,7 +89,7 @@ const Message = ({ message, chatId, recipient, userProfile, onView }) => {
   const navigate = useNavigate();
 
   const isMyMessage = message?.sender?.toString() !== recipient._id?.toString();
-  const hasOnlyOneImage = message?.media && message?.media.length === 1 && !message.text;
+  const hasOnlyOneImage = message?.media && message?.media.length === 1 && !message.text.trim();
 
   const handleMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
@@ -146,12 +146,12 @@ const Message = ({ message, chatId, recipient, userProfile, onView }) => {
     );
   };
 
-  const onMediaClick = () => {
-    console.log(message);
+  const onMediaClick = (index) => {
     dispatch(
       openMediaDialog({
         mediaSources: message.media,
         showDownload: true,
+        selectedIndex: index,
       })
     );
   };
@@ -228,7 +228,7 @@ const Message = ({ message, chatId, recipient, userProfile, onView }) => {
                     },
                     display: "block",
                   }}
-                  onClick={onMediaClick}
+                  onClick={() => onMediaClick(0)}
                 />
               )}
 
@@ -238,8 +238,8 @@ const Message = ({ message, chatId, recipient, userProfile, onView }) => {
                 sx={{
                   position: "absolute",
                   top: 8,
-                  right: { xs: ".4rem", sm: "1rem" },
-                  backgroundColor: "rgba(0, 0, 0, 0.5)",
+                  right: { xs: ".4rem" },
+                  backgroundColor: "rgba(5, 3, 3, 0.5)",
                   color: "white",
                   "&:hover": {
                     backgroundColor: "rgba(0, 0, 0, 0.7)",
@@ -318,7 +318,7 @@ const Message = ({ message, chatId, recipient, userProfile, onView }) => {
                               transform: "scale(1.05)",
                             },
                           }}
-                          onClick={onMediaClick}
+                          onClick={() => onMediaClick(index)}
                         />
                       );
                     }

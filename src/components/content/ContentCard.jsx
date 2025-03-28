@@ -82,8 +82,9 @@ const ContentCard = ({ content, userProfile, handleClose }) => {
   const [openShareModal, setOpenShareModal] = useState(false);
 
   // Preview media (open media dialog) using the new media structure.
-  const previewMedia = () => {
-    dispatch(openMediaDialog({ mediaSources: media, showDownload: true }));
+  const previewMedia = (index) => {
+    console.log(media, index);
+    dispatch(openMediaDialog({ mediaSources: media, showDownload: true, selectedIndex: index }));
   };
 
   // Navigate to the content owner's profile.
@@ -157,11 +158,12 @@ const ContentCard = ({ content, userProfile, handleClose }) => {
                 width: media.length > 1 ? "calc(100% / 2)" : "100%",
                 bgcolor: "#000",
                 position: "relative",
+                cursor: "pointer",
               }}
               onClick={(event) => {
                 event.preventDefault();
                 event.stopPropagation();
-                previewMedia();
+                previewMedia(index);
               }}
             >
               {item.type === "video" ? (
@@ -216,7 +218,9 @@ const ContentCard = ({ content, userProfile, handleClose }) => {
                   borderRadius: ".4rem",
                 }}
                 controls={item.type === "video"}
-                onClick={previewMedia}
+                onClick={() => {
+                  previewMedia(index);
+                }}
               />
             ))}
           </Stack>

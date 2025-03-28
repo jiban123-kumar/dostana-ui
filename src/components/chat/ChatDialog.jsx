@@ -124,7 +124,7 @@ const ChatDialog = ({ open, handleClose }) => {
     const mediaPreviews = attachedImages.map((file) => URL.createObjectURL(file));
     const newPendingMessage = {
       clientId,
-      text: messageText,
+      text: messageText.trim(),
       mediaFiles: attachedImages,
       mediaPreviews,
       status: "sending",
